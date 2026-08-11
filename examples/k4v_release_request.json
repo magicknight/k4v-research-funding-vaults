@@ -1,0 +1,17 @@
+{
+  "period_id": "2026-08",
+  "beneficiary_locked_balance_at_year_start": 300000000,
+  "purpose_locked_balance_at_year_start": 500000000,
+  "annual_release_bps": 300,
+  "eligible_trailing_30d_spot_volume": 100000000,
+  "market_capacity_bps": 500,
+  "beneficiary_months_since_genesis": 24,
+  "beneficiary_cliff_months": 24,
+  "beneficiary_events": [
+    {"kind": "sale", "amount": 500000}
+  ],
+  "purpose_events": [
+    {"kind": "sale", "amount": 1000000}
+  ],
+  "purpose_approved_need": 1000000
+}

@@ -1,0 +1,101 @@
+{
+  "evidence_version": "PM020-SOL-BASE-v0.1",
+  "checked_at": "2026-08-09T16:42:07.518Z",
+  "status": "LOCALNET_PASS_PUBLIC_TESTNET_FAUCET_BLOCKED",
+  "toolchain": {
+    "validator": "Agave solana-test-validator 4.2.0 (src ac82b5d4; feat 21b0d33a)",
+    "independent_cli": "Agave spl-token 4.2.0",
+    "javascript": [
+      "@solana/web3.js@1",
+      "@solana/spl-token@0.4.14"
+    ],
+    "release_source": "https://github.com/anza-xyz/agave/releases/tag/v4.2.0"
+  },
+  "public_network_attempts": {
+    "devnet": {
+      "result": "BLOCKED_BEFORE_MINT",
+      "rpc": "https://api.devnet.solana.com",
+      "smallest_failed_node": "free test-SOL airdrop",
+      "error_code": 429,
+      "error_summary": "official faucet daily limit reached or faucet dry; directed to faucet.solana.com"
+    },
+    "testnet": {
+      "result": "BLOCKED_BEFORE_MINT",
+      "rpc": "https://api.testnet.solana.com",
+      "smallest_failed_node": "free test-SOL airdrop",
+      "error_code": 429,
+      "error_summary": "official faucet daily limit reached or faucet dry; directed to faucet.solana.com"
+    }
+  },
+  "localnet_result": {
+    "network": "solana-localnet",
+    "rpc_endpoint": "http://127.0.0.1:8899",
+    "ephemeral_keys": "generated in a temporary directory; validator stopped; no secret key persisted in the project or emitted",
+    "mint": "HEKy1JJUdLGHyKsvx7jb9nwtU6xPXpmV4QGgYVBmrGt2",
+    "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "decimals": 6,
+    "expected_supply_raw": "1000000000000000",
+    "observed_supply_raw": "1000000000000000",
+    "allocations": {
+      "founder": {
+        "whole_tokens": "300000000",
+        "raw_amount": "300000000000000",
+        "token_account": "BQ4HaZAScphfTqdW4PTYWjVi7ZaPCuEDt8UMscT8EUKP",
+        "exact": true
+      },
+      "treasury": {
+        "whole_tokens": "500000000",
+        "raw_amount": "500000000000000",
+        "token_account": "HQcDgYQWa2jmWaBTWtKBLdwCPbhJTSBZg35jF393c6ZL",
+        "exact": true
+      },
+      "genesis": {
+        "whole_tokens": "120000000",
+        "raw_amount": "120000000000000",
+        "token_account": "FjXbj1wYAsTzxGNF2dzbEUGGhE7anXt6d9DQbtpDs46k",
+        "exact": true
+      },
+      "lp": {
+        "whole_tokens": "80000000",
+        "raw_amount": "80000000000000",
+        "token_account": "G8JAfMG8KP3iJLQJ92LUiMHa3GkoHaStM2da47yKtMrB",
+        "exact": true
+      }
+    },
+    "transactions": {
+      "funding_airdrop": "55tewPnTaY7FL4J98TjEh1qJpBfKr4QM7hjXUU2jr6pwKxtqYt1voKAupvLHa3DT2aMmUsXwYrTkrxh7cfM5vAto",
+      "mint_to_founder": "3zmnHfCT5gGT7T9UQcvKY12A9FsJBVCFDqSkjpXxHesumbResy4nFm7oHNLiohQkHbK5RjArcAmLf2ftW9jykKeZ",
+      "mint_to_treasury": "38gX4gQtX8SXtFXRL5s4MWBZhRxmyszh3wnjpRigU3jRUZbo8GAg7Sey4fE1jJmZLpQp8hG3CJBfvkLD1DUf8EuL",
+      "mint_to_genesis": "56gf4RVvawFJPZPax8VHwjSWBJWXtcqM1x4MNtscvtbufRNMbyCBx43SpzqDeZ1nqq4Je4Q7tqtTqtHR3fBX2Kju",
+      "mint_to_lp": "3Nap3JmrhpsD4nzCpjWTE3JuUaJ8g4Y5CkjJZXZfn57JXXJUGEYLiYatyjdoB3QJKCbvBSt6CZwbHMjwaPpH39Pu",
+      "revoke_mint_authority": "49FoJZLZAdD5XazCMg3g1RtHpcU8X2CfF3XnwdXLKxoAQeYzRx7pTdWZWiXbdsX4bcuhtJDX5er59thVUVex663A",
+      "revoke_freeze_authority": "5bzoviC4pMx1W1ADig2BP647B2i1Rg1DnmwuXkpK9wknpNPrmM9YLxmussaAkWP2Lu9jbHvWwx76dhKkot143Lmd"
+    },
+    "authorities_after": {
+      "mint_authority": null,
+      "freeze_authority": null
+    },
+    "checks": {
+      "supply_is_exact": true,
+      "allocations_are_exact": true,
+      "mint_authority_revoked": true,
+      "freeze_authority_revoked": true,
+      "independent_spl_token_cli_mint_display_matches": true,
+      "independent_spl_token_cli_account_queries_match": true
+    },
+    "overall_pass": true
+  },
+  "scope_limit": {
+    "established": "SPL fixed supply, exact four-account allocation, and permanent mint/freeze authority revocation are realizable under the tested Agave runtime",
+    "open_bridge": "repeat the same transaction sequence on public devnet when test SOL is available",
+    "not_established": [
+      "founder 24-month cliff",
+      "treasury budget gate",
+      "IRB, monthly/no-carry and market-capacity limits",
+      "LP and creator-fee routing",
+      "multisig and pause-only authority",
+      "issuer or jurisdictional eligibility",
+      "mainnet readiness"
+    ]
+  }
+}
