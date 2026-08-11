@@ -1,6 +1,6 @@
 {
   "name": "k4v-research-funding-vaults",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "license": "MIT OR Apache-2.0",
   "description": "Reproducible purpose-bound token vault reference models and Solana probes",
