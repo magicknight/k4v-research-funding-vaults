@@ -1,0 +1,29 @@
+{
+  "observed_at_ts": 1865664000,
+  "program_id": "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw",
+  "schema": "beneficiary-vault-snapshot/v0.1",
+  "state": {
+    "annual_release_bps": 500,
+    "beneficiary": "3ELeRTTg5W5hAYaEFznzFV1jknNFkjHqS8ytwvQEQP1Z",
+    "cliff_end_ts": 1863072000,
+    "current_period_index": 0,
+    "deposited_amount": 1000000000,
+    "depositor": "7Z9ZajGKvb6C6LaiB7fnsWQZNwq8roEKCFdtgFGaDheo",
+    "genesis_ts": 1800000000,
+    "mint": "5Pk716N113awdSaUDZEPZVi9Zs6hJmG5KCJtp5qQK3LB",
+    "mint_decimals": 9,
+    "monthly_cap": 4166666,
+    "policy_hash": "4242424242424242424242424242424242424242424242424242424242424242",
+    "released_this_period": 0,
+    "released_total": 0,
+    "state_bump": 255,
+    "token_vault_bump": 255
+  },
+  "token_account": {
+    "amount": 1000000000,
+    "authority": "3uGrhnqpmm7gC9s3sHoREzb8C1v9SNUXDwcHbyxbM7Hn",
+    "mint": "5Pk716N113awdSaUDZEPZVi9Zs6hJmG5KCJtp5qQK3LB"
+  },
+  "vault_state": "3uGrhnqpmm7gC9s3sHoREzb8C1v9SNUXDwcHbyxbM7Hn",
+  "vault_token_account": "DrMcf5HTqEXHwXv15sghdR9zHcSYzvPEyARh2LkyPvYW"
+}

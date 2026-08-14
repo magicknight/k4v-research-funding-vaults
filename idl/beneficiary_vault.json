@@ -1,0 +1,202 @@
+{
+  "address": "HfHXRYBMWYbuMw2SGYF5mnwVpdEVw4WPwgNUSRwB7BU",
+  "metadata": {
+    "name": "beneficiary_vault",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Immutable beneficiary release vault for K4V research-funding commitments"
+  },
+  "instructions": [
+    {
+      "name": "deposit",
+      "discriminator": [242, 35, 198, 137, 82, 225, 242, 182],
+      "accounts": [
+        { "name": "depositor", "writable": true, "signer": true },
+        { "name": "beneficiary" },
+        { "name": "mint" },
+        { "name": "depositor_token", "writable": true },
+        {
+          "name": "vault_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 101, 110, 101, 102, 105, 99, 105, 97, 114, 121, 45, 118, 97, 117, 108, 116]
+              },
+              { "kind": "account", "path": "beneficiary" },
+              { "kind": "account", "path": "mint" },
+              { "kind": "arg", "path": "policy_hash" }
+            ]
+          }
+        },
+        {
+          "name": "vault_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 101, 110, 101, 102, 105, 99, 105, 97, 114, 121, 45, 116, 111, 107, 101, 110]
+              },
+              { "kind": "account", "path": "vault_state" }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "annual_release_bps", "type": "u16" },
+        { "name": "cliff_seconds", "type": "i64" },
+        {
+          "name": "policy_hash",
+          "type": { "array": ["u8", 32] }
+        }
+      ]
+    },
+    {
+      "name": "release",
+      "discriminator": [253, 249, 15, 206, 28, 127, 193, 241],
+      "accounts": [
+        {
+          "name": "beneficiary",
+          "signer": true,
+          "relations": ["vault_state"]
+        },
+        {
+          "name": "mint",
+          "relations": ["vault_state"]
+        },
+        {
+          "name": "vault_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 101, 110, 101, 102, 105, 99, 105, 97, 114, 121, 45, 118, 97, 117, 108, 116]
+              },
+              { "kind": "account", "path": "beneficiary" },
+              { "kind": "account", "path": "mint" },
+              {
+                "kind": "account",
+                "path": "vault_state.policy_hash",
+                "account": "BeneficiaryVault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 101, 110, 101, 102, 105, 99, 105, 97, 114, 121, 45, 116, 111, 107, 101, 110]
+              },
+              { "kind": "account", "path": "vault_state" }
+            ]
+          }
+        },
+        { "name": "beneficiary_token", "writable": true },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [{ "name": "amount", "type": "u64" }]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "BeneficiaryVault",
+      "discriminator": [15, 19, 107, 246, 110, 222, 58, 163]
+    }
+  ],
+  "events": [
+    {
+      "name": "DepositEvent",
+      "discriminator": [120, 248, 61, 83, 31, 142, 107, 144]
+    },
+    {
+      "name": "ReleaseEvent",
+      "discriminator": [112, 22, 217, 145, 56, 223, 229, 6]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "ZeroAmount", "msg": "deposit amount must be positive" },
+    { "code": 6001, "name": "InvalidAnnualReleaseRate", "msg": "annual release rate must be between 1 and 500 basis points" },
+    { "code": 6002, "name": "CliffTooShort", "msg": "cliff must be at least 730 days" },
+    { "code": 6003, "name": "ZeroPolicyHash", "msg": "policy hash must not be all zeroes" },
+    { "code": 6004, "name": "ArithmeticOverflow", "msg": "integer arithmetic overflow" },
+    { "code": 6005, "name": "ZeroMonthlyCap", "msg": "monthly cap rounds to zero; increase the deposit or rate" },
+    { "code": 6006, "name": "CliffActive", "msg": "beneficiary cliff has not ended" },
+    { "code": 6007, "name": "PeriodCapExceeded", "msg": "release exceeds this period's non-carrying cap" },
+    { "code": 6008, "name": "DepositExceeded", "msg": "release exceeds the original deposit" },
+    { "code": 6009, "name": "InvalidClock", "msg": "clock moved before the frozen cliff timestamp" }
+  ],
+  "types": [
+    {
+      "name": "BeneficiaryVault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "depositor", "type": "pubkey" },
+          { "name": "beneficiary", "type": "pubkey" },
+          { "name": "mint", "type": "pubkey" },
+          { "name": "policy_hash", "type": { "array": ["u8", 32] } },
+          { "name": "deposited_amount", "type": "u64" },
+          { "name": "monthly_cap", "type": "u64" },
+          { "name": "released_total", "type": "u64" },
+          { "name": "released_this_period", "type": "u64" },
+          { "name": "genesis_ts", "type": "i64" },
+          { "name": "cliff_end_ts", "type": "i64" },
+          { "name": "current_period_index", "type": "u64" },
+          { "name": "annual_release_bps", "type": "u16" },
+          { "name": "mint_decimals", "type": "u8" },
+          { "name": "state_bump", "type": "u8" },
+          { "name": "token_vault_bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "DepositEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "vault_state", "type": "pubkey" },
+          { "name": "depositor", "type": "pubkey" },
+          { "name": "beneficiary", "type": "pubkey" },
+          { "name": "mint", "type": "pubkey" },
+          { "name": "policy_hash", "type": { "array": ["u8", 32] } },
+          { "name": "amount", "type": "u64" },
+          { "name": "monthly_cap", "type": "u64" },
+          { "name": "cliff_end_ts", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "ReleaseEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "vault_state", "type": "pubkey" },
+          { "name": "beneficiary", "type": "pubkey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "period_index", "type": "u64" },
+          { "name": "released_this_period", "type": "u64" },
+          { "name": "released_total", "type": "u64" }
+        ]
+      }
+    }
+  ]
+}
