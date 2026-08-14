@@ -1,0 +1,133 @@
+{
+  "schema": "k4v-b1-real-loader-validation/v0.1",
+  "recorded_at_utc": "2026-08-14T16:44:15Z",
+  "epistemic_status": "LOCAL_REAL_LOADER_TRANSACTION_RPC_EVIDENCE",
+  "source": {
+    "base_commit": "34b21d1e3f951472b39723365ee820e0a37b6cb9",
+    "implementation_commit": "756a375d9d86a8692475e17c329732aaf7304866",
+    "cargo_lock_sha256": "ad70b88f298f6c73c78f92186e7d0208daa8d0de89ef3567df0b84fd607f780f",
+    "probe_sha256": "b6f6bd9f8aa371b8ac3760ea76a2101b1fa4f73328b71e146a531ce191373b9e",
+    "program_fixture_sha256": "d38616a8c770d5bf1c9cfed550ac85b589508b65868cf7b022845b4b2601b892"
+  },
+  "cluster": {
+    "kind": "offline-local-surfpool",
+    "rpc_url": "http://127.0.0.1:18999",
+    "surfpool_version": "1.5.0",
+    "solana_core_reported": "4.1.2",
+    "storage": "ephemeral-memory",
+    "public_cluster": false
+  },
+  "authorization_boundary": {
+    "user_confirmed_transaction_group": true,
+    "signers": "ephemeral-in-memory-only",
+    "private_keys_serialized": false,
+    "keypair_files_created": false,
+    "production_wallet_used": false,
+    "real_sol_used": false,
+    "real_token_used": false,
+    "external_recipient": false
+  },
+  "program": {
+    "program_id": "HfHXRYBMWYbuMw2SGYF5mnwVpdEVw4WPwgNUSRwB7BU",
+    "programdata": "AtcYVwSAuAFtDfjHbux6yiiNT95e8yHafVvwk2CBTDcU",
+    "programdata_slot": 701,
+    "upgrade_authority": "8MPNhjkkcbThMJEVsACf2ixWgGcZFenRuKFribkrjxbU",
+    "sbf_size_bytes": 226504,
+    "sbf_sha256": "1a8b331a0c67368de6f2a67c34133b591021260f4de00246c2f0fa05cc04c9b5",
+    "sbf_bytes_exact": true,
+    "install_mode": "upgradeable-loader-v3-deploy-with-max-data-len",
+    "real_loader_transactions": true,
+    "program_account_origin": "surfnet_setAccount uninitialized loader-owned fixture",
+    "program_account_created_by_loader": false,
+    "programdata_created_by_loader": true,
+    "program_signer_present": false,
+    "program_executable_observed": true,
+    "program_and_programdata_owner_verified": true
+  },
+  "loader_transactions": {
+    "buffer_create": "wfE4FEVGdDVHFZHkyU1Vs3tDmCSFUVQt2edA5Wg1VNWm9CN59JvGMAWN7DnoZpg7Qp4Rv14YhnuwdeytKiTXk1L",
+    "write_count": 252,
+    "first_write": "5HaMUhHxuiKz4oKyPFKbWrVBsi8PYBEmuCxv6Jz4VMhVVEPjESmMBHG4iFUbnyF3yVbGcQLRXMSXJvCuMLDbpQPH",
+    "last_write": "4Ak78tVmuJeafnvF6xZbnbBFfuydRCDRqtaHbD3eeRM3zUrAZg7gyd8zSkUPrLvTqiHtLAyAYRXc3mC1yDc8jbG2",
+    "deploy": "4GEsPKNWNZzfp3ouS3a79dDWAwKWd8YhbguFjkKeiXgFxB2SuZsfvJfgDQy3WkK9A9AReyWqwkiDqzUKwN89yhj8",
+    "simulation_signature_verification": true,
+    "compute_units": {
+      "create_buffer": 2520,
+      "max_write": 2370,
+      "deploy": 2520
+    }
+  },
+  "b1_flow": {
+    "classic_spl_token": true,
+    "mint": "4AAqqqNRFuKNvuHXFq11t5MG192nne7nxLu9KXjjv2yM",
+    "depositor": "ASusuEqB5wSeUzxKEwwQ5BmF3h9fKjx1eUS5V9pqPVKo",
+    "beneficiary": "HpEDGQ6kDyvwqMQVfS7z27NtegQqx8ixMvcb7ox9dA8r",
+    "depositor_token": "AndLV7QpnJwsDjHv4nv1h7Ua3uDgcDNHK8G2Jp43nwWq",
+    "beneficiary_token": "FPUjZuypKFubnRNK173FmgckAfJ23B2cY1Y3sDdpHhQ6",
+    "vault_state": "42NPP73td6SBcz2um4nxeJCBMJ72ZXGzrhrEMume5mqm",
+    "vault_token": "CHsqfSMefNWbG9qDZYXk61fnYNcQAfHcGKhJBqKfG6ja",
+    "deposit_amount": 1000000000,
+    "monthly_cap": 4166666,
+    "released_total": 4166666,
+    "vault_token_balance": 995833334,
+    "beneficiary_token_balance": 4166666,
+    "pre_cliff_simulation": "EXPECTED_REJECTION_CLIFF_ACTIVE",
+    "warped_slot": 157679967,
+    "warped_unix_timestamp": 1849797663,
+    "application_transactions": {
+      "setup": "3zUWEkjXxVQ538LJ2EzryxSnfD1aQjRXJRK8eCyHjfMtsUQNwiLi3SJeSdVSeougeBzG9RgogGtCSyYKN8WKGLa6",
+      "deposit": "btLVfYwT4xzuG8h26idT83T9KKAeyR1B1uZD2xirwgx1eNhhmDqqJPcD3gTajRM6QDUX5zPLkqMHLBwrMVXNhKr",
+      "release": "5a6KpoCAMM5T2DQTBhwffNKLnDW1UnktwRExuVtqwu66SQEWSkQvezhAk4vp2bLkmkv6E8G1xTAMdbofnUFRCHCC"
+    },
+    "compute_units": {
+      "setup": 1240,
+      "deposit": 24959,
+      "pre_cliff": 10443,
+      "release": 12101
+    }
+  },
+  "independent_rpc_reconstruction": {
+    "exporter": "src/beneficiary_vault_rpc_exporter.py",
+    "verifier": "src/beneficiary_vault_verifier.py",
+    "observed_at_ts": 1849797675,
+    "result": "PASS",
+    "token_surplus_amount": 0,
+    "expected_monthly_cap": 4166666
+  },
+  "failure_and_repair": {
+    "smallest_failed_node": "solana-test-validator Clock progression after --warp-slot",
+    "failure": "the validator preserved the parent Unix timestamp while warping the slot, so a two-year B1 cliff remained active",
+    "classification": "local-test-time-control",
+    "repair_attempts": [
+      "matched simulation and transaction commitment at processed while retaining finalized boundary checks",
+      "rejected an oversized epoch after a probe exposed leader-schedule memory growth",
+      "rejected accelerated high-ticks-per-slot after a probe exposed irreducible PoH work"
+    ],
+    "replacement_carrier": "execute the same real loader instructions on offline Surfpool, whose explicit timeTravel control preserves one continuous account history",
+    "preserved": [
+      "exact B1 SBF and declared program ID",
+      "real loader buffer, write and deployment instruction path",
+      "ProgramData byte and authority verification",
+      "signed setup and deposit transactions",
+      "pre-cliff CliffActive rejection",
+      "independent RPC exporter and verifier"
+    ]
+  },
+  "established": [
+    "the exact B1 SBF was written in 252 signed loader transactions and installed by DeployWithMaxDataLen",
+    "the loader-created ProgramData account contained the exact SBF bytes and the expected in-memory upgrade authority",
+    "signed setup, deposit and exact-cap release transactions executed against that loader-installed program in one offline local account history",
+    "the pre-cliff signed simulation reached B1 and was rejected with CliffActive",
+    "the independent raw-RPC exporter and verifier accepted the final transaction-produced accounts"
+  ],
+  "not_established": [
+    "creation of the declared Program account by its unavailable historical program signer",
+    "solana-test-validator release after the two-year cliff",
+    "public devnet or testnet deployment and explorer evidence",
+    "program immutability or production authority ceremony",
+    "purpose-bound treasury vault, IRB/oracle, LP, fee or multisig behavior",
+    "independent security preflight or audit",
+    "production readiness, mainnet authorization or legal issuance path"
+  ],
+  "next_decisive_probe": "Repeat the exact loader and B1 receipt on public devnet with a newly declared program address whose signer exists, then obtain an independent preflight."
+}

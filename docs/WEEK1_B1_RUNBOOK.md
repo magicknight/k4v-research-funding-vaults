@@ -128,6 +128,34 @@ exporter above. Acceptance requires `valid=true`, no reasons, zero surplus,
 `released_total=4,166,666`, vault balance `995,833,334`, and beneficiary
 balance `4,166,666`.
 
+## Real-loader transaction bridge
+
+The stronger probe removes `surfnet_writeProgram` from the execution path. The
+historical keypair for the committed test Program ID was deliberately
+destroyed, so test setup first places a 36-byte uninitialized loader-owned
+Program account at that address. This fixture is public and non-secret. All
+remaining installation work is performed by signed upgradeable-loader
+transactions: create the buffer, write all 252 SBF chunks, and invoke
+`DeployWithMaxDataLen` to create ProgramData and make the Program executable.
+
+Start a fresh ephemeral Surfpool process:
+
+~~~sh
+NO_DNA=1 surfpool start --ci --daemon --offline --no-deploy \
+  --port 18999 --ws-port 19000 --airdrop-amount 0 --db :memory:
+K4V_SURFPOOL_REAL_LOADER=1 NO_DNA=1 \
+  cargo run --locked --package beneficiary-vault \
+  --example b1_real_loader_probe
+~~~
+
+The probe stops at each send gate unless the exact displayed `SEND_<STAGE>`
+text is entered. CI may set `K4V_LOCAL_REAL_LOADER_SEND_CONFIRMED=1` only on
+the isolated loopback surfnet. Acceptance requires the declared Program ID,
+the canonical ProgramData PDA, loader ownership, an exact SBF SHA-256 of
+`1a8b331a0c67368de6f2a67c34133b591021260f4de00246c2f0fa05cc04c9b5`,
+252 write transactions, expected `CliffActive`, exact-cap release, and an
+independent RPC verifier `PASS`.
+
 ## Evidence boundary
 
 The local `.so` hash identifies one build, but ordinary Solana builds are not
@@ -135,6 +163,8 @@ assumed reproducible across machines. A production claim requires a container
 verified build, an on-chain executable hash comparison, and disclosed loader
 authority. LiteSVM is the appropriate fast Week 1 mechanism test. Both
 deterministic injected-state RPC reconstruction and transaction-produced local
-RPC state now pass; the latter still loads the program by a Surfpool
-cheatcode. A real loader deployment, public cluster, and independent security
-review remain open.
+RPC state now pass. The stronger local probe also passes with a real loader
+instruction path and byte-exact ProgramData. The Program account itself is a
+local fixture because its historical signer is unavailable. Public-cluster
+deployment with a newly declared, retained program signer, a verified build,
+and independent security review remain open.

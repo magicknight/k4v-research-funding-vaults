@@ -5,8 +5,10 @@ purpose” from a verbal promise into public, testable code.
 
 The strongest current capability is B1: a two-instruction Anchor program whose
 PDA-owned SPL token vault enforces a beneficiary cliff and a frozen,
-non-carrying period cap. Its compiled SBF artifact has been executed inside
-LiteSVM against real System and SPL Token CPIs.
+non-carrying period cap. Its exact compiled SBF has now been installed by real
+upgradeable-loader transactions on an offline Surfpool process, followed in
+one account history by signed deposit and capped-release transactions and an
+independent raw-RPC reconstruction.
 
 The broader, chain-independent covenant remains alongside B1. It models
 separate beneficiary and purpose vaults, approved need, joint market capacity,
@@ -27,6 +29,10 @@ already on chain.
   deposit, and capped-release transactions with in-memory signers, observes
   the expected `CliffActive` rejection, and then reproduces the resulting raw
   RPC accounts through the independent exporter/verifier.
+- A stronger opt-in probe replaces `surfnet_writeProgram` with 252 signed
+  loader writes and `DeployWithMaxDataLen`. It verifies the loader-created
+  ProgramData owner, upgrade authority, and byte-for-byte SBF hash before
+  executing the same B1 lifecycle.
 - Identical requests produce identical decision receipts; changed inputs
   change the receipt hash.
 - The standard-library verifier recomputes both PDAs, bumps, cliff, cap,
@@ -46,11 +52,14 @@ already on chain.
 - No public-chain or production Solana vault deployment exists in this branch.
 - The code has not received an independent security audit.
 - The repository program ID is a test identity, not a deployment address.
-- The deterministic live-RPC fixture still uses injected bytes. The separate
-  transaction probe creates mint, token, vault and release state through
-  signed local transactions, but loads the SBF program with Surfpool's
-  local-only cheatcode rather than a loader deployment. Neither is a public
-  cluster or production-deployment claim.
+- The declared test program's historical signer was deliberately destroyed,
+  so the real-loader probe uses `surfnet_setAccount` only to pre-create that
+  address as an uninitialized loader-owned Program account. The loader creates
+  ProgramData and installs the exact SBF, but this is not evidence that the
+  unavailable Program signer can be recovered.
+- Surfpool is an offline local runtime, not a public-cluster or
+  production-deployment claim. Its local transaction signatures have no
+  explorer value.
 - B1 uses fixed 30-day periods and the initial deposit as its cap basis. It is
   not yet semantically identical to calendar-month/year-start accounting.
 - The recorded transaction signatures are localnet evidence, not public-chain
@@ -80,6 +89,18 @@ NO_DNA=1 cargo build-sbf --manifest-path programs/beneficiary-vault/Cargo.toml \
 cargo test --workspace --locked
 ~~~
 
+The real-loader probe additionally requires an offline Surfpool 1.5.0 process
+on `127.0.0.1:18999`. It creates no key files and rejects execution unless the
+explicit local send gate is present:
+
+~~~sh
+NO_DNA=1 surfpool start --ci --daemon --offline --no-deploy \
+  --port 18999 --ws-port 19000 --airdrop-amount 0 --db :memory:
+K4V_SURFPOOL_REAL_LOADER=1 K4V_LOCAL_REAL_LOADER_SEND_CONFIRMED=1 \
+  cargo run --locked --package beneficiary-vault \
+  --example b1_real_loader_probe
+~~~
+
 See [WEEK1_B1_RUNBOOK.md](docs/WEEK1_B1_RUNBOOK.md) for exact scope, toolchain,
 expected tests, and artifact commands.
 
@@ -101,11 +122,9 @@ npm dependency tree contains known advisories. See [probes/README.md](probes/REA
   creating a second release counter or an acceleration authority.
 - **Independent alternative:** the implemented read-only RPC adapter can
   reconstruct a B1 snapshot and receipt without controlling custody.
-- **Decisive probe:** replace the local program-loading cheatcode with a real
-  loader deployment, reproduce the same transaction/RPC receipt on a public
-  devnet, and obtain an independent preflight. Reserve
-  `solana-test-validator` for loader or validator-fidelity checks that Surfpool
-  does not emulate.
+- **Decisive probe:** repeat the now-working real-loader transaction/RPC
+  receipt on public devnet with a newly declared program address whose signer
+  exists, then obtain an independent preflight.
 - **Reliable core:** this executable covenant, receipt format, threat model,
   B1 source and local SBF tests, fixed-supply probe, and recorded local evidence.
 

@@ -5,7 +5,7 @@ economic circulation than the disclosed covenant permits.
 
 | Threat | Smallest dependency | v0.1 status | Required repair or test |
 |---|---|---|---|
-| Direct release above cap | Release arithmetic | B1 PUBLIC SBF + LOCAL TRANSACTION RPC EVIDENCE | Reproduce after real loader deployment and in an independent environment |
+| Direct release above cap | Release arithmetic | B1 PUBLIC SBF + LOCAL REAL-LOADER TRANSACTION RPC EVIDENCE | Reproduce on public devnet and in an independent environment |
 | Alternate on-chain release path | Instruction surface plus shared counter | B1 PUBLIC IDL/SBF EVIDENCE | Independently inspect deployed compiled interface |
 | OTC/grant/free transfer after release | Event classification | ESTABLISHED IN MODEL / B1 OUT OF SCOPE | Bind future purpose and integration paths to one counter |
 | Collateral or economic-right bypass | Off-chain interpretation plus event input | MODELLED / ORACLE OPEN | Define attestations and conservative default |
@@ -25,6 +25,10 @@ local evidence, not an independent audit or public-deployment claim. The
 independent verifier route avoids custody and can expose state or accounting
 discrepancies. Its RPC adapter now authenticates the account envelope, owners,
 binary layouts, PDAs and token escape-hatch fields. Both an injected fixture
-and locally signed transaction-produced accounts now pass. The program-loading
-step remains a Surfpool cheatcode rather than a real loader deployment, and the
-verifier still cannot prevent custody failures.
+and locally signed transaction-produced accounts now pass. A stronger probe
+also installs the exact SBF through real upgradeable-loader buffer, write, and
+deploy transactions before repeating the lifecycle. Because the committed
+test Program ID's signer no longer exists, only its uninitialized Program
+account is injected as local setup; ProgramData is loader-created and
+byte-checked. The verifier still cannot prevent custody failures, and public
+deployment, authority ceremony, and independent review remain open.

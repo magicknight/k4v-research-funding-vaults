@@ -116,3 +116,53 @@ jobs:
             --rpc-url "$K4V_SURFPOOL_RPC" \
             --program-id HfHXRYBMWYbuMw2SGYF5mnwVpdEVw4WPwgNUSRwB7BU \
             --vault-state "$vault_state" >/dev/null
+
+  beneficiary-vault-real-loader:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install Solana CLI 3.1.10
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Install pinned Surfpool 1.5.0
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSfL \
+            -o "$RUNNER_TEMP/surfpool.tar.gz" \
+            https://github.com/solana-foundation/surfpool/releases/download/v1.5.0/surfpool-linux-x64.tar.gz
+          echo "5b20a3b46e60c4f819af7b4da5c3ea211f76041710617841cc23247d15887ddc  $RUNNER_TEMP/surfpool.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/surfpool.tar.gz" -C "$RUNNER_TEMP"
+          install -m 0755 "$RUNNER_TEMP/surfpool" "$RUNNER_TEMP/surfpool-bin"
+      - name: Build the B1 SBF artifact
+        run: NO_DNA=1 cargo build-sbf --manifest-path programs/beneficiary-vault/Cargo.toml --sbf-out-dir target/deploy
+      - name: Start an ephemeral offline surfnet
+        run: |
+          NO_DNA=1 "$RUNNER_TEMP/surfpool-bin" start --ci --daemon \
+            --offline --no-deploy --port 18999 --ws-port 19000 \
+            --airdrop-amount 0 --db :memory:
+          timeout 30s bash -c \
+            'until curl --fail --silent -H "Content-Type: application/json" --data '\''{"jsonrpc":"2.0","id":1,"method":"getHealth","params":[]}'\'' http://127.0.0.1:18999 | grep -q '"ok"'; do sleep 1; done'
+      - name: Execute and verify the real-loader B1 receipt
+        env:
+          K4V_SURFPOOL_REAL_LOADER: "1"
+          K4V_LOCAL_REAL_LOADER_SEND_CONFIRMED: "1"
+        run: |
+          set -euo pipefail
+          probe_output="$(NO_DNA=1 cargo run --locked --package beneficiary-vault --example b1_real_loader_probe)"
+          printf '%s\n' "$probe_output"
+          result_json="$(printf '%s\n' "$probe_output" | sed -n 's/^RESULT_JSON //p')"
+          test -n "$result_json"
+          test "$(printf '%s' "$result_json" | jq -er '.cluster')" = local-surfpool
+          test "$(printf '%s' "$result_json" | jq -er '.program_install')" = upgradeable-loader-v3-deploy-with-max-data-len
+          test "$(printf '%s' "$result_json" | jq -er '.sbf_sha256')" = 1a8b331a0c67368de6f2a67c34133b591021260f4de00246c2f0fa05cc04c9b5
+          test "$(printf '%s' "$result_json" | jq -er '.sbf_bytes_exact')" = true
+          test "$(printf '%s' "$result_json" | jq -er '.private_keys_serialized')" = false
+          test "$(printf '%s' "$result_json" | jq -er '.loader_transactions.write_count')" = 252
+          test "$(printf '%s' "$result_json" | jq -er '.pre_cliff_simulation')" = EXPECTED_REJECTION_CLIFF_ACTIVE
+          test "$(printf '%s' "$result_json" | jq -er '.released_total')" = 4166666
+          test "$(printf '%s' "$result_json" | jq -er '.vault_token_balance')" = 995833334
+          test "$(printf '%s' "$result_json" | jq -er '.beneficiary_token_balance')" = 4166666
+          test "$(printf '%s' "$result_json" | jq -er '.independent_rpc_verifier')" = PASS
