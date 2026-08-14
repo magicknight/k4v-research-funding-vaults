@@ -1,30 +1,45 @@
 # Purpose-Bound Research-Funding Vaults
 
 This repository turns “we will release tokens slowly and only for a stated
-purpose” from a verbal promise into a public, testable object.
+purpose” from a verbal promise into public, testable code.
 
-The strongest current artifact is a chain-independent integer covenant with
-deterministic SHA-256 decision receipts. It models separate beneficiary and
-purpose vaults, a cliff, monthly non-carrying caps, an approved-need gate, a
-joint market-capacity cap, and circulation-equivalent bypasses such as OTC,
-collateral, grants, and transfers of economic rights.
+The strongest current capability is B1: a two-instruction Anchor program whose
+PDA-owned SPL token vault enforces a beneficiary cliff and a frozen,
+non-carrying period cap. Its compiled SBF artifact has been executed inside
+LiteSVM against real System and SPL Token CPIs.
 
-The repository also contains a Solana fixed-supply probe and a recorded Agave
-localnet run. The dynamic on-chain vault program is the main open bridge.
+The broader, chain-independent covenant remains alongside B1. It models
+separate beneficiary and purpose vaults, approved need, joint market capacity,
+and circulation-equivalent bypasses such as OTC, collateral, grants, and
+transfers of economic rights. B1 does not pretend those broader gates are
+already on chain.
 
 ## What is established
 
-- The reference covenant passes 14 deterministic unit tests.
+- The compiled B1 program passes five LiteSVM integration tests covering
+  deposit custody, cliff rejection, exact-cap/cap-plus-one behavior, genuine
+  no-carry behavior, and beneficiary-owned destinations.
+- Rust unit tests cover the exact two-floor rate formula, period boundaries,
+  and a cross-language PDA vector.
+- The reference covenant and independent snapshot verifier pass 20 Python
+  tests in total.
 - Identical requests produce identical decision receipts; changed inputs
   change the receipt hash.
+- The standard-library verifier recomputes both PDAs, bumps, cliff, cap,
+  counters, token bindings, and token conservation without controlling funds.
 - Under the recorded Agave 4.2.0 localnet run, an SPL mint with
   1,000,000,000 whole units, a 30/50/12/8 fixture, and permanently revoked mint
   and freeze authorities was realizable.
 
 ## What is not established
 
-- No production Solana vault program exists in this release.
+- No public-chain or production Solana vault deployment exists in this branch.
 - The code has not received an independent security audit.
+- The repository program ID is a test identity, not a deployment address.
+- The verifier consumes a disclosed JSON snapshot; raw RPC fetch and account
+  deserialization are not implemented yet.
+- B1 uses fixed 30-day periods and the initial deposit as its cap basis. It is
+  not yet semantically identical to calendar-month/year-start accounting.
 - The recorded transaction signatures are localnet evidence, not public-chain
   explorer proofs.
 - This release does not establish legal eligibility, mainnet readiness,
@@ -37,7 +52,20 @@ Python 3.10+ and only the standard library are required for the covenant.
 ~~~sh
 PYTHONPATH=src python3 -m unittest discover -s tests -p 'test_*.py' -v
 PYTHONPATH=src python3 src/covenant_cli.py examples/k4v_release_request.json
+PYTHONPATH=src python3 src/beneficiary_vault_verifier.py examples/beneficiary_vault_snapshot.json
 ~~~
+
+The B1 Rust tests require Rust 1.89 and Solana CLI 3.1.10. Build the SBF
+artifact before running the workspace tests:
+
+~~~sh
+NO_DNA=1 cargo build-sbf --manifest-path programs/beneficiary-vault/Cargo.toml \
+  --sbf-out-dir target/deploy
+cargo test --workspace --locked
+~~~
+
+See [WEEK1_B1_RUNBOOK.md](docs/WEEK1_B1_RUNBOOK.md) for exact scope, toolchain,
+expected tests, and artifact commands.
 
 To syntax-check the recorded non-mainnet Solana probe:
 
@@ -53,18 +81,21 @@ npm dependency tree contains known advisories. See [probes/README.md](probes/REA
 
 ## Frontier map
 
-- **Champion:** implement immutable or monotonic Solana beneficiary and
-  purpose vault programs with reproducible adversarial tests.
-- **Independent alternative:** publish a read-only verifier that reconstructs
-  compliance from disclosed accounts and receipts without controlling funds.
-- **Decisive probe:** implement the smallest PDA-based beneficiary cliff and
-  prove that every release path is rejected before the cliff.
+- **Champion:** extend the proven B1 custody core into a purpose vault without
+  creating a second release counter or an acceleration authority.
+- **Independent alternative:** add a read-only RPC adapter that reconstructs a
+  B1 snapshot directly from raw Solana accounts and emits the existing receipt.
+- **Decisive probe:** run B1 behind a Surfpool JSON-RPC endpoint, export raw
+  account bytes, and reproduce the receipt from a clean environment. Reserve
+  `solana-test-validator` for loader or validator-fidelity checks that the
+  surfnet does not emulate.
 - **Reliable core:** this executable covenant, receipt format, threat model,
-  fixed-supply probe, and recorded local evidence.
+  B1 source and local SBF tests, fixed-supply probe, and recorded local evidence.
 
 See [ROADMAP.md](docs/ROADMAP.md) for the proposed five-milestone public-good
 program and [COMMERCIAL_DISCLOSURE.md](docs/COMMERCIAL_DISCLOSURE.md) for the
-K4V conflict boundary.
+K4V conflict boundary. The B1 program contract is specified in
+[BENEFICIARY_VAULT_B1.md](spec/BENEFICIARY_VAULT_B1.md).
 
 ## License
 

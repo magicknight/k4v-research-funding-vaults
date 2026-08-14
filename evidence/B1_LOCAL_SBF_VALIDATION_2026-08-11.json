@@ -1,0 +1,60 @@
+{
+  "schema": "beneficiary-vault-local-validation/v0.1",
+  "recorded_at_utc": "2026-08-11T15:08:36Z",
+  "epistemic_status": "LOCAL_EVIDENCE",
+  "source": {
+    "branch": "feat/b1-beneficiary-vault",
+    "base_commit": "38f0948296f751f1f4695c69300ce0d743e69dd4",
+    "working_tree_committed": false,
+    "source_manifest_sha256": "dd819c3b88af64b4c11028508f46bd11db686b6ece67355b6c1937465d50100f",
+    "source_manifest_inputs": "sorted sha256 lines for Anchor.toml, root Cargo files, rust-toolchain.toml, tracked IDL, program Cargo/source, and Rust integration tests",
+    "cargo_lock_sha256": "ed00409329afec1cc9ae84589f1c300bcdfaabdd5ef646165abb1344001f544b",
+    "idl_sha256": "20b59bd302b03e2bf73b127b11c29e8c1ef3f7d84079f57166ed30d28c310844"
+  },
+  "toolchain": {
+    "rustc": "1.89.0 (29483883e 2025-08-04)",
+    "cargo": "1.89.0 (c24e10642 2025-06-23)",
+    "solana_cli": "3.1.10 (7bc9c805)",
+    "anchor_cli": "1.1.2 source build",
+    "anchor_crates": "1.1.2",
+    "litesvm": "0.10.0",
+    "python": "3.10.12"
+  },
+  "program": {
+    "test_program_id": "HfHXRYBMWYbuMw2SGYF5mnwVpdEVw4WPwgNUSRwB7BU",
+    "sbf_path": "target/deploy/beneficiary_vault.so",
+    "sbf_size_bytes": 226504,
+    "sbf_sha256": "1a8b331a0c67368de6f2a67c34133b591021260f4de00246c2f0fa05cc04c9b5",
+    "idl_instructions": [
+      "deposit",
+      "release"
+    ]
+  },
+  "validation": {
+    "rust_unit_tests_passed": 4,
+    "litesvm_integration_tests_passed": 5,
+    "python_tests_passed": 21,
+    "example_verification_valid": true,
+    "example_verification_receipt_sha256": "f82c589445fd9bac0884096343a22954f0f9eb870eed11d5a3bc25dc073331a5"
+  },
+  "covered": [
+    "one-time state and SPL token PDA creation",
+    "full deposit transfer into PDA custody",
+    "minimum-cliff deposit rejection",
+    "pre-cliff release rejection",
+    "exact-cap success and cap-plus-one rejection",
+    "unused capacity expiration across periods",
+    "beneficiary-owned destination enforcement",
+    "Rust and Python PDA parity",
+    "independent snapshot invariant checks"
+  ],
+  "not_established": [
+    "reproducible or verified build across machines",
+    "raw RPC snapshot authenticity",
+    "solana-test-validator behavior",
+    "devnet or mainnet deployment",
+    "revoked or absent upgrade authority",
+    "independent security audit",
+    "full purpose-bound covenant parity"
+  ]
+}

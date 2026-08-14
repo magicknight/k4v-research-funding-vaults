@@ -1,6 +1,6 @@
 # Purpose-Bound Vault Covenant v0.1
 
-Status: EXECUTABLE SPECIFICATION / ON-CHAIN IMPLEMENTATION OPEN
+Status: EXECUTABLE SPECIFICATION / BENEFICIARY B1 IMPLEMENTED / FULL ON-CHAIN COVENANT OPEN
 
 ## Pools
 
@@ -77,5 +77,8 @@ The reference model deliberately does not invent an approval authority.
    declared deployment;
 10. deployed artifact hash inconsistent with the reviewed candidate.
 
-The Python reference model currently evaluates vectors 1–7. Vectors 8–10
-belong to the open Solana implementation and adversarial harness.
+The Python reference model currently evaluates vectors 1–7. The B1 Solana
+prototype independently enforces the beneficiary portions of vectors 1, 2,
+6, and 8 through a deliberately two-instruction surface; see
+[BENEFICIARY_VAULT_B1.md](BENEFICIARY_VAULT_B1.md). Purpose-vault, market,
+deployment-authority, provenance, and public-chain claims remain open.

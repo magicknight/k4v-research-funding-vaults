@@ -17,6 +17,8 @@ jobs:
           python-version: "3.12"
       - name: Unit tests
         run: PYTHONPATH=src python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Verify example B1 snapshot
+        run: PYTHONPATH=src python3 src/beneficiary_vault_verifier.py examples/beneficiary_vault_snapshot.json
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
@@ -27,3 +29,20 @@ jobs:
         run: npm run check
       - name: Verify release checksums
         run: sha256sum -c SHA256SUMS
+
+  beneficiary-vault-sbf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Solana CLI 3.1.10
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Build the B1 SBF artifact
+        run: NO_DNA=1 cargo build-sbf --manifest-path programs/beneficiary-vault/Cargo.toml --sbf-out-dir target/deploy
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Lint Rust targets
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Run Rust unit and LiteSVM integration tests
+        run: cargo test --workspace --locked

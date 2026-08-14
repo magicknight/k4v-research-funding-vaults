@@ -22,11 +22,18 @@ the purpose-approval, oracle, or independent-review coverage of the champion.
 
 ## Next decisive construction
 
-Build the smallest PDA-based beneficiary vault with exactly two instructions:
-deposit and release. The release instruction must reject every call before the
-cliff and must have no upgrade/configuration path capable of shortening it.
-This tests the load-bearing Solana account and authority design before adding
-oracles, multisig, or budget workflow.
+Complete B1 by running its compiled SBF artifact inside LiteSVM: deposit must
+create the state and token PDAs, pre-cliff release must fail, exact-cap release
+must succeed, cap-plus-one must fail, and a later period must reset rather than
+carry capacity. Then export the resulting account bytes through a read-only RPC
+adapter backed by Surfpool and reproduce the Python verification receipt from
+a second machine. Use `solana-test-validator` only for loader or
+validator-fidelity checks that the surfnet does not emulate.
+
+The following bridge is deliberately next, not silently included in B1:
+replace fixed 30-day windows and initial-deposit rate basis with a precisely
+specified calendar/year-start mechanism before claiming parity with the full
+covenant.
 
 ## Success and validation
 
