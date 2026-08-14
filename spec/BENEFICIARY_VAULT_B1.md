@@ -99,7 +99,8 @@ recomputes:
 - the monthly cap and minimum cliff;
 - period ordering and currently releasable amount;
 - beneficiary-vault token mint and authority bindings;
-- `vault_token_balance + released_total == deposited_amount`.
+- any custody deficit below `deposited_amount - released_total`;
+- unsolicited token surplus separately, without increasing release entitlement.
 
 It uses only the Python standard library and produces a deterministic SHA-256
 receipt. `src/beneficiary_vault_rpc_exporter.py` now fetches and authenticates

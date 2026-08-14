@@ -24,6 +24,11 @@ MONTHS_PER_YEAR = 12
 MAX_ANNUAL_RELEASE_BPS = 500
 MIN_CLIFF_SECONDS = 730 * 24 * 60 * 60
 PERIOD_SECONDS = 30 * 24 * 60 * 60
+U8_MAX = 2**8 - 1
+U16_MAX = 2**16 - 1
+U64_MAX = 2**64 - 1
+I64_MIN = -(2**63)
+I64_MAX = 2**63 - 1
 STATE_SEED = b"beneficiary-vault"
 TOKEN_VAULT_SEED = b"beneficiary-token"
 PDA_MARKER = b"ProgramDerivedAddress"
@@ -39,6 +44,7 @@ class Verification:
     expected_monthly_cap: int | None
     observed_period_index: int | None
     currently_releasable_amount: int
+    token_surplus_amount: int
 
 
 def _base58_decode(value: str) -> bytes:
@@ -115,6 +121,13 @@ def _integer(value: Any, name: str) -> int:
     return value
 
 
+def _bounded_integer(value: Any, name: str, minimum: int, maximum: int) -> int:
+    integer = _integer(value, name)
+    if not minimum <= integer <= maximum:
+        raise ValueError(f"{name} is outside its on-chain integer range")
+    return integer
+
+
 def _canonical_sha256(value: dict[str, Any]) -> str:
     canonical = json.dumps(value, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -127,6 +140,7 @@ def verify_snapshot(snapshot: dict[str, Any]) -> Verification:
     expected_cap: int | None = None
     observed_period: int | None = None
     releasable = 0
+    surplus = 0
 
     if snapshot.get("schema") != SNAPSHOT_SCHEMA:
         reasons.append("SCHEMA_MISMATCH")
@@ -154,25 +168,55 @@ def verify_snapshot(snapshot: dict[str, Any]) -> Verification:
             reasons.append("STATE_PDA_MISMATCH")
         if snapshot["vault_token_account"] != expected_token_vault_pda:
             reasons.append("TOKEN_VAULT_PDA_MISMATCH")
-        if state["state_bump"] != state_bump:
+        stored_state_bump = _bounded_integer(
+            state["state_bump"], "state_bump", 0, U8_MAX
+        )
+        stored_token_bump = _bounded_integer(
+            state["token_vault_bump"], "token_vault_bump", 0, U8_MAX
+        )
+        if stored_state_bump != state_bump:
             reasons.append("STATE_BUMP_MISMATCH")
-        if state["token_vault_bump"] != token_bump:
+        if stored_token_bump != token_bump:
             reasons.append("TOKEN_VAULT_BUMP_MISMATCH")
         if policy_hash == bytes(32):
             reasons.append("ZERO_POLICY_HASH")
 
-        deposited = _integer(state["deposited_amount"], "deposited_amount")
-        annual_bps = _integer(state["annual_release_bps"], "annual_release_bps")
-        stored_cap = _integer(state["monthly_cap"], "monthly_cap")
-        released_total = _integer(state["released_total"], "released_total")
-        released_period = _integer(
-            state["released_this_period"], "released_this_period"
+        deposited = _bounded_integer(
+            state["deposited_amount"], "deposited_amount", 0, U64_MAX
         )
-        stored_period = _integer(state["current_period_index"], "current_period_index")
-        genesis = _integer(state["genesis_ts"], "genesis_ts")
-        cliff_end = _integer(state["cliff_end_ts"], "cliff_end_ts")
-        observed_at = _integer(snapshot["observed_at_ts"], "observed_at_ts")
-        token_amount = _integer(token["amount"], "token amount")
+        annual_bps = _bounded_integer(
+            state["annual_release_bps"], "annual_release_bps", 0, U16_MAX
+        )
+        stored_cap = _bounded_integer(
+            state["monthly_cap"], "monthly_cap", 0, U64_MAX
+        )
+        released_total = _bounded_integer(
+            state["released_total"], "released_total", 0, U64_MAX
+        )
+        released_period = _bounded_integer(
+            state["released_this_period"],
+            "released_this_period",
+            0,
+            U64_MAX,
+        )
+        stored_period = _bounded_integer(
+            state["current_period_index"], "current_period_index", 0, U64_MAX
+        )
+        genesis = _bounded_integer(
+            state["genesis_ts"], "genesis_ts", I64_MIN, I64_MAX
+        )
+        cliff_end = _bounded_integer(
+            state["cliff_end_ts"], "cliff_end_ts", I64_MIN, I64_MAX
+        )
+        observed_at = _bounded_integer(
+            snapshot["observed_at_ts"], "observed_at_ts", I64_MIN, I64_MAX
+        )
+        token_amount = _bounded_integer(
+            token["amount"], "token amount", 0, U64_MAX
+        )
+        _bounded_integer(
+            state["mint_decimals"], "mint_decimals", 0, U8_MAX
+        )
 
         if deposited <= 0:
             reasons.append("INVALID_DEPOSIT")
@@ -183,14 +227,15 @@ def verify_snapshot(snapshot: dict[str, Any]) -> Verification:
             reasons.append("MONTHLY_CAP_MISMATCH")
         if cliff_end - genesis < MIN_CLIFF_SECONDS:
             reasons.append("CLIFF_TOO_SHORT")
-        if min(released_total, released_period, stored_period, token_amount) < 0:
-            reasons.append("NEGATIVE_ACCOUNTING_VALUE")
         if released_period > stored_cap:
             reasons.append("PERIOD_CAP_EXCEEDED")
         if released_total > deposited:
             reasons.append("DEPOSIT_EXCEEDED")
-        if token_amount + released_total != deposited:
+        accounted_tokens = token_amount + released_total
+        if accounted_tokens < deposited:
             reasons.append("TOKEN_CONSERVATION_FAILURE")
+        else:
+            surplus = accounted_tokens - deposited
         if token.get("mint") != state["mint"]:
             reasons.append("TOKEN_MINT_MISMATCH")
         if token.get("authority") != snapshot.get("vault_state"):
@@ -231,6 +276,7 @@ def verify_snapshot(snapshot: dict[str, Any]) -> Verification:
         expected_monthly_cap=expected_cap,
         observed_period_index=observed_period,
         currently_releasable_amount=max(0, releasable),
+        token_surplus_amount=surplus,
     )
 
 

@@ -21,7 +21,7 @@ already on chain.
   no-carry behavior, and beneficiary-owned destinations.
 - Rust unit tests cover the exact two-floor rate formula, period boundaries,
   and a cross-language PDA vector.
-- The Python layer passes 28 deterministic tests; an additional opt-in live
+- The Python layer passes 30 deterministic tests; an additional opt-in live
   Surfpool test exercises the actual JSON-RPC boundary.
 - Identical requests produce identical decision receipts; changed inputs
   change the receipt hash.
@@ -30,6 +30,9 @@ already on chain.
 - The read-only RPC exporter checks account owners, exact lengths, the Anchor
   discriminator, canonical PDAs, Clock sysvar, and classic SPL Token layout;
   it rejects delegated, closable, frozen, or native vault-token states.
+- Unsolicited direct token transfers cannot raise the frozen lifetime release
+  entitlement; the verifier reports that excess as surplus while still
+  rejecting any custody deficit.
 - Under the recorded Agave 4.2.0 localnet run, an SPL mint with
   1,000,000,000 whole units, a 30/50/12/8 fixture, and permanently revoked mint
   and freeze authorities was realizable.

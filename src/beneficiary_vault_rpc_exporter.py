@@ -109,7 +109,11 @@ class JsonRpcClient:
             decoded = json.loads(payload)
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise RpcExportError("RPC response was not valid JSON") from exc
-        if not isinstance(decoded, dict) or decoded.get("id") != request_id:
+        if (
+            not isinstance(decoded, dict)
+            or decoded.get("jsonrpc") != "2.0"
+            or decoded.get("id") != request_id
+        ):
             raise RpcExportError("RPC response envelope was invalid")
         if decoded.get("error") is not None:
             raise RpcExportError("RPC returned an error")

@@ -13,6 +13,7 @@ economic circulation than the disclosed covenant permits.
 | Budget invented by beneficiary | Approval authority | OPEN | Conflict-aware multisig and public approval receipt |
 | Upgrade weakens covenant | Loader authority; not B1 instruction state | OPEN | Non-upgradeable deployment or verified revocation plus artifact match |
 | Emergency power accelerates release | Emergency instruction set | B1 ABSENT | Preserve two-instruction surface; test pause-only if later added |
+| Unsolicited direct transfer into vault | SPL Token account is publicly creditable | B1 SAFE SURPLUS / GRIEFING VISIBLE | Keep entitlement based on frozen deposit; report surplus without granting release capacity |
 | Signer loss or collusion | Multisig operations | OPEN | Recovery design that cannot lower threshold silently |
 | Hash/version mismatch | Deployment provenance | OPEN | Reproducible build and on-chain configuration digest |
 | Hidden mint or freeze power | SPL mint state | LOCALNET EVIDENCE | Repeat on public testnet and reconcile independently |

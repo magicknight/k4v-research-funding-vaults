@@ -92,6 +92,19 @@ class BeneficiaryVaultVerifierTests(unittest.TestCase):
         snapshot["token_account"]["amount"] -= 1
         self.assertIn("TOKEN_CONSERVATION_FAILURE", verify_snapshot(snapshot).reasons)
 
+    def test_reports_unsolicited_surplus_without_granting_more_release(self):
+        snapshot = valid_snapshot()
+        snapshot["token_account"]["amount"] += 7
+        result = verify_snapshot(snapshot)
+        self.assertTrue(result.valid)
+        self.assertEqual(result.token_surplus_amount, 7)
+        self.assertEqual(result.currently_releasable_amount, 4_166_666)
+
+    def test_rejects_values_outside_solana_integer_ranges(self):
+        snapshot = valid_snapshot()
+        snapshot["state"]["deposited_amount"] = 2**64
+        self.assertIn("MALFORMED_SNAPSHOT", verify_snapshot(snapshot).reasons)
+
     def test_rejects_token_authority_escape_hatches_when_disclosed(self):
         snapshot = valid_snapshot()
         snapshot["token_account"]["delegate"] = snapshot["state"]["depositor"]
