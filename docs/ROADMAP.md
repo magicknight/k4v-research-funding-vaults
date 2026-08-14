@@ -23,13 +23,14 @@ the purpose-approval, oracle, or independent-review coverage of the champion.
 ## Next decisive construction
 
 B1 now passes its compiled-SBF LiteSVM suite and a loopback Surfpool probe whose
-signed transactions create the mint/token inputs, state/token PDAs, complete
-deposit, expected pre-cliff rejection, and exact-cap release. The read-only RPC
-adapter reproduces the transaction-produced accounts independently. The next
-probe must replace `surfnet_writeProgram` with a real loader deployment and
-repeat the same receipt on public devnet and an independent machine. Use
-`solana-test-validator` only for loader or validator-fidelity checks that the
-surfnet does not emulate.
+signed upgradeable-loader transactions create ProgramData from the exact SBF,
+then create the mint/token inputs and state/token PDAs, complete deposit,
+expected pre-cliff rejection, and exact-cap release. The read-only RPC adapter
+reproduces the transaction-produced accounts independently. The next probe is
+public devnet with a newly declared Program ID whose signer exists, followed by
+an independent-machine preflight. `solana-test-validator` remains useful for
+loader or validator-fidelity checks that Surfpool does not emulate, but its
+slot warp alone does not advance the two-year Clock timestamp.
 
 The following bridge is deliberately next, not silently included in B1:
 replace fixed 30-day windows and initial-deposit rate basis with a precisely
