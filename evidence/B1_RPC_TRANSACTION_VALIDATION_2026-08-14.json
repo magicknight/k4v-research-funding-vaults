@@ -3,6 +3,7 @@
   "recorded_at_utc": "2026-08-14T15:19:26Z",
   "epistemic_status": "LOCAL_TRANSACTION_RPC_EVIDENCE",
   "source_base_commit": "dc8651afd4461fbd79f1dfca99caadf0655b8955",
+  "implementation_commit": "6ad72d52de319f8f03b4fa4c3801fb824f3cff12",
   "cluster": {
     "kind": "offline-local-surfpool",
     "rpc_url": "http://127.0.0.1:18999",
