@@ -16,8 +16,9 @@ disclosed state snapshot independently.
   release instruction
 
 Purpose approval, a market-capacity oracle, calendar/year-start accounting,
-RPC account export, deployment authority, and public deployment are not part of
-Week 1 acceptance.
+deployment authority, and public deployment are not part of Week 1 acceptance.
+Read-only RPC reconstruction and the local transaction-produced RPC probe are
+public B1-beta evidence, not production-readiness claims.
 
 ## Tested environment
 
@@ -99,12 +100,41 @@ Surfpool 1.5.0 accepts hex account data for `surfnet_setAccount` and compares
 the time-travel argument as milliseconds while exposing Unix seconds in the
 Clock sysvar. The test records those observed compatibility rules explicitly.
 
+## Transaction-produced RPC bridge
+
+The opt-in Rust probe keeps every signer in memory, rejects non-loopback RPC
+URLs, loads the test SBF with Surfpool's local-only `surfnet_writeProgram`, and
+then uses real signed transactions to create the mint and token accounts, mint
+1,000,000,000 base units, deposit them into B1, and release the exact monthly
+cap after a time jump. Every successful transaction is simulated before its
+send gate. The pre-cliff release is simulation-only and must fail with
+`CliffActive`.
+
+Start the same offline surfnet and run:
+
+~~~sh
+K4V_SURFPOOL_RPC=http://127.0.0.1:18999 NO_DNA=1 \
+  cargo run --locked --package beneficiary-vault \
+  --example b1_rpc_transaction_probe
+~~~
+
+At each `AWAITING_SEND` line, inspect the preceding simulation and enter only
+the displayed `SEND_<STAGE>` command. For isolated CI, the repository workflow
+sets `K4V_LOCAL_TRANSACTION_SEND_CONFIRMED=1` on a loopback Surfpool process;
+do not copy that setting into a public-cluster or wallet workflow.
+
+After the probe prints `RESULT_JSON`, pass its `vault_state` to the read-only
+exporter above. Acceptance requires `valid=true`, no reasons, zero surplus,
+`released_total=4,166,666`, vault balance `995,833,334`, and beneficiary
+balance `4,166,666`.
+
 ## Evidence boundary
 
 The local `.so` hash identifies one build, but ordinary Solana builds are not
 assumed reproducible across machines. A production claim requires a container
 verified build, an on-chain executable hash comparison, and disclosed loader
-authority. LiteSVM is the appropriate fast Week 1 mechanism test; the Surfpool
-JSON-RPC envelope and raw-account export now pass with deterministic injected
-state. Transaction-produced RPC state, a full loader-fidelity run, a public
-cluster, and an independent machine remain open.
+authority. LiteSVM is the appropriate fast Week 1 mechanism test. Both
+deterministic injected-state RPC reconstruction and transaction-produced local
+RPC state now pass; the latter still loads the program by a Surfpool
+cheatcode. A real loader deployment, public cluster, and independent security
+review remain open.

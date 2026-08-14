@@ -1,0 +1,116 @@
+{
+  "schema": "k4v-b1-rpc-transaction-validation/v0.1",
+  "recorded_at_utc": "2026-08-14T15:19:26Z",
+  "epistemic_status": "LOCAL_TRANSACTION_RPC_EVIDENCE",
+  "source_base_commit": "dc8651afd4461fbd79f1dfca99caadf0655b8955",
+  "cluster": {
+    "kind": "offline-local-surfpool",
+    "rpc_url": "http://127.0.0.1:18999",
+    "surfpool_version": "1.5.0",
+    "solana_core_reported": "4.1.2",
+    "public_cluster": false
+  },
+  "program": {
+    "program_id": "HfHXRYBMWYbuMw2SGYF5mnwVpdEVw4WPwgNUSRwB7BU",
+    "sbf_sha256": "1a8b331a0c67368de6f2a67c34133b591021260f4de00246c2f0fa05cc04c9b5",
+    "install_mode": "surfnet_writeProgram",
+    "real_loader_deployment": false,
+    "executable_account_observed": true
+  },
+  "authorization_boundary": {
+    "user_confirmed_transaction_group": true,
+    "signers": "ephemeral-in-memory-only",
+    "private_keys_serialized": false,
+    "keypair_files_created": false,
+    "production_wallet_used": false,
+    "real_sol_used": false,
+    "real_token_used": false,
+    "external_recipient": false
+  },
+  "final_probe": {
+    "classic_spl_token": true,
+    "mint": "9rzJvhmtawWEkwieEVT7FJz9PwQmAyoKx2Wt9VfSRjRB",
+    "depositor": "5uAGxG6NpYDQUNrb2J3uuShZ5eQ154ZoZbrvcGjB4UrB",
+    "beneficiary": "GsoozLC5W9XbsDmDFQcoDFJCWNVDb92SSmRfgA8ZS93X",
+    "depositor_token": "HUTcabHhcF4Xq71eR9jCWYEVGxXEbfLE4CpE2jxDBv1T",
+    "beneficiary_token": "fyB4WZ6wsc1Nm2rRRpgTrMAHiupgHT16ZDrWiPVLQfk",
+    "vault_state": "2qgt98tMpjkw1sAN3XpVpgywMaQkmiruxgjpgJhLMbTe",
+    "vault_token": "D6TmchPv75qLEs35VAoWCMg2J8YHwhT5XrKCJPu75Now",
+    "deposit_amount": 1000000000,
+    "monthly_cap": 4166666,
+    "released_total": 4166666,
+    "vault_token_balance": 995833334,
+    "beneficiary_token_balance": 4166666,
+    "simulation_signature_verification": true,
+    "simulations": {
+      "setup": {
+        "result": "PASS",
+        "units_consumed": 1240
+      },
+      "deposit": {
+        "result": "PASS",
+        "units_consumed": 23459
+      },
+      "pre_cliff_release": {
+        "result": "EXPECTED_REJECTION",
+        "anchor_log": "CliffActive",
+        "units_consumed": 10443,
+        "sent": false
+      },
+      "release": {
+        "result": "PASS",
+        "units_consumed": 12101
+      }
+    },
+    "confirmed_local_signatures": {
+      "setup": "2WEBUvvN2AcohvCRnV5AKmV1R973MKTYhMrJhnDmpMhD1gBzai1Rx4FFcGM1BzSgD4HFbGGTRpcb3ggabAnHHYNB",
+      "deposit": "2KHbSyMSxMbVihbcRhX6LeBRCQKpWiw6Y2sXGcjLxG1mnvcNc3qden4fJWZTRqAByMZkfWYGAvtS9NAPiPu9cmBQ",
+      "release": "2FgdBZDwoWsEB2wQaFb1skuGduG9FptiY9WwLUTUN8RC4CWrLnTqbiMkZ9R4s5Bm3Qk2fo17QacbCRzLL6gT17VX"
+    }
+  },
+  "independent_rpc_reconstruction": {
+    "exporter": "src/beneficiary_vault_rpc_exporter.py",
+    "verifier": "src/beneficiary_vault_verifier.py",
+    "observed_at_ts": 1912864740,
+    "expected_state_pda": "2qgt98tMpjkw1sAN3XpVpgywMaQkmiruxgjpgJhLMbTe",
+    "expected_token_vault_pda": "D6TmchPv75qLEs35VAoWCMg2J8YHwhT5XrKCJPu75Now",
+    "expected_monthly_cap": 4166666,
+    "currently_releasable_amount": 0,
+    "token_surplus_amount": 0,
+    "reasons": [],
+    "valid": true
+  },
+  "failure_and_repair": {
+    "smallest_failed_node": "release transaction fee-payer account",
+    "failure": "the first probe used the unfunded beneficiary as fee payer and simulation stopped at AccountNotFound before entering B1",
+    "repair": "keep the funded ephemeral depositor as fee payer and add the beneficiary only as the required release signer",
+    "classification": "client-role-binding",
+    "invalidated": [
+      "first pre-cliff simulation attempt"
+    ],
+    "preserved": [
+      "confirmed setup transaction",
+      "confirmed deposit transaction",
+      "B1 program logic",
+      "PDA custody",
+      "cliff and cap mechanism",
+      "raw-RPC exporter and verifier"
+    ]
+  },
+  "established": [
+    "temporary mint and token accounts were created and funded by a signed local transaction",
+    "deposit created the B1 state and token PDAs and moved the full deposit through a signed local transaction",
+    "the signed pre-cliff transaction simulation reached B1 and was rejected with CliffActive",
+    "the exact monthly cap was released to a beneficiary-owned classic SPL token account through a signed local transaction",
+    "the independent raw-RPC exporter and verifier reconstructed and accepted the transaction-produced accounts"
+  ],
+  "not_established": [
+    "program installation through a real Solana loader transaction",
+    "public devnet or testnet deployment and explorer evidence",
+    "program immutability or production authority ceremony",
+    "purpose-bound treasury vault, IRB/oracle, LP, fee or multisig behavior",
+    "independent security preflight or audit",
+    "production readiness, mainnet authorization or legal issuance path"
+  ],
+  "next_decisive_probe": "Replace surfnet_writeProgram with a real loader deployment, repeat the same transaction and raw-RPC receipt on public devnet, and obtain an independent preflight."
+}
