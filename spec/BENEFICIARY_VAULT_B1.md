@@ -1,6 +1,6 @@
 # Beneficiary Vault B1
 
-Status: IMPLEMENTED PROTOTYPE / LOCAL SBF VALIDATED
+Status: IMPLEMENTED PROTOTYPE / PUBLIC CI + LOCAL RPC FIXTURE VALIDATED
 
 B1 is the smallest custody mechanism that can replace a beneficiary's verbal
 promise to release slowly. It is intentionally narrower than the full
@@ -102,8 +102,12 @@ recomputes:
 - `vault_token_balance + released_total == deposited_amount`.
 
 It uses only the Python standard library and produces a deterministic SHA-256
-receipt. It does not yet fetch or deserialize raw RPC account bytes, so the
-authenticity of the supplied snapshot remains an explicit open bridge.
+receipt. `src/beneficiary_vault_rpc_exporter.py` now fetches and authenticates
+raw state, token, and Clock accounts through read-only JSON-RPC. It checks
+owners, exact lengths, discriminator, canonical PDAs, and token delegate,
+close-authority, native and frozen fields before passing the snapshot here.
+The current live Surfpool fixture injects deterministic bytes; actual
+transaction-produced RPC state remains an open bridge.
 
 ## B1 acceptance
 
@@ -120,6 +124,6 @@ artifact:
 7. the independent verifier rejects tampered cap, cliff, bump, and token
    conservation snapshots.
 
-Security review, RPC reproduction, public-testnet deployment, program
-immutability, purpose approvals, market-capacity input, and legal analysis are
-not B1 acceptance claims.
+Security review, transaction-produced RPC reproduction, public-testnet
+deployment, program immutability, purpose approvals, market-capacity input,
+and legal analysis are not B1 acceptance claims.

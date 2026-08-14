@@ -22,5 +22,7 @@ the single release counter. B1 removes that path in the current source and the
 loaded SBF test surface by exposing exactly one release instruction. This is
 local evidence, not an independent audit or public-deployment claim. The
 independent verifier route avoids custody and can expose state or accounting
-discrepancies; until it reads raw RPC bytes itself, it still depends on snapshot
-authenticity and cannot prevent custody failures.
+discrepancies. Its RPC adapter now authenticates the account envelope, owners,
+binary layouts, PDAs and token escape-hatch fields. The current live fixture
+uses injected deterministic bytes rather than transaction-produced state, and
+the verifier still cannot prevent custody failures.

@@ -25,10 +25,11 @@ the purpose-approval, oracle, or independent-review coverage of the champion.
 Complete B1 by running its compiled SBF artifact inside LiteSVM: deposit must
 create the state and token PDAs, pre-cliff release must fail, exact-cap release
 must succeed, cap-plus-one must fail, and a later period must reset rather than
-carry capacity. Then export the resulting account bytes through a read-only RPC
-adapter backed by Surfpool and reproduce the Python verification receipt from
-a second machine. Use `solana-test-validator` only for loader or
-validator-fidelity checks that the surfnet does not emulate.
+carry capacity. The read-only RPC adapter and Surfpool fixture now cross the
+raw account-envelope boundary. The next probe must create those accounts by
+executing actual B1 transactions and reproduce the Python receipt from a clean
+machine. Use `solana-test-validator` only for loader or validator-fidelity
+checks that the surfnet does not emulate.
 
 The following bridge is deliberately next, not silently included in B1:
 replace fixed 30-day windows and initial-deposit rate basis with a precisely

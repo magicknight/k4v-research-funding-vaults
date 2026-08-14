@@ -21,12 +21,15 @@ already on chain.
   no-carry behavior, and beneficiary-owned destinations.
 - Rust unit tests cover the exact two-floor rate formula, period boundaries,
   and a cross-language PDA vector.
-- The reference covenant and independent snapshot verifier pass 20 Python
-  tests in total.
+- The Python layer passes 28 deterministic tests; an additional opt-in live
+  Surfpool test exercises the actual JSON-RPC boundary.
 - Identical requests produce identical decision receipts; changed inputs
   change the receipt hash.
 - The standard-library verifier recomputes both PDAs, bumps, cliff, cap,
   counters, token bindings, and token conservation without controlling funds.
+- The read-only RPC exporter checks account owners, exact lengths, the Anchor
+  discriminator, canonical PDAs, Clock sysvar, and classic SPL Token layout;
+  it rejects delegated, closable, frozen, or native vault-token states.
 - Under the recorded Agave 4.2.0 localnet run, an SPL mint with
   1,000,000,000 whole units, a 30/50/12/8 fixture, and permanently revoked mint
   and freeze authorities was realizable.
@@ -36,8 +39,9 @@ already on chain.
 - No public-chain or production Solana vault deployment exists in this branch.
 - The code has not received an independent security audit.
 - The repository program ID is a test identity, not a deployment address.
-- The verifier consumes a disclosed JSON snapshot; raw RPC fetch and account
-  deserialization are not implemented yet.
+- The live RPC fixture injects the same deterministic account bytes already
+  checked by the independent model. It is not yet a transaction-produced state
+  from a deployed program or public cluster.
 - B1 uses fixed 30-day periods and the initial deposit as its cap basis. It is
   not yet semantically identical to calendar-month/year-start accounting.
 - The recorded transaction signatures are localnet evidence, not public-chain
@@ -53,6 +57,9 @@ Python 3.10+ and only the standard library are required for the covenant.
 PYTHONPATH=src python3 -m unittest discover -s tests -p 'test_*.py' -v
 PYTHONPATH=src python3 src/covenant_cli.py examples/k4v_release_request.json
 PYTHONPATH=src python3 src/beneficiary_vault_verifier.py examples/beneficiary_vault_snapshot.json
+PYTHONPATH=src python3 src/beneficiary_vault_rpc_exporter.py \
+  --rpc-url http://127.0.0.1:8899 \
+  --program-id PROGRAM_ID --vault-state VAULT_STATE
 ~~~
 
 The B1 Rust tests require Rust 1.89 and Solana CLI 3.1.10. Build the SBF
@@ -83,12 +90,12 @@ npm dependency tree contains known advisories. See [probes/README.md](probes/REA
 
 - **Champion:** extend the proven B1 custody core into a purpose vault without
   creating a second release counter or an acceleration authority.
-- **Independent alternative:** add a read-only RPC adapter that reconstructs a
-  B1 snapshot directly from raw Solana accounts and emits the existing receipt.
-- **Decisive probe:** run B1 behind a Surfpool JSON-RPC endpoint, export raw
-  account bytes, and reproduce the receipt from a clean environment. Reserve
-  `solana-test-validator` for loader or validator-fidelity checks that the
-  surfnet does not emulate.
+- **Independent alternative:** the implemented read-only RPC adapter can
+  reconstruct a B1 snapshot and receipt without controlling custody.
+- **Decisive probe:** produce the RPC accounts through actual B1 transactions,
+  then reproduce the receipt from a clean environment. Reserve
+  `solana-test-validator` for loader or validator-fidelity checks that Surfpool
+  does not emulate.
 - **Reliable core:** this executable covenant, receipt format, threat model,
   B1 source and local SBF tests, fixed-supply probe, and recorded local evidence.
 

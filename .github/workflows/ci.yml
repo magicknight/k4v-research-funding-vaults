@@ -46,3 +46,29 @@ jobs:
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Run Rust unit and LiteSVM integration tests
         run: cargo test --workspace --locked
+
+  beneficiary-vault-rpc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install pinned Surfpool 1.5.0
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSfL \
+            -o "$RUNNER_TEMP/surfpool.tar.gz" \
+            https://github.com/solana-foundation/surfpool/releases/download/v1.5.0/surfpool-linux-x64.tar.gz
+          echo "5b20a3b46e60c4f819af7b4da5c3ea211f76041710617841cc23247d15887ddc  $RUNNER_TEMP/surfpool.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/surfpool.tar.gz" -C "$RUNNER_TEMP"
+          install -m 0755 "$RUNNER_TEMP/surfpool" "$RUNNER_TEMP/surfpool-bin"
+      - name: Start an offline surfnet
+        run: |
+          NO_DNA=1 "$RUNNER_TEMP/surfpool-bin" start --ci --daemon \
+            --offline --no-deploy --port 18999 --ws-port 19000
+          timeout 30s bash -c \
+            'until curl --fail --silent -H "Content-Type: application/json" --data '\''{"jsonrpc":"2.0","id":1,"method":"getHealth","params":[]}'\'' http://127.0.0.1:18999 | grep -q '"ok"'; do sleep 1; done'
+      - name: Reconstruct B1 state through live JSON-RPC
+        env:
+          K4V_SURFPOOL_RPC: http://127.0.0.1:18999
+        run: PYTHONPATH=src python3 -m unittest discover -s tests -p 'test_*.py' -v

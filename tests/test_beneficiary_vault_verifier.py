@@ -92,6 +92,24 @@ class BeneficiaryVaultVerifierTests(unittest.TestCase):
         snapshot["token_account"]["amount"] -= 1
         self.assertIn("TOKEN_CONSERVATION_FAILURE", verify_snapshot(snapshot).reasons)
 
+    def test_rejects_token_authority_escape_hatches_when_disclosed(self):
+        snapshot = valid_snapshot()
+        snapshot["token_account"]["delegate"] = snapshot["state"]["depositor"]
+        snapshot["token_account"]["delegated_amount"] = 1
+        snapshot["token_account"]["close_authority"] = snapshot["state"]["depositor"]
+        reasons = verify_snapshot(snapshot).reasons
+        self.assertIn("TOKEN_DELEGATE_PRESENT", reasons)
+        self.assertIn("TOKEN_DELEGATED_AMOUNT_PRESENT", reasons)
+        self.assertIn("TOKEN_CLOSE_AUTHORITY_PRESENT", reasons)
+
+    def test_rejects_frozen_or_native_token_account_when_disclosed(self):
+        snapshot = valid_snapshot()
+        snapshot["token_account"]["state"] = "frozen"
+        snapshot["token_account"]["is_native"] = True
+        reasons = verify_snapshot(snapshot).reasons
+        self.assertIn("TOKEN_ACCOUNT_NOT_ACTIVE", reasons)
+        self.assertIn("NATIVE_TOKEN_ACCOUNT_UNSUPPORTED", reasons)
+
     def test_non_carrying_cap_resets_after_a_new_period(self):
         snapshot = valid_snapshot()
         cap = snapshot["state"]["monthly_cap"]

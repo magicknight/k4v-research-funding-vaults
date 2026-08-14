@@ -3,8 +3,8 @@
 
 The verifier does not sign transactions or control funds. It recomputes the
 two Solana PDAs and checks the frozen accounting invariants in an exported JSON
-snapshot. Fetching and authenticating the account bytes from RPC remains the
-caller's responsibility until the read-only RPC exporter is implemented.
+snapshot. ``beneficiary_vault_rpc_exporter.py`` supplies the read-only path
+from authenticated RPC account envelopes and raw bytes into this schema.
 """
 
 from __future__ import annotations
@@ -195,6 +195,16 @@ def verify_snapshot(snapshot: dict[str, Any]) -> Verification:
             reasons.append("TOKEN_MINT_MISMATCH")
         if token.get("authority") != snapshot.get("vault_state"):
             reasons.append("TOKEN_AUTHORITY_MISMATCH")
+        if token.get("state", "initialized") != "initialized":
+            reasons.append("TOKEN_ACCOUNT_NOT_ACTIVE")
+        if token.get("delegate") is not None:
+            reasons.append("TOKEN_DELEGATE_PRESENT")
+        if token.get("delegated_amount", 0) != 0:
+            reasons.append("TOKEN_DELEGATED_AMOUNT_PRESENT")
+        if token.get("close_authority") is not None:
+            reasons.append("TOKEN_CLOSE_AUTHORITY_PRESENT")
+        if token.get("is_native", False):
+            reasons.append("NATIVE_TOKEN_ACCOUNT_UNSUPPORTED")
 
         if observed_at < genesis:
             reasons.append("OBSERVATION_BEFORE_GENESIS")

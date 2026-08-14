@@ -72,12 +72,39 @@ The Rust unit suite must also match the Python verifier's published PDA vector.
 The Python suite must reject a shortened cliff, forged cap or bump, broken
 token conservation, and must produce deterministic, input-sensitive receipts.
 
+## Read-only RPC bridge
+
+The exporter requires only an RPC URL, program id, and vault-state PDA. It
+fetches the state, derived token account, and Clock sysvar with `getAccountInfo`,
+validates their owners and raw binary layouts, and emits the existing snapshot
+schema:
+
+~~~sh
+PYTHONPATH=src python3 src/beneficiary_vault_rpc_exporter.py \
+  --rpc-url http://127.0.0.1:8899 \
+  --program-id PROGRAM_ID \
+  --vault-state VAULT_STATE
+~~~
+
+The opt-in integration test uses an offline Surfpool 1.5.0 process and no
+wallet, deployment, signature, or transaction:
+
+~~~sh
+NO_DNA=1 surfpool start --ci --offline --no-deploy --port 18999 --ws-port 19000
+K4V_SURFPOOL_RPC=http://127.0.0.1:18999 PYTHONPATH=src \
+  python3 -m unittest discover -s tests -p 'test_*.py' -v
+~~~
+
+Surfpool 1.5.0 accepts hex account data for `surfnet_setAccount` and compares
+the time-travel argument as milliseconds while exposing Unix seconds in the
+Clock sysvar. The test records those observed compatibility rules explicitly.
+
 ## Evidence boundary
 
 The local `.so` hash identifies one build, but ordinary Solana builds are not
 assumed reproducible across machines. A production claim requires a container
 verified build, an on-chain executable hash comparison, and disclosed loader
-authority. LiteSVM is the appropriate fast Week 1 mechanism test; a Surfpool
-JSON-RPC run and raw-account export remain the next probe. A full validator is
-reserved for loader or runtime-fidelity checks that the surfnet does not
-emulate.
+authority. LiteSVM is the appropriate fast Week 1 mechanism test; the Surfpool
+JSON-RPC envelope and raw-account export now pass with deterministic injected
+state. Transaction-produced RPC state, a full loader-fidelity run, a public
+cluster, and an independent machine remain open.
