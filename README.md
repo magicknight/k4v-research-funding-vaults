@@ -23,6 +23,10 @@ already on chain.
   and a cross-language PDA vector.
 - The Python layer passes 30 deterministic tests; an additional opt-in live
   Surfpool test exercises the actual JSON-RPC boundary.
+- An opt-in loopback-only Surfpool probe simulates and sends signed setup,
+  deposit, and capped-release transactions with in-memory signers, observes
+  the expected `CliffActive` rejection, and then reproduces the resulting raw
+  RPC accounts through the independent exporter/verifier.
 - Identical requests produce identical decision receipts; changed inputs
   change the receipt hash.
 - The standard-library verifier recomputes both PDAs, bumps, cliff, cap,
@@ -42,9 +46,11 @@ already on chain.
 - No public-chain or production Solana vault deployment exists in this branch.
 - The code has not received an independent security audit.
 - The repository program ID is a test identity, not a deployment address.
-- The live RPC fixture injects the same deterministic account bytes already
-  checked by the independent model. It is not yet a transaction-produced state
-  from a deployed program or public cluster.
+- The deterministic live-RPC fixture still uses injected bytes. The separate
+  transaction probe creates mint, token, vault and release state through
+  signed local transactions, but loads the SBF program with Surfpool's
+  local-only cheatcode rather than a loader deployment. Neither is a public
+  cluster or production-deployment claim.
 - B1 uses fixed 30-day periods and the initial deposit as its cap basis. It is
   not yet semantically identical to calendar-month/year-start accounting.
 - The recorded transaction signatures are localnet evidence, not public-chain
@@ -95,8 +101,9 @@ npm dependency tree contains known advisories. See [probes/README.md](probes/REA
   creating a second release counter or an acceleration authority.
 - **Independent alternative:** the implemented read-only RPC adapter can
   reconstruct a B1 snapshot and receipt without controlling custody.
-- **Decisive probe:** produce the RPC accounts through actual B1 transactions,
-  then reproduce the receipt from a clean environment. Reserve
+- **Decisive probe:** replace the local program-loading cheatcode with a real
+  loader deployment, reproduce the same transaction/RPC receipt on a public
+  devnet, and obtain an independent preflight. Reserve
   `solana-test-validator` for loader or validator-fidelity checks that Surfpool
   does not emulate.
 - **Reliable core:** this executable covenant, receipt format, threat model,

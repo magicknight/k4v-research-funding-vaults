@@ -5,8 +5,8 @@ economic circulation than the disclosed covenant permits.
 
 | Threat | Smallest dependency | v0.1 status | Required repair or test |
 |---|---|---|---|
-| Direct release above cap | Release arithmetic | B1 LOCAL SBF EVIDENCE | Reproduce in CI and independent environment |
-| Alternate on-chain release path | Instruction surface plus shared counter | B1 LOCAL SBF EVIDENCE | Publish IDL and independently inspect compiled interface |
+| Direct release above cap | Release arithmetic | B1 PUBLIC SBF + LOCAL TRANSACTION RPC EVIDENCE | Reproduce after real loader deployment and in an independent environment |
+| Alternate on-chain release path | Instruction surface plus shared counter | B1 PUBLIC IDL/SBF EVIDENCE | Independently inspect deployed compiled interface |
 | OTC/grant/free transfer after release | Event classification | ESTABLISHED IN MODEL / B1 OUT OF SCOPE | Bind future purpose and integration paths to one counter |
 | Collateral or economic-right bypass | Off-chain interpretation plus event input | MODELLED / ORACLE OPEN | Define attestations and conservative default |
 | Fake or wash-traded volume | Eligible-volume oracle | OPEN | Source allowlist, related-party exclusion, stale-data fail-close |
@@ -24,6 +24,7 @@ loaded SBF test surface by exposing exactly one release instruction. This is
 local evidence, not an independent audit or public-deployment claim. The
 independent verifier route avoids custody and can expose state or accounting
 discrepancies. Its RPC adapter now authenticates the account envelope, owners,
-binary layouts, PDAs and token escape-hatch fields. The current live fixture
-uses injected deterministic bytes rather than transaction-produced state, and
-the verifier still cannot prevent custody failures.
+binary layouts, PDAs and token escape-hatch fields. Both an injected fixture
+and locally signed transaction-produced accounts now pass. The program-loading
+step remains a Surfpool cheatcode rather than a real loader deployment, and the
+verifier still cannot prevent custody failures.

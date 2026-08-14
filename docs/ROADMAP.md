@@ -22,14 +22,14 @@ the purpose-approval, oracle, or independent-review coverage of the champion.
 
 ## Next decisive construction
 
-Complete B1 by running its compiled SBF artifact inside LiteSVM: deposit must
-create the state and token PDAs, pre-cliff release must fail, exact-cap release
-must succeed, cap-plus-one must fail, and a later period must reset rather than
-carry capacity. The read-only RPC adapter and Surfpool fixture now cross the
-raw account-envelope boundary. The next probe must create those accounts by
-executing actual B1 transactions and reproduce the Python receipt from a clean
-machine. Use `solana-test-validator` only for loader or validator-fidelity
-checks that the surfnet does not emulate.
+B1 now passes its compiled-SBF LiteSVM suite and a loopback Surfpool probe whose
+signed transactions create the mint/token inputs, state/token PDAs, complete
+deposit, expected pre-cliff rejection, and exact-cap release. The read-only RPC
+adapter reproduces the transaction-produced accounts independently. The next
+probe must replace `surfnet_writeProgram` with a real loader deployment and
+repeat the same receipt on public devnet and an independent machine. Use
+`solana-test-validator` only for loader or validator-fidelity checks that the
+surfnet does not emulate.
 
 The following bridge is deliberately next, not silently included in B1:
 replace fixed 30-day windows and initial-deposit rate basis with a precisely

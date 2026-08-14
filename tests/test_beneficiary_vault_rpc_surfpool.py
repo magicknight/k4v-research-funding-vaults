@@ -16,7 +16,7 @@ import os
 import unittest
 
 from beneficiary_vault_rpc_exporter import JsonRpcClient, export_snapshot
-from beneficiary_vault_rpc_exporter import CLOCK_SYSVAR_ID
+from beneficiary_vault_rpc_exporter import CLOCK_SYSVAR_ID, decode_clock_timestamp
 from beneficiary_vault_verifier import verify_snapshot
 from test_beneficiary_vault_rpc_exporter import (
     GENESIS,
@@ -52,17 +52,23 @@ class BeneficiaryVaultSurfpoolRpcTests(unittest.TestCase):
                     },
                 ],
             )
-        client._call(
-            "surfnet_timeTravel",
-            [
-                {
-                    # Surfpool 1.5.0 compares this cheatcode value with its
-                    # millisecond wall-clock value, while the Clock sysvar it
-                    # writes remains in Unix seconds.
-                    "absoluteTimestamp": (GENESIS + MIN_CLIFF_SECONDS) * 1_000
-                }
-            ],
+        target_timestamp = GENESIS + MIN_CLIFF_SECONDS
+        current_timestamp = decode_clock_timestamp(
+            client.get_account_info(CLOCK_SYSVAR_ID).data
         )
+        if current_timestamp < target_timestamp:
+            client._call(
+                "surfnet_timeTravel",
+                [
+                    {
+                        # Surfpool 1.5.0 compares this cheatcode value with its
+                        # millisecond wall-clock value, while the Clock sysvar
+                        # it writes remains in Unix seconds. Never ask a reused
+                        # surfnet to travel backwards.
+                        "absoluteTimestamp": target_timestamp * 1_000
+                    }
+                ],
+            )
         snapshot = export_snapshot(client, program, state)
         verification = verify_snapshot(snapshot)
         self.assertTrue(verification.valid, verification.reasons)

@@ -1,6 +1,6 @@
 # Beneficiary Vault B1
 
-Status: IMPLEMENTED PROTOTYPE / PUBLIC CI + LOCAL RPC FIXTURE VALIDATED
+Status: IMPLEMENTED PROTOTYPE / PUBLIC CI + LOCAL TRANSACTION RPC VALIDATED
 
 B1 is the smallest custody mechanism that can replace a beneficiary's verbal
 promise to release slowly. It is intentionally narrower than the full
@@ -107,8 +107,11 @@ receipt. `src/beneficiary_vault_rpc_exporter.py` now fetches and authenticates
 raw state, token, and Clock accounts through read-only JSON-RPC. It checks
 owners, exact lengths, discriminator, canonical PDAs, and token delegate,
 close-authority, native and frozen fields before passing the snapshot here.
-The current live Surfpool fixture injects deterministic bytes; actual
-transaction-produced RPC state remains an open bridge.
+The deterministic live Surfpool fixture injects bytes. A separate loopback-only
+probe now creates mint and token accounts, deposit state, and one exact-cap
+release through signed transactions with in-memory signers, then passes those
+raw RPC accounts through the same exporter and verifier. The program itself is
+loaded with `surfnet_writeProgram`, so real loader deployment remains open.
 
 ## B1 acceptance
 
@@ -123,8 +126,11 @@ artifact:
 5. a later period permits only a fresh cap, not accumulated unused capacity;
 6. the Rust and Python PDA vectors agree;
 7. the independent verifier rejects tampered cap, cliff, bump, and token
-   conservation snapshots.
+   conservation snapshots;
+8. the opt-in loopback probe simulates every signed transaction, observes the
+   expected pre-cliff failure, sends setup/deposit/release, and reconstructs
+   the resulting raw RPC state with the independent verifier.
 
-Security review, transaction-produced RPC reproduction, public-testnet
-deployment, program immutability, purpose approvals, market-capacity input,
-and legal analysis are not B1 acceptance claims.
+Security review, real loader deployment, public-testnet deployment, program
+immutability, purpose approvals, market-capacity input, and legal analysis are
+not B1 acceptance claims.
