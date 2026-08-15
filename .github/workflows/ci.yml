@@ -114,7 +114,7 @@ jobs:
           test "$(printf '%s' "$result_json" | jq -er '.private_keys_serialized')" = false
           PYTHONPATH=src python3 src/beneficiary_vault_rpc_exporter.py \
             --rpc-url "$K4V_SURFPOOL_RPC" \
-            --program-id HfHXRYBMWYbuMw2SGYF5mnwVpdEVw4WPwgNUSRwB7BU \
+            --program-id BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM \
             --vault-state "$vault_state" >/dev/null
 
   beneficiary-vault-real-loader:
@@ -157,7 +157,7 @@ jobs:
           test -n "$result_json"
           test "$(printf '%s' "$result_json" | jq -er '.cluster')" = local-surfpool
           test "$(printf '%s' "$result_json" | jq -er '.program_install')" = upgradeable-loader-v3-deploy-with-max-data-len
-          test "$(printf '%s' "$result_json" | jq -er '.sbf_sha256')" = 1a8b331a0c67368de6f2a67c34133b591021260f4de00246c2f0fa05cc04c9b5
+          test "$(printf '%s' "$result_json" | jq -er '.sbf_sha256')" = d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312
           test "$(printf '%s' "$result_json" | jq -er '.sbf_bytes_exact')" = true
           test "$(printf '%s' "$result_json" | jq -er '.private_keys_serialized')" = false
           test "$(printf '%s' "$result_json" | jq -er '.loader_transactions.write_count')" = 252

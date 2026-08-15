@@ -152,9 +152,95 @@ The probe stops at each send gate unless the exact displayed `SEND_<STAGE>`
 text is entered. CI may set `K4V_LOCAL_REAL_LOADER_SEND_CONFIRMED=1` only on
 the isolated loopback surfnet. Acceptance requires the declared Program ID,
 the canonical ProgramData PDA, loader ownership, an exact SBF SHA-256 of
-`1a8b331a0c67368de6f2a67c34133b591021260f4de00246c2f0fa05cc04c9b5`,
+`d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312`,
 252 write transactions, expected `CliffActive`, exact-cap release, and an
 independent RPC verifier `PASS`.
+
+The earlier frozen hash `1a8b331a0c67368de6f2a67c34133b591021260f4de00246c2f0fa05cc04c9b5`
+belongs to the previous declared address, whose keypair was deliberately
+destroyed. It is preserved in `evidence/` as history and is not reproducible
+from the current source; see the bridge check below.
+
+## Public-cluster bridge
+
+`b1_public_devnet_probe` installs the same SBF on a public cluster through the
+upgradeable loader at an address whose signer is retained, so the Program
+account is created by the loader rather than pre-placed as a fixture.
+
+Three refusals are built into the probe rather than left to operator care:
+
+- it aborts unless the connected cluster's genesis hash equals the one declared
+  in `K4V_EXPECTED_GENESIS`;
+- it refuses the mainnet genesis hash unconditionally, whatever is declared;
+- it never broadcasts a release transaction.
+
+The third is not a policy choice. `MIN_CLIFF_SECONDS` is 730 days and a public
+cluster has no time control, so the post-cliff release is not reachable there.
+Deploying a shortened-cliff build to demonstrate one would be a different
+program under a different covenant, and is deliberately not done. What a public
+run establishes instead is that the on-chain `monthly_cap` equals `4,166,666`,
+the stored cliff length equals the frozen minimum, custody of the full deposit
+moved into the PDA-authorized account, and a pre-cliff release is refused with
+`CliffActive`. The exact-cap release remains local, time-controlled evidence
+from the Surfpool real-loader probe above.
+
+Because the declared address is compiled into the program, a retained signer
+requires a new `declare_id!` and therefore a new artifact hash. The bridge
+between two frozen hashes is made checkable rather than asserted:
+
+~~~sh
+python3 tools/verify_declare_id_delta.py \
+  --old old.so --old-id <OLD_BASE58> \
+  --new target/deploy/beneficiary_vault.so --new-id <NEW_BASE58>
+~~~
+
+It passes only when the two builds have equal length and every differing byte
+belongs to a whole copy of the declared address.
+
+Rehearse on a loopback surfnet first, using the real keypair files and the real
+declared address, so that only the cluster differs:
+
+~~~sh
+solana airdrop 5 "$(solana-keygen pubkey ~/.config/k4v/devnet/payer.json)" \
+  --url http://127.0.0.1:18999
+K4V_DEVNET_PROBE=1 \
+K4V_DEVNET_RPC=http://127.0.0.1:18999 \
+K4V_EXPECTED_GENESIS=<surfnet genesis hash> \
+K4V_EXPECTED_SBF_SHA256=<frozen hash> \
+K4V_PROGRAM_KEYPAIR=~/.config/k4v/devnet/program-b1-devnet.json \
+K4V_UPGRADE_AUTHORITY_KEYPAIR=~/.config/k4v/devnet/upgrade-authority.json \
+K4V_PAYER_KEYPAIR=~/.config/k4v/devnet/payer.json \
+K4V_BENEFICIARY_KEYPAIR=~/.config/k4v/devnet/beneficiary.json \
+K4V_DEVNET_STAGE_CONFIRM=LOADER_CREATE_BUFFER,LOADER_WRITE_CHUNKS,LOADER_DEPLOY,SETUP,DEPOSIT \
+NO_DNA=1 cargo run --locked --package beneficiary-vault \
+  --example b1_public_devnet_probe
+~~~
+
+The receipt reports `cluster: local-rehearsal` for a loopback run and
+`cluster: public` otherwise, so a rehearsal cannot be mistaken for a public
+result. Keypair files must live outside every Git repository; the probe walks
+each path's ancestors and refuses if it finds a `.git` directory. Every stage
+must be named in `K4V_DEVNET_STAGE_CONFIRM`, so a blanket pre-authorization
+flag does not exist. For a public run, replace the RPC URL with the cluster
+endpoint and the genesis hash with that cluster's.
+
+## Reproducing a public receipt without trusting the publisher
+
+Given only the program id and the vault-state address from a published receipt,
+a third party can rebuild the whole conclusion from public accounts:
+
+~~~sh
+PYTHONPATH=src python3 src/beneficiary_vault_rpc_exporter.py \
+  --rpc-url https://api.devnet.solana.com \
+  --program-id <PROGRAM_ID> --vault-state <VAULT_STATE> > snapshot.json
+PYTHONPATH=src python3 src/beneficiary_vault_verifier.py snapshot.json
+~~~
+
+Acceptance is `valid=true`, empty `reasons`, `token_surplus_amount=0`,
+`expected_monthly_cap=4166666`, `released_total=0`, a vault balance equal to
+the deposit, and `cliff_end_ts - genesis_ts = 63072000`. Nothing on that path
+consumes a file supplied by the publisher. The installed bytes can be fetched
+and hashed independently with `solana program dump` followed by `sha256sum`.
 
 ## Evidence boundary
 
@@ -164,7 +250,12 @@ verified build, an on-chain executable hash comparison, and disclosed loader
 authority. LiteSVM is the appropriate fast Week 1 mechanism test. Both
 deterministic injected-state RPC reconstruction and transaction-produced local
 RPC state now pass. The stronger local probe also passes with a real loader
-instruction path and byte-exact ProgramData. The Program account itself is a
-local fixture because its historical signer is unavailable. Public-cluster
-deployment with a newly declared, retained program signer, a verified build,
-and independent security review remain open.
+instruction path and byte-exact ProgramData. In that probe the Program account
+is still a local fixture, because the historical signer of its declared address
+was destroyed.
+
+The public-cluster probe closes that node differently: at the new declared
+address the signer exists, so the loader creates the Program account itself. A
+full loopback rehearsal of that path passes end to end. Public-cluster
+execution, a container-verified build, an on-chain executable hash comparison
+by an unrelated party, and independent security review remain open.
