@@ -63,6 +63,9 @@ const WRITE_CHUNK_BYTES: usize = 900;
 const SEND_INTERVAL: Duration = Duration::from_millis(334);
 const MAX_ATTEMPTS_PER_CHUNK: usize = 5;
 const MAX_TOTAL_CHUNK_RESENDS: usize = 40;
+/// A public-cluster blockhash stays valid for roughly 150 slots; refresh well
+/// inside that rather than after a fixed number of writes.
+const BLOCKHASH_MAX_AGE: Duration = Duration::from_secs(20);
 /// Hard spend ceiling for the whole run, in lamports (2.5 SOL).
 const SPEND_CEILING_LAMPORTS: u64 = 2_500_000_000;
 
@@ -247,9 +250,15 @@ fn deploy(
     let mut last_write_signature = None;
     let mut chunk_resends = 0usize;
     let mut blockhash = ctx.rpc.get_latest_blockhash()?;
+    let mut blockhash_age = Instant::now();
     for (index, chunk) in bytes.chunks(WRITE_CHUNK_BYTES).enumerate() {
-        if index % 32 == 0 {
+        // Refresh by age, not by count. A public cluster confirms each write in
+        // seconds rather than milliseconds, so a fixed every-N-writes refresh
+        // lets the cached blockhash expire mid-window and turns ordinary
+        // latency into avoidable retries.
+        if blockhash_age.elapsed() >= BLOCKHASH_MAX_AGE {
             blockhash = ctx.rpc.get_latest_blockhash()?;
+            blockhash_age = Instant::now();
         }
         let offset = u32::try_from(index * WRITE_CHUNK_BYTES)?;
         let instruction = bpf_loader_upgradeable::write(
@@ -286,6 +295,7 @@ fn deploy(
                     }
                     eprintln!("RETRY write {index} attempt {attempt}: {error}");
                     blockhash = ctx.rpc.get_latest_blockhash()?;
+                    blockhash_age = Instant::now();
                 }
             }
         };

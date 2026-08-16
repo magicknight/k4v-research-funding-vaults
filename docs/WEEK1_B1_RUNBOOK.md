@@ -224,17 +224,37 @@ must be named in `K4V_DEVNET_STAGE_CONFIRM`, so a blanket pre-authorization
 flag does not exist. For a public run, replace the RPC URL with the cluster
 endpoint and the genesis hash with that cluster's.
 
-## Reproducing a public receipt without trusting the publisher
+## Reproducing the published devnet receipt
 
-Given only the program id and the vault-state address from a published receipt,
-a third party can rebuild the whole conclusion from public accounts:
+A run of the above is recorded in
+`evidence/B1_PUBLIC_DEVNET_VALIDATION_2026-08-16.json`:
+
+~~~text
+program      BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM
+programdata  GFQ7Q57KjEbT6Vzetc1W1Zw7jNXRwZB1oDMmd7LM8FR
+vault state  GZAPjDUxETFYvCFYeJc33sdSxRSozBkJs68hqviQzyze
+sbf sha256   d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312
+~~~
+
+Given only the program id and the vault-state address, a third party can
+rebuild the whole conclusion from public accounts. Nothing on this path
+consumes a file supplied by the publisher.
 
 ~~~sh
+solana program dump BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM ondevnet.so \
+  --url https://api.devnet.solana.com
+sha256sum ondevnet.so
+
 PYTHONPATH=src python3 src/beneficiary_vault_rpc_exporter.py \
   --rpc-url https://api.devnet.solana.com \
-  --program-id <PROGRAM_ID> --vault-state <VAULT_STATE> > snapshot.json
+  --program-id BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM \
+  --vault-state GZAPjDUxETFYvCFYeJc33sdSxRSozBkJs68hqviQzyze > snapshot.json
 PYTHONPATH=src python3 src/beneficiary_vault_verifier.py snapshot.json
 ~~~
+
+The verification receipt covers an `observed_at_ts`, so an independent run
+produces a different receipt hash for the same on-chain state. The checked
+values below, not the receipt hash, are the acceptance criteria.
 
 Acceptance is `valid=true`, empty `reasons`, `token_surplus_amount=0`,
 `expected_monthly_cap=4166666`, `released_total=0`, a vault balance equal to
