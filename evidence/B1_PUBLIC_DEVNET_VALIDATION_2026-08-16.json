@@ -1,0 +1,166 @@
+{
+  "schema": "k4v-b1-public-devnet-validation/v0.1",
+  "recorded_at_utc": "2026-08-16T00:47:23Z",
+  "epistemic_status": "PUBLIC_DEVNET_TRANSACTION_AND_RPC_EVIDENCE",
+  "source": {
+    "base_commit": "7b79a2ae5961aa139975da703907e54676cd7611",
+    "probe": "programs/beneficiary-vault/examples/b1_public_devnet_probe.rs",
+    "delta_tool": "tools/verify_declare_id_delta.py"
+  },
+  "cluster": {
+    "kind": "solana-public-devnet",
+    "rpc_url": "https://api.devnet.solana.com",
+    "genesis_hash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+    "solana_core_reported": "4.2.0",
+    "public_cluster": true,
+    "explorer": "https://explorer.solana.com/address/BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM?cluster=devnet",
+    "durability_note": "devnet is documented as subject to ledger resets, so this record is a receipt rather than a permanent public object"
+  },
+  "authorization_boundary": {
+    "user_confirmed_transaction_group": true,
+    "signers": "keypair files outside every Git repository, 0600, devnet-only",
+    "private_keys_serialized": false,
+    "production_wallet_used": false,
+    "real_sol_used": false,
+    "real_token_used": false,
+    "external_recipient": false,
+    "faucet_only": true,
+    "mainnet_refused_unconditionally": true
+  },
+  "program": {
+    "program_id": "BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM",
+    "programdata": "GFQ7Q57KjEbT6Vzetc1W1Zw7jNXRwZB1oDMmd7LM8FR",
+    "programdata_slot": 484286645,
+    "upgrade_authority": "6by73aSGoWtvtfy6pn49v4yL3ecAQSFh3FZgcWLKwgfE",
+    "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+    "executable": true,
+    "sbf_size_bytes": 226504,
+    "sbf_sha256": "d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312",
+    "sbf_bytes_exact": true,
+    "install_mode": "upgradeable-loader-v3-deploy-with-max-data-len",
+    "program_account_created_by_loader": true,
+    "programdata_created_by_loader": true,
+    "program_signer_present": true,
+    "independent_dump_check": {
+      "method": "solana program dump <program_id> --url https://api.devnet.solana.com | sha256sum",
+      "result": "d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312",
+      "byte_identical_to_local_artifact": true
+    }
+  },
+  "artifact_lineage": {
+    "previous_program_id": "HfHXRYBMWYbuMw2SGYF5mnwVpdEVw4WPwgNUSRwB7BU",
+    "previous_sbf_sha256": "1a8b331a0c67368de6f2a67c34133b591021260f4de00246c2f0fa05cc04c9b5",
+    "why_the_hash_changed": "Anchor compiles the declared address into the program and refuses execution elsewhere, so a retained signer requires a new declare_id! and therefore a new artifact",
+    "delta_between_the_two_builds": {
+      "sizes_equal": true,
+      "differing_byte_count": 192,
+      "program_id_copies": 6,
+      "bytes_differing_outside_the_program_id": 0
+    },
+    "previous_evidence_preserved": [
+      "evidence/B1_LOCAL_SBF_VALIDATION_2026-08-11.json",
+      "evidence/B1_RPC_TRANSACTION_VALIDATION_2026-08-14.json",
+      "evidence/B1_REAL_LOADER_VALIDATION_2026-08-14.json"
+    ]
+  },
+  "loader_transactions": {
+    "buffer_create": "5vPLo52uCDeY2Psu7pKcfUbBNrov6FMT9AfVWq7V4tDMhfCm4QtnPi2QKA2kBeLMSoEhPcrK34wFSjHP2wTyKoqf",
+    "write_count": 252,
+    "first_write": "2FaKEF6By55ypZKuo4qoiPXeihcYr8qSmxYFrF2U5EUrK9CzsTfiUYQiSHdP5mxzkir4bzdEXDp6FUyiaRU7jWad",
+    "last_write": "51VqtaotVT3bXC6KpSCXVV2p4S4gr8LhsW72mH25Q1aBVKKiSQJRVCXhWEgcK3X4a1ogDuPfq7x87UT9ob47qnVa",
+    "deploy": "2oQ9p6AxxUTcDCiX7A6AYEzW3XinNihhodRYNhDVB41cAxiC24swwFjXY9BwiAGr6JE13RRvy7KxT2Rx8cNfWUuk",
+    "chunk_resends": 16,
+    "resend_cause": "transient `Blockhash not found` under public-cluster confirmation latency; no content, signature or authority failure occurred",
+    "simulation_signature_verification": true
+  },
+  "b1_flow": {
+    "classic_spl_token": true,
+    "mint": "9xCgAtDbDYAHJ6yS8jNU1j2pCNj66LHiPgSe1wU3Hw6N",
+    "mint_decimals": 9,
+    "depositor": "C5Q43VG6eghYYmWbNRk2Dw9nSsqN4tVXtQLCWeg5iVtW",
+    "beneficiary": "AwAJGasED4GJvNziEKPVpnyUKk7q5pYMR1peiLit8kJT",
+    "depositor_token": "9RbfyqqKQ3EcH1gS1tYiCe7qbpDrZmLirLKBmaXqh7w8",
+    "beneficiary_token": "JDqGMFJMXAtSkZZkvuk2mLhH3UowfAa3CUj12CBBKSqp",
+    "vault_state": "GZAPjDUxETFYvCFYeJc33sdSxRSozBkJs68hqviQzyze",
+    "vault_token": "AfZrr8iqxAi4wJvF5ri5DckEcjZWV9ZmtzGK84Yymyyi",
+    "deposit_amount": 1000000000,
+    "annual_release_bps": 500,
+    "monthly_cap": 4166666,
+    "released_total": 0,
+    "vault_token_balance": 1000000000,
+    "beneficiary_token_balance": 0,
+    "genesis_ts": 1786841126,
+    "cliff_end_ts": 1849913126,
+    "cliff_span_seconds": 63072000,
+    "cliff_end_utc": "2028-08-15T00:45:26Z",
+    "pre_cliff_simulation": "EXPECTED_REJECTION_CLIFF_ACTIVE",
+    "release_transaction_sent": false,
+    "application_transactions": {
+      "setup": "2vcURKadmpFzuEZVuzBcdkkmVkBFkS3kVdXW3fj96scAnVpeqDCUkrxv3YKACi4khehXxepGttxbMEJWbHwJ48fg",
+      "deposit": "5VCSr4i5J8u8LkV92RXyRxJSUqMBerhPwU37HXdm9BSVVUt3x1zFf3dt2prGYGBUT46A2EJtewF2bYf82rQE9oBR"
+    },
+    "compute_units": {
+      "create_buffer": 2520,
+      "deploy": 2670,
+      "setup": 1238,
+      "deposit": 20457,
+      "pre_cliff": 10443
+    }
+  },
+  "confirmation_status": {
+    "method": "getSignatureStatuses with searchTransactionHistory",
+    "sampled": {
+      "buffer_create": { "slot": 484283908, "err": null, "confirmationStatus": "finalized" },
+      "first_write": { "slot": 484283911, "err": null, "confirmationStatus": "finalized" },
+      "last_write": { "slot": 484286642, "err": null, "confirmationStatus": "finalized" },
+      "deploy": { "slot": 484286645, "err": null, "confirmationStatus": "finalized" },
+      "setup": { "slot": 484286648, "err": null, "confirmationStatus": "finalized" },
+      "deposit": { "slot": 484286690, "err": null, "confirmationStatus": "finalized" }
+    }
+  },
+  "independent_rpc_reconstruction": {
+    "inputs": "cluster URL, program id and vault-state address only; no file supplied by the publisher",
+    "exporter": "src/beneficiary_vault_rpc_exporter.py",
+    "verifier": "src/beneficiary_vault_verifier.py",
+    "result": "PASS",
+    "valid": true,
+    "reasons": [],
+    "expected_state_pda": "GZAPjDUxETFYvCFYeJc33sdSxRSozBkJs68hqviQzyze",
+    "expected_token_vault_pda": "AfZrr8iqxAi4wJvF5ri5DckEcjZWV9ZmtzGK84Yymyyi",
+    "expected_monthly_cap": 4166666,
+    "currently_releasable_amount": 0,
+    "token_surplus_amount": 0,
+    "receipt_sha256_note": "the verification receipt hash covers an observed_at_ts, so an independent reconstruction produces a different receipt hash for the same on-chain state; the checked values, not the receipt hash, are the acceptance criteria"
+  },
+  "cost": {
+    "predicted_lamports": 1591224800,
+    "actual_lamports": 1591224800,
+    "payer_opening_balance": 2500000000,
+    "payer_closing_balance": 908775200,
+    "hard_ceiling_lamports": 2500000000,
+    "rent_locked_lamports": 1588654800,
+    "base_fees_lamports": 2570000,
+    "priority_fees_lamports": 0
+  },
+  "established": [
+    "the Program account was created by a public-devnet loader transaction signed by a retained program keypair, not pre-placed as a test fixture",
+    "the loader-created ProgramData account contains the exact frozen SBF bytes, independently confirmed by dumping the program from the cluster and hashing it",
+    "252 signed loader writes and DeployWithMaxDataLen executed on a public cluster and finalized without error",
+    "a signed deposit moved 1,000,000,000 base units into the PDA-authorized vault account on a public cluster",
+    "the on-chain monthly cap is exactly 4,166,666 and the stored cliff length is exactly the frozen 730-day minimum",
+    "a pre-cliff release reaches B1 and is refused with CliffActive",
+    "an independent exporter and verifier reconstruct and accept the state from public accounts alone, with no surplus and no reasons",
+    "the disclosed cost model matched actual spend to the lamport"
+  ],
+  "not_established": [
+    "post-cliff release execution, which is not reachable on a public cluster under the frozen 730-day covenant; the exact-cap release remains local time-controlled evidence",
+    "period accounting across a real month boundary",
+    "byte reproducibility of the artifact on an unrelated machine or toolchain",
+    "program immutability or any production authority ceremony",
+    "purpose-bound treasury vault, IRB/oracle, LP, fee routing or multisig behaviour",
+    "independent security preflight or audit",
+    "production readiness, mainnet authorization or any legal issuance path"
+  ],
+  "reproduce": "See docs/WEEK1_B1_RUNBOOK.md, section \"Reproducing a public receipt without trusting the publisher\".",
+  "next_decisive_probe": "Obtain an independent third-party reconstruction of this receipt, then extend to the purpose-bound treasury vault and an independent security preflight."
+}

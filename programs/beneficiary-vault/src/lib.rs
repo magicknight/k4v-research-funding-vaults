@@ -8,7 +8,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("HfHXRYBMWYbuMw2SGYF5mnwVpdEVw4WPwgNUSRwB7BU");
+declare_id!("BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM");
 
 #[program]
 pub mod beneficiary_vault {
