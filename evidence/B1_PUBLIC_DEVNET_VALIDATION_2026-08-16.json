@@ -110,12 +110,36 @@
   "confirmation_status": {
     "method": "getSignatureStatuses with searchTransactionHistory",
     "sampled": {
-      "buffer_create": { "slot": 484283908, "err": null, "confirmationStatus": "finalized" },
-      "first_write": { "slot": 484283911, "err": null, "confirmationStatus": "finalized" },
-      "last_write": { "slot": 484286642, "err": null, "confirmationStatus": "finalized" },
-      "deploy": { "slot": 484286645, "err": null, "confirmationStatus": "finalized" },
-      "setup": { "slot": 484286648, "err": null, "confirmationStatus": "finalized" },
-      "deposit": { "slot": 484286690, "err": null, "confirmationStatus": "finalized" }
+      "buffer_create": {
+        "slot": 484283908,
+        "err": null,
+        "confirmationStatus": "finalized"
+      },
+      "first_write": {
+        "slot": 484283911,
+        "err": null,
+        "confirmationStatus": "finalized"
+      },
+      "last_write": {
+        "slot": 484286642,
+        "err": null,
+        "confirmationStatus": "finalized"
+      },
+      "deploy": {
+        "slot": 484286645,
+        "err": null,
+        "confirmationStatus": "finalized"
+      },
+      "setup": {
+        "slot": 484286648,
+        "err": null,
+        "confirmationStatus": "finalized"
+      },
+      "deposit": {
+        "slot": 484286690,
+        "err": null,
+        "confirmationStatus": "finalized"
+      }
     }
   },
   "independent_rpc_reconstruction": {
@@ -150,17 +174,40 @@
     "the on-chain monthly cap is exactly 4,166,666 and the stored cliff length is exactly the frozen 730-day minimum",
     "a pre-cliff release reaches B1 and is refused with CliffActive",
     "an independent exporter and verifier reconstruct and accept the state from public accounts alone, with no surplus and no reasons",
-    "the disclosed cost model matched actual spend to the lamport"
+    "the disclosed cost model matched actual spend to the lamport",
+    "a clean clone rebuilt in a pinned container reproduces the released artifact byte for byte, and solana-verify reports Program hash matches against the deployed program"
   ],
   "not_established": [
+    "any reproduction by an unrelated party; the method is published and needs no permission, but publishing a method is not the same as someone having run it",
     "post-cliff release execution, which is not reachable on a public cluster under the frozen 730-day covenant; the exact-cap release remains local time-controlled evidence",
     "period accounting across a real month boundary",
-    "byte reproducibility of the artifact on an unrelated machine or toolchain",
+    "a third-party attestation of the build; the container result is reproducible by anyone, but it was produced by the author and the OtterSec verified-programs registry is mainnet-only",
     "program immutability or any production authority ceremony",
     "purpose-bound treasury vault, IRB/oracle, LP, fee routing or multisig behaviour",
     "independent security preflight or audit",
     "production readiness, mainnet authorization or any legal issuance path"
   ],
   "reproduce": "See docs/WEEK1_B1_RUNBOOK.md, section \"Reproducing a public receipt without trusting the publisher\".",
-  "next_decisive_probe": "Obtain an independent third-party reconstruction of this receipt, then extend to the purpose-bound treasury vault and an independent security preflight."
+  "next_decisive_probe": "Obtain an independent third-party reconstruction of this receipt, then extend to the purpose-bound treasury vault and an independent security preflight.",
+  "verified_build": {
+    "performed_at_utc": "2026-08-17T11:05:00Z",
+    "tool": "solana-verify 0.5.1",
+    "base_image": "solanafoundation/solana-verifiable-build:3.1.10",
+    "source": "clean clone of this public repository at bc89d5a45ac47ce400eb0f41b8be5b8440c04756, fetched by the tool itself",
+    "container_artifact_sha256": "d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312",
+    "byte_identical_to_released_artifact": true,
+    "solana_verify_hash_from_repo": "b3644045c7d949c7e90d11f41a0fa130e698136b88da07d8dfebb512fa9cf8d7",
+    "solana_verify_on_chain_program_hash": "b3644045c7d949c7e90d11f41a0fa130e698136b88da07d8dfebb512fa9cf8d7",
+    "result": "Program hash matches",
+    "independent_sources_yielding_the_same_bytes": [
+      "developer host build (solana-cli 3.1.10, platform-tools v1.52, rustc 1.89.0)",
+      "GitHub Actions ubuntu runner rebuild asserted in CI",
+      "pinned container image solanafoundation/solana-verifiable-build:3.1.10",
+      "the deployed devnet program dumped back off the cluster"
+    ],
+    "default_image_note": "the default verifiable-build image fails outright; its cargo cannot parse dependencies requiring edition2024, so the --base-image pin is load-bearing rather than cosmetic",
+    "on_chain_verification_pda_uploaded": false,
+    "on_chain_upload_note": "declined deliberately; writing verification data on-chain is a new transaction and the disclosed transaction authorization is exercised and closed",
+    "ottersec_registry": "not applicable — remote submission to verify.osec.io is documented as mainnet-only, so no third-party registry entry can exist for a devnet program"
+  }
 }
