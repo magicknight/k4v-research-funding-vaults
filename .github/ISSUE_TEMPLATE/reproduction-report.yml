@@ -1,0 +1,72 @@
+name: Reproduction report
+description: Report what you got when you checked the published devnet receipt
+title: "[repro] "
+labels: ["reproduction"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for checking. A report that **disagrees** with our numbers is
+        more valuable than one that agrees, and it will be recorded as found
+        rather than quietly fixed. You do not need to have resolved the
+        disagreement — reporting it is enough.
+
+        The commands are in `README.md` → *Reproduce the devnet receipt
+        yourself*. Nothing on that path needs a file from us.
+
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options:
+        - Everything matched
+        - Something did not match
+        - I could not complete the check
+    validations:
+      required: true
+
+  - type: input
+    id: sbf_hash
+    attributes:
+      label: SHA-256 of the dumped program
+      description: "`solana program dump ... && sha256sum`. Expected d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312"
+      placeholder: "or 'not checked'"
+
+  - type: textarea
+    id: verifier
+    attributes:
+      label: Verifier output
+      description: |
+        The `verification` object from `beneficiary_vault_verifier.py`, or the
+        error if it did not run. Expected `valid=true`, empty `reasons`,
+        `token_surplus_amount=0`, `expected_monthly_cap=4166666`.
+      render: json
+
+  - type: textarea
+    id: mismatch
+    attributes:
+      label: What did not match
+      description: If anything disagreed, what did you expect and what did you see?
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, Solana CLI version, RPC endpoint used
+      placeholder: "Ubuntu 24.04, Python 3.12, solana-cli 3.1.10, api.devnet.solana.com"
+
+  - type: checkboxes
+    id: independence
+    attributes:
+      label: Independence
+      options:
+        - label: I ran this from a clean clone and did not use any file supplied by the author.
+        - label: I am not affiliated with this project.
+
+  - type: markdown
+    attributes:
+      value: |
+        Note: devnet is documented as subject to ledger resets. If the accounts
+        are gone, that is a property of devnet rather than a retraction — please
+        say so and we will record it. The signatures, slots and hashes stay
+        frozen in `evidence/B1_PUBLIC_DEVNET_VALIDATION_2026-08-16.json`.

@@ -46,24 +46,129 @@ already on chain.
 - Under the recorded Agave 4.2.0 localnet run, an SPL mint with
   1,000,000,000 whole units, a 30/50/12/8 fixture, and permanently revoked mint
   and freeze authorities was realizable.
+- The program is deployed on **Solana devnet** at
+  `BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM`. Its Program and ProgramData
+  accounts were created by finalized loader transactions signed by a retained
+  program keypair — not pre-placed as a fixture. Dumping the program back off
+  the cluster reproduces the frozen artifact byte for byte. A public deposit of
+  1,000,000,000 base units sits in the PDA-authorized vault under an on-chain
+  monthly cap of 4,166,666 and a cliff span of exactly 63,072,000 seconds, and a
+  pre-cliff release is refused with `CliffActive`. See
+  `evidence/B1_PUBLIC_DEVNET_VALIDATION_2026-08-16.json`, and reproduce it
+  yourself below.
+- The deployed program is a **verified build**. A clean clone of this repository
+  at `bc89d5a`, rebuilt inside the pinned container image
+  `solanafoundation/solana-verifiable-build:3.1.10`, produces an artifact whose
+  SHA-256 is byte-identical to the released one, and `solana-verify` reports
+  `Program hash matches` against the devnet program. Four independent sources
+  now yield the same bytes: a developer host, the GitHub CI runner, the pinned
+  container, and the deployed program dumped back off the cluster.
+
+## Reproduce the devnet receipt yourself
+
+You do not need anything from us. Two public addresses are the only inputs, and
+nothing on this path consumes a file we supply.
+
+### The one-command version
+
+With Docker and [`solana-verify`](https://github.com/solana-foundation/solana-verifiable-build)
+installed, this clones the repository itself, rebuilds inside a pinned
+container, and compares the result against the deployed program:
+
+~~~sh
+solana-verify verify-from-repo \
+  https://github.com/magicknight/k4v-research-funding-vaults \
+  --program-id BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM \
+  --commit-hash bc89d5a45ac47ce400eb0f41b8be5b8440c04756 \
+  --library-name beneficiary_vault \
+  --base-image solanafoundation/solana-verifiable-build:3.1.10 \
+  -u https://api.devnet.solana.com
+~~~
+
+Expected: `Program hash matches ✅`, with both hashes reading
+`b3644045c7d949c7e90d11f41a0fa130e698136b88da07d8dfebb512fa9cf8d7`.
+
+The `--base-image` pin is required, not cosmetic: the default image ships a
+cargo that cannot parse dependencies requiring `edition2024`, and the build
+fails outright without it.
+
+It will then ask whether to upload verification data on-chain. Answer `n` — you
+are checking this program, not publishing to it.
+
+### The on-chain verification record
+
+The program authority has published a verification PDA at
+`HTJcacoyd5j1EzRaJBoLHh3HmXQsUzfw8UvzeBvvZxiV`, readable by anyone:
+
+~~~sh
+solana-verify get-program-pda \
+  --program-id BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM \
+  --signer 6by73aSGoWtvtfy6pn49v4yL3ecAQSFh3FZgcWLKwgfE \
+  -u https://api.devnet.solana.com
+~~~
+
+It records the repository URL, the commit hash, and the build arguments —
+including the `--base-image` pin, without which the build fails. So the record
+carries everything needed to re-run the check, and needs no account, no explorer
+and no contact with us.
+
+Two honest limits. First, the uploader is the program's own authority, so the
+record is an **assertion by the author**, not a third-party attestation; the
+checking still comes from you re-running the build. Second, this does **not**
+produce a "verified" badge on Solana Explorer: that badge is driven by the
+OtterSec status API, which is mainnet-only and reports this devnet program as
+`is_verified: false`. The same mechanism would produce the badge on mainnet.
+
+### The step-by-step version
+
+~~~sh
+# 1. Are the installed bytes the ones this repository builds?
+solana program dump BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM ondevnet.so \
+  --url https://api.devnet.solana.com
+sha256sum ondevnet.so
+# expect d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312
+
+# 2. Does the custody state hold up on its own terms?
+PYTHONPATH=src python3 src/beneficiary_vault_rpc_exporter.py \
+  --rpc-url https://api.devnet.solana.com \
+  --program-id BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM \
+  --vault-state GZAPjDUxETFYvCFYeJc33sdSxRSozBkJs68hqviQzyze > snapshot.json
+PYTHONPATH=src python3 src/beneficiary_vault_verifier.py snapshot.json
+~~~
+
+Acceptance: `valid=true`, empty `reasons`, `token_surplus_amount=0`,
+`expected_monthly_cap=4166666`, `released_total=0`, vault balance equal to the
+deposit, and `cliff_end_ts - genesis_ts = 63072000`.
+
+**Reports of any kind are welcome, including negative ones.** Open an issue
+using the *Reproduction report* template. A run that disagrees with the numbers
+above is more useful to us than a run that agrees, and it will be recorded as
+found rather than quietly fixed.
+
+Devnet is documented as subject to ledger resets. If the accounts have been
+wiped, that is a property of devnet, not a retraction — the signatures, slots
+and hashes are frozen in the evidence file.
 
 ## What is not established
 
-- No public-chain or production Solana vault deployment exists in this branch.
+- **No unrelated third party has yet reproduced the devnet receipt.** The path
+  above is published and needs no permission, but publishing a method is not the
+  same as someone having run it.
 - The code has not received an independent security audit.
-- The repository program ID is a test identity, not a deployment address.
-- The declared test program's historical signer was deliberately destroyed,
-  so the real-loader probe uses `surfnet_setAccount` only to pre-create that
-  address as an uninitialized loader-owned Program account. The loader creates
-  ProgramData and installs the exact SBF, but this is not evidence that the
-  unavailable Program signer can be recovered.
-- Surfpool is an offline local runtime, not a public-cluster or
-  production-deployment claim. Its local transaction signatures have no
-  explorer value.
+- No mainnet or production deployment exists, and no production key ceremony has
+  been performed. The devnet upgrade authority is a retained test key.
+- The post-cliff release has never executed on a public cluster and cannot
+  before 2028-08-15: the 730-day minimum cliff is a locked invariant and a
+  public cluster has no time control. Exact-cap release remains local,
+  time-controlled evidence from the Surfpool real-loader probe. No
+  shortened-cliff build exists, and none will be published to stand in for it.
+- Surfpool is an offline local runtime. Its local transaction signatures have no
+  explorer value; only the devnet signatures do.
 - B1 uses fixed 30-day periods and the initial deposit as its cap basis. It is
-  not yet semantically identical to calendar-month/year-start accounting.
-- The recorded transaction signatures are localnet evidence, not public-chain
-  explorer proofs.
+  not yet semantically identical to calendar-month/year-start accounting, and no
+  real month boundary has been crossed on any cluster.
+- The purpose-bound treasury vault, IRB/oracle, LP, fee routing and multisig are
+  specified but not implemented or deployed.
 - This release does not establish legal eligibility, mainnet readiness,
   liquidity, scientific claims, token demand, or token value.
 
