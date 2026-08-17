@@ -95,6 +95,30 @@ fails outright without it.
 It will then ask whether to upload verification data on-chain. Answer `n` — you
 are checking this program, not publishing to it.
 
+### The on-chain verification record
+
+The program authority has published a verification PDA at
+`HTJcacoyd5j1EzRaJBoLHh3HmXQsUzfw8UvzeBvvZxiV`, readable by anyone:
+
+~~~sh
+solana-verify get-program-pda \
+  --program-id BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM \
+  --signer 6by73aSGoWtvtfy6pn49v4yL3ecAQSFh3FZgcWLKwgfE \
+  -u https://api.devnet.solana.com
+~~~
+
+It records the repository URL, the commit hash, and the build arguments —
+including the `--base-image` pin, without which the build fails. So the record
+carries everything needed to re-run the check, and needs no account, no explorer
+and no contact with us.
+
+Two honest limits. First, the uploader is the program's own authority, so the
+record is an **assertion by the author**, not a third-party attestation; the
+checking still comes from you re-running the build. Second, this does **not**
+produce a "verified" badge on Solana Explorer: that badge is driven by the
+OtterSec status API, which is mainnet-only and reports this devnet program as
+`is_verified: false`. The same mechanism would produce the badge on mainnet.
+
 ### The step-by-step version
 
 ~~~sh

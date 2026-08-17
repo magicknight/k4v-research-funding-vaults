@@ -181,6 +181,7 @@
     "any reproduction by an unrelated party; the method is published and needs no permission, but publishing a method is not the same as someone having run it",
     "post-cliff release execution, which is not reachable on a public cluster under the frozen 730-day covenant; the exact-cap release remains local time-controlled evidence",
     "period accounting across a real month boundary",
+    "any Solana Explorer verified badge; the API behind it is mainnet-only and reports this devnet program as not verified",
     "a third-party attestation of the build; the container result is reproducible by anyone, but it was produced by the author and the OtterSec verified-programs registry is mainnet-only",
     "program immutability or any production authority ceremony",
     "purpose-bound treasury vault, IRB/oracle, LP, fee routing or multisig behaviour",
@@ -206,8 +207,34 @@
       "the deployed devnet program dumped back off the cluster"
     ],
     "default_image_note": "the default verifiable-build image fails outright; its cargo cannot parse dependencies requiring edition2024, so the --base-image pin is load-bearing rather than cosmetic",
-    "on_chain_verification_pda_uploaded": false,
-    "on_chain_upload_note": "declined deliberately; writing verification data on-chain is a new transaction and the disclosed transaction authorization is exercised and closed",
-    "ottersec_registry": "not applicable — remote submission to verify.osec.io is documented as mainnet-only, so no third-party registry entry can exist for a devnet program"
+    "on_chain_verification_pda_uploaded": true,
+    "on_chain_upload_note": "uploaded 2026-08-17 under a separate disclosed and confirmed transaction group (Addendum A)",
+    "ottersec_registry": "not applicable — remote submission to verify.osec.io is documented as mainnet-only, so no third-party registry entry can exist for a devnet program",
+    "verification_pda": {
+      "address": "HTJcacoyd5j1EzRaJBoLHh3HmXQsUzfw8UvzeBvvZxiV",
+      "uploader": "6by73aSGoWtvtfy6pn49v4yL3ecAQSFh3FZgcWLKwgfE",
+      "uploader_role": "the program's own upgrade authority, so this is an assertion by the author, not a third-party attestation",
+      "git_url": "https://github.com/magicknight/k4v-research-funding-vaults",
+      "commit": "bc89d5a45ac47ce400eb0f41b8be5b8440c04756",
+      "deployed_slot": 484286645,
+      "args": [
+        "--library-name",
+        "beneficiary_vault",
+        "--base-image",
+        "solanafoundation/solana-verifiable-build:3.1.10"
+      ],
+      "upload_signature": "3CV8AUF9KcM7gMjPNfYL1WZgPJ3oodUX2yQnpJ6G1yhBEKKzc5HmDmKj4mjKuCVipwZk1cPHyrXnfi2WHTsvpkMJ",
+      "upload_slot": 484767331,
+      "read_with": "solana-verify get-program-pda --program-id <program> --signer <uploader> -u https://api.devnet.solana.com",
+      "lamports_spent": 3045940
+    },
+    "explorer_verified_badge": {
+      "present": false,
+      "checked": "https://verify.osec.io/status/BzeaJbgEEbJd14yyMad1BbemTUHWepXh6SeZgX5Yt7gM",
+      "response": "{\"is_verified\": false, \"message\": \"On chain program not verified\"}",
+      "control": "the same endpoint returns is_verified true for a mainnet verified program",
+      "reason": "the OtterSec status API that drives the Explorer badge is mainnet-only; an on-chain PDA does not light up the badge on devnet",
+      "note": "an earlier internal statement claimed the badge would appear; that was wrong and is corrected here rather than quietly dropped"
+    }
   }
 }
