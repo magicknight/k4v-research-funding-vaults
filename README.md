@@ -63,6 +63,17 @@ already on chain.
   `Program hash matches` against the devnet program. Four independent sources
   now yield the same bytes: a developer host, the GitHub CI runner, the pinned
   container, and the deployed program dumped back off the cluster.
+- A second program, **B2**, implements the covenant's purpose vault together
+  with the aggregate rule B1 structurally cannot express. One `PolicyWindow` is
+  debited by every vault bound to a policy, so two vaults that are each inside
+  their own monthly cap are still refused when they jointly exceed the
+  market-capacity ceiling. Twenty LiteSVM tests against the compiled SBF cover
+  the approved need, the 30-day notice, approver recusal, oracle staleness,
+  zero eligible volume, non-carrying capacity in both counters, and an attempt
+  to attach a foreign vault to someone else's capacity window. Eight Rust unit
+  tests and seven Python tests pin the same integers on both sides of the
+  language boundary. B2 is **not deployed anywhere**; see
+  [PURPOSE_VAULT_B2.md](spec/PURPOSE_VAULT_B2.md).
 
 ## Reproduce the devnet receipt yourself
 
@@ -167,8 +178,21 @@ and hashes are frozen in the evidence file.
 - B1 uses fixed 30-day periods and the initial deposit as its cap basis. It is
   not yet semantically identical to calendar-month/year-start accounting, and no
   real month boundary has been crossed on any cluster.
-- The purpose-bound treasury vault, IRB/oracle, LP, fee routing and multisig are
-  specified but not implemented or deployed.
+- B2 exists only as a local build. It has never been sent to any cluster, has
+  no published IDL, and no unrelated party has run it. Its market-capacity rate
+  and its definition of eligible volume are test parameters, not frozen
+  production values.
+- B2's oracle and its approver are single keys. A real treasury needs a
+  multisig, and no treasury signers exist. B2 builds the mechanism, not the
+  governance.
+- **The deployed B1 program cannot participate in a B2 joint cap.** B1 has no
+  knowledge of any aggregate and cannot be given one. A complete aggregate
+  guarantee requires both pools to live in B2.
+- B2 does not verify that a release was actually spent on its stated purpose.
+  It verifies that an approval existed, was aged, was capped, and that the
+  approver was not the payee. Truthfulness of purpose rests on the public
+  budget and ledger.
+- IRB, LP, fee routing and multisig remain specified but not implemented.
 - This release does not establish legal eligibility, mainnet readiness,
   liquidity, scientific claims, token demand, or token value.
 
@@ -192,6 +216,16 @@ artifact before running the workspace tests:
 NO_DNA=1 cargo build-sbf --manifest-path programs/beneficiary-vault/Cargo.toml \
   --sbf-out-dir target/deploy
 cargo test --workspace --locked
+~~~
+
+B2 builds and tests the same way, against its own SBF artifact:
+
+~~~sh
+NO_DNA=1 cargo build-sbf --manifest-path programs/purpose-vault/Cargo.toml \
+  --sbf-out-dir target/deploy
+cargo test --package purpose-vault --locked
+PYTHONPATH=src python3 -m unittest discover -s tests \
+  -p 'test_purpose_vault_b2_parity.py' -v
 ~~~
 
 The real-loader probe additionally requires an offline Surfpool 1.5.0 process
@@ -223,8 +257,9 @@ npm dependency tree contains known advisories. See [probes/README.md](probes/REA
 
 ## Frontier map
 
-- **Champion:** extend the proven B1 custody core into a purpose vault without
-  creating a second release counter or an acceleration authority.
+- **Champion:** B2 now carries the purpose vault and the shared capacity
+  window locally. The next step is an independent review of its oracle
+  boundary, then a public-cluster receipt for the aggregate rule.
 - **Independent alternative:** the implemented read-only RPC adapter can
   reconstruct a B1 snapshot and receipt without controlling custody.
 - **Decisive probe:** repeat the now-working real-loader transaction/RPC
