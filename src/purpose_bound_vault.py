@@ -4,6 +4,12 @@
 This module is chain-independent. It is a deterministic reference model and
 audit-receipt generator, not a production smart contract or security audit.
 All token amounts use integer base units and all rates use basis points.
+
+Trading volume is a token amount, so it is in base units too, not in any quote
+currency. "Spot volume" conventionally means a quote-currency figure, which is
+why the unit is restated wherever the field appears: reading it as USD would
+silently rescale every ceiling derived from it. Base units also keep price out
+of the covenant, and let venues be summed without a per-venue price.
 """
 
 from __future__ import annotations
@@ -18,7 +24,7 @@ from typing import Iterable
 
 BPS_DENOMINATOR = 10_000
 MONTHS_PER_YEAR = 12
-RECEIPT_SCHEMA = "purpose-bound-vault-receipt/v0.1"
+RECEIPT_SCHEMA = "purpose-bound-vault-receipt/v0.2"
 
 
 class EventKind(str, Enum):
@@ -47,6 +53,7 @@ class ReleaseRequest:
     beneficiary_locked_balance_at_year_start: int
     purpose_locked_balance_at_year_start: int
     annual_release_bps: int
+    #: Trailing 30-day eligible volume in **mint base units**, not quote currency.
     eligible_trailing_30d_spot_volume: int
     market_capacity_bps: int
     beneficiary_months_since_genesis: int
@@ -54,6 +61,9 @@ class ReleaseRequest:
     beneficiary_events: tuple[ReleaseEvent, ...] = ()
     purpose_events: tuple[ReleaseEvent, ...] = ()
     purpose_approved_need: int = 0
+    #: Absolute ceiling on the shared monthly window, in base units. ``None``
+    #: leaves it inert. It is the one term no oracle report can widen.
+    hard_ceiling: int | None = None
 
     def __post_init__(self) -> None:
         if re.fullmatch(r"[0-9]{4}-(0[1-9]|1[0-2])", self.period_id) is None:
@@ -72,6 +82,8 @@ class ReleaseRequest:
             raise ValueError("annual release rate must be between 0 and 500 bps")
         if not 0 <= self.market_capacity_bps <= 500:
             raise ValueError("market capacity rate must be between 0 and 500 bps")
+        if self.hard_ceiling is not None and self.hard_ceiling <= 0:
+            raise ValueError("hard ceiling must be positive, or None to leave it inert")
 
 
 @dataclass(frozen=True)
@@ -82,6 +94,9 @@ class ReleaseDecision:
     purpose_net_release: int
     beneficiary_monthly_rate_cap: int
     purpose_monthly_rate_cap: int
+    #: What the market alone would absorb, before the ceiling is applied.
+    market_absorption_capacity: int
+    #: The window actually enforced: the tighter of absorption and ceiling.
     aggregate_market_capacity: int
 
 
@@ -112,10 +127,15 @@ def evaluate_release(request: ReleaseRequest) -> ReleaseDecision:
         request.purpose_locked_balance_at_year_start,
         request.annual_release_bps,
     )
-    market_cap = (
+    absorption = (
         request.eligible_trailing_30d_spot_volume
         * request.market_capacity_bps
         // BPS_DENOMINATOR
+    )
+    market_cap = (
+        absorption
+        if request.hard_ceiling is None
+        else min(absorption, request.hard_ceiling)
     )
 
     reasons: list[str] = []
@@ -141,6 +161,7 @@ def evaluate_release(request: ReleaseRequest) -> ReleaseDecision:
         purpose_net_release=purpose_release,
         beneficiary_monthly_rate_cap=beneficiary_cap,
         purpose_monthly_rate_cap=purpose_cap,
+        market_absorption_capacity=absorption,
         aggregate_market_capacity=market_cap,
     )
 

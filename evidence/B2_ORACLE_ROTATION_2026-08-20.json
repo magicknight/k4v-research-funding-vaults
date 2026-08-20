@@ -1,0 +1,96 @@
+{
+  "artifact": "B2_ORACLE_ROTATION_AND_SILENCE_FLOOR",
+  "recorded_utc": "2026-08-20",
+  "status": "LOCAL IMPLEMENTATION PASS / NOT DEPLOYED / NO INDEPENDENT REVIEW",
+  "claim": "A lost or silent volume reporter is no longer necessarily permanent. The policy authority may propose a replacement that takes effect after a 90-day public notice, and a policy may declare a silence floor at creation that engages after 180 to 730 days of silence. Nothing here was sent to any cluster.",
+  "supersedes": "This retracts one statement, and only one: evidence/B2_LOCAL_VALIDATION_2026-08-19.json lists oracle_replacement under absent_by_construction, and that is no longer true. Every other statement in that file and in evidence/B2_ABSOLUTE_CEILING_2026-08-20.json stands as recorded.",
+  "program": {
+    "name": "purpose_vault",
+    "declared_id": "2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w",
+    "sbf_sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb",
+    "sbf_bytes": 367264,
+    "previous_sbf_sha256": "d36a58041b42376e98f8980be2bdc475da4c3b7a07a9fc0573fefdf51d8eb1c3",
+    "rebuild_determinism": "two consecutive local builds after touching a source file produced the same digest; this is a same-host check only and does not establish a verified build",
+    "deployed": false,
+    "instruction_count": 8,
+    "instruction_surface": [
+      "open_policy",
+      "report_volume",
+      "propose_oracle",
+      "execute_oracle_rotation",
+      "deposit",
+      "approve",
+      "release_beneficiary",
+      "release_purpose"
+    ],
+    "surface_guard": "surface::the_program_exposes_exactly_eight_instructions fails if a ninth entry point appears or the order changes"
+  },
+  "changes": [
+    {
+      "id": "B2-C-3",
+      "kind": "new instruction pair",
+      "what": "propose_oracle, restricted to the policy authority and rejecting the default pubkey; execute_oracle_rotation, permissionless once ORACLE_ROTATION_NOTICE_SECONDS (90 days) has elapsed.",
+      "invariant": "a rotation restores who may report, never what was reported: eligible_volume, updated_at and report_count are untouched, so a stale input stays stale across the change and the incoming oracle must speak before any release resumes",
+      "no_cancel_instruction": "a second proposal replaces the first and restarts its clock; proposing the sitting oracle is how a proposal is withdrawn, which is a weaker power than a cancel and needs no extra entry point",
+      "permissionless_execution": "the authorisation was the proposal and the public already had 90 days; requiring the authority again would add a way for an aged, announced rotation to be silently withheld"
+    },
+    {
+      "id": "B2-C-4",
+      "kind": "new frozen parameters",
+      "what": "PolicyWindow.silence_floor and PolicyWindow.silence_grace_seconds, set at open_policy. Zero floor with zero grace is the default and keeps the previous behaviour exactly. A declared floor requires a grace period between 180 and 730 days.",
+      "why_the_band": "the minimum exceeds the 90-day rotation notice, so replacing a lost oracle is always the faster path and the floor is only reached when the authority that would rotate it is gone too",
+      "why_both_or_neither": "a floor with no grace would engage the instant an input went stale, which is a fallback in everything but name; a grace with no floor describes nothing",
+      "not_a_fallback": "the floor is a fixed number chosen in advance, never the last reported volume, and it is bounded by hard_ceiling like any other window"
+    },
+    {
+      "id": "B2-C-5",
+      "kind": "defect fixed",
+      "what": "The sentinel for \"this oracle has never spoken\" moved from updated_at == 0 to report_count == 0.",
+      "found_by": "a new integration test that failed with StaleMarketInput where the silence floor was expected to engage",
+      "why_it_matters": "a timestamp cannot carry that meaning: zero is also a real instant, and a report made at it was indistinguishable from no report at all. The LiteSVM fixture's clock starts at zero, so every fixture that reported at setup was in exactly that state — the covenant treated a report that had happened as one that never had.",
+      "live_severity": "no cluster has a unix_timestamp of zero, so this was not reachable on any real network; it was reachable in the test environment, which is where it was found"
+    }
+  ],
+  "tests": {
+    "rust_unit_b2": 15,
+    "litesvm_integration_b2": 32,
+    "python_parity_b2": 10,
+    "workspace_rust_total": 57,
+    "python_total_including_one_skipped_live_surfpool_test": 41,
+    "fmt": "PASS",
+    "clippy_deny_warnings": "PASS",
+    "added": [
+      "policy::tests::a_policy_whose_oracle_never_spoke_has_no_window_at_all",
+      "policy::tests::without_a_declared_floor_a_stale_input_still_refuses_forever",
+      "policy::tests::a_declared_floor_engages_only_after_the_grace_period",
+      "policy::tests::a_floor_cannot_resurrect_a_policy_whose_oracle_never_spoke",
+      "policy::tests::the_hard_ceiling_also_bounds_the_silence_floor",
+      "only_the_policy_authority_may_propose_an_oracle",
+      "a_proposed_oracle_cannot_take_effect_before_its_ninety_day_notice",
+      "executing_a_rotation_that_was_never_proposed_is_rejected",
+      "a_second_proposal_replaces_the_first_and_restarts_its_clock",
+      "a_rotation_restores_who_may_speak_and_nothing_else",
+      "a_release_resumes_only_after_the_replacement_oracle_has_spoken",
+      "without_a_declared_floor_a_silent_oracle_locks_both_vaults",
+      "a_declared_floor_releases_a_trickle_and_only_after_the_grace_period",
+      "a_policy_may_not_declare_half_a_silence_rule"
+    ]
+  },
+  "covenant_version": {
+    "from": "Purpose-Bound Vault Covenant v0.2",
+    "to": "Purpose-Bound Vault Covenant v0.3",
+    "b1_unaffected": "B1 implements v0.1 and its statements are unchanged; v0.3 alters no cap, rate, cliff or notice period",
+    "rejection_vector_5_qualified": "\"any release with zero eligible volume\" now reads \"with a fresh report of zero\". A declared silence floor is a stated exception applying only where there is no fresh report at all, and a policy without a floor refuses in both cases."
+  },
+  "known_limits": [
+    "not deployed to localnet, devnet, testnet or mainnet",
+    "no published IDL: the Anchor CLI cannot run on the build host because of a glibc mismatch, and a hand-assembled IDL was deliberately not shipped",
+    "the rotation authority is the policy authority, a single key in every fixture. Whoever holds it can name themselves and report an inflated figure; that is bounded by the per-vault caps, the cliff, the approved need and the notice period, and visible for 90 days first, but it is not prevented",
+    "no multisig exists; Squads compatibility with B2's Signer constraints has not been tested on any cluster and is not claimed",
+    "silence_floor is zero in every fixture but one, so B2's default remains a permanent lock on a lost oracle; no production floor or grace value has been chosen",
+    "a policy that declares no floor still seals permanently if the oracle and the policy authority are both lost",
+    "hard_ceiling still has no production value and cannot be added after policy creation",
+    "which venues count toward eligible volume, and which addresses are excluded, is decided off chain",
+    "no independent security review"
+  ]
+}

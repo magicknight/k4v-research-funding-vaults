@@ -1,0 +1,178 @@
+use crate::constants::{
+    APPROVAL_SEED, MARKET_SEED, MIN_NOTICE_SECONDS, POLICY_SEED, TOKEN_VAULT_SEED, VAULT_SEED,
+};
+use crate::error::CovenantError;
+use crate::instructions::common::{apply_release, ReleaseGate};
+use crate::policy;
+use crate::state::{Approval, CovenantVault, MarketInput, PolicyWindow, VaultKind};
+use anchor_lang::prelude::*;
+use anchor_spl::token::{self, Mint, Token, TokenAccount, TransferChecked};
+
+#[derive(Accounts)]
+pub struct ReleasePurpose<'info> {
+    pub approver: Signer<'info>,
+    pub mint: Box<Account<'info, Mint>>,
+    #[account(
+        mut,
+        has_one = mint,
+        seeds = [
+            VAULT_SEED,
+            vault.policy_hash.as_ref(),
+            &[vault.kind.seed_byte()],
+            approver.key().as_ref(),
+            mint.key().as_ref(),
+        ],
+        bump = vault.state_bump,
+    )]
+    pub vault: Box<Account<'info, CovenantVault>>,
+    #[account(
+        mut,
+        seeds = [POLICY_SEED, vault.policy_hash.as_ref()],
+        bump = policy.bump,
+    )]
+    pub policy: Box<Account<'info, PolicyWindow>>,
+    #[account(
+        seeds = [MARKET_SEED, vault.policy_hash.as_ref()],
+        bump = market.bump,
+    )]
+    pub market: Box<Account<'info, MarketInput>>,
+    #[account(
+        mut,
+        seeds = [TOKEN_VAULT_SEED, vault.key().as_ref()],
+        bump = vault.token_vault_bump,
+        token::mint = mint,
+        token::authority = vault,
+    )]
+    pub vault_token: Box<Account<'info, TokenAccount>>,
+    #[account(mut, token::mint = mint)]
+    pub destination: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut,
+        has_one = vault,
+        has_one = approver,
+        seeds = [APPROVAL_SEED, vault.key().as_ref(), &approval.period_index.to_le_bytes()],
+        bump = approval.bump,
+    )]
+    pub approval: Box<Account<'info, Approval>>,
+    pub token_program: Program<'info, Token>,
+}
+
+pub fn release_purpose_handler(ctx: Context<ReleasePurpose>, amount: u64) -> Result<()> {
+    require!(
+        ctx.accounts.vault.kind == VaultKind::Purpose,
+        CovenantError::WrongVaultKind
+    );
+    require!(
+        ctx.accounts.approval.destination == ctx.accounts.destination.key(),
+        CovenantError::ApprovalDestinationMismatch
+    );
+    // Re-checked at release, not only at approval: the destination account's
+    // owner is mutable state, and an approval aged 30 days is a long window.
+    require!(
+        ctx.accounts.destination.owner != ctx.accounts.approver.key(),
+        CovenantError::ApproverIsPayee
+    );
+
+    let now = Clock::get()?.unix_timestamp;
+    let period = policy::period_index(now, ctx.accounts.policy.genesis_ts)?;
+    require!(
+        ctx.accounts.approval.period_index == period,
+        CovenantError::ApprovalPeriodMismatch
+    );
+
+    let notice = now
+        .checked_sub(ctx.accounts.approval.created_at)
+        .ok_or(CovenantError::InvalidClock)?;
+    require!(
+        notice >= MIN_NOTICE_SECONDS,
+        CovenantError::NoticePeriodActive
+    );
+
+    let next_consumed = ctx
+        .accounts
+        .approval
+        .consumed
+        .checked_add(amount)
+        .ok_or(CovenantError::ArithmeticOverflow)?;
+    require!(
+        next_consumed <= ctx.accounts.approval.approved_need,
+        CovenantError::ApprovedNeedExceeded
+    );
+
+    let capacity = apply_release(
+        ReleaseGate {
+            policy: &mut ctx.accounts.policy,
+            vault: &mut ctx.accounts.vault,
+            market: &ctx.accounts.market,
+        },
+        now,
+        period,
+        amount,
+    )?;
+
+    let vault = &ctx.accounts.vault;
+    let policy_hash = vault.policy_hash;
+    let kind_byte = [vault.kind.seed_byte()];
+    let authority = vault.authority;
+    let mint = vault.mint;
+    let bump = [vault.state_bump];
+    let signer_seeds: &[&[u8]] = &[
+        VAULT_SEED,
+        policy_hash.as_ref(),
+        &kind_byte,
+        authority.as_ref(),
+        mint.as_ref(),
+        &bump,
+    ];
+
+    token::transfer_checked(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.key(),
+            TransferChecked {
+                from: ctx.accounts.vault_token.to_account_info(),
+                mint: ctx.accounts.mint.to_account_info(),
+                to: ctx.accounts.destination.to_account_info(),
+                authority: vault.to_account_info(),
+            },
+            &[signer_seeds],
+        ),
+        amount,
+        vault.mint_decimals,
+    )?;
+
+    ctx.accounts.approval.consumed = next_consumed;
+
+    emit!(PurposeReleased {
+        vault: ctx.accounts.vault.key(),
+        policy: ctx.accounts.policy.key(),
+        approval: ctx.accounts.approval.key(),
+        approver: ctx.accounts.approver.key(),
+        destination: ctx.accounts.destination.key(),
+        amount,
+        period_index: period,
+        approved_need: ctx.accounts.approval.approved_need,
+        approval_consumed: next_consumed,
+        vault_released_this_period: ctx.accounts.vault.released_this_period,
+        vault_released_total: ctx.accounts.vault.released_total,
+        policy_released_this_period: ctx.accounts.policy.released_this_period,
+        market_capacity: capacity,
+    });
+    Ok(())
+}
+
+#[event]
+pub struct PurposeReleased {
+    pub vault: Pubkey,
+    pub policy: Pubkey,
+    pub approval: Pubkey,
+    pub approver: Pubkey,
+    pub destination: Pubkey,
+    pub amount: u64,
+    pub period_index: u64,
+    pub approved_need: u64,
+    pub approval_consumed: u64,
+    pub vault_released_this_period: u64,
+    pub vault_released_total: u64,
+    pub policy_released_this_period: u64,
+    pub market_capacity: u64,
+}

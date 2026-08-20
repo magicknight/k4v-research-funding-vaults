@@ -1,0 +1,112 @@
+{
+  "artifact": "B2_LOCAL_VALIDATION",
+  "recorded_utc": "2026-08-19",
+  "status": "LOCAL IMPLEMENTATION PASS / NOT DEPLOYED / NO INDEPENDENT REVIEW",
+  "claim": "The purpose vault and the covenant's aggregate market-capacity rule are implemented in one program and enforced by the compiled SBF under LiteSVM. Nothing here was sent to any cluster.",
+  "program": {
+    "name": "purpose_vault",
+    "declared_id": "2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w",
+    "sbf_sha256": "3a2132266bc6b1f7181d6e2baa1cf3d1f5646c5302f17312040603ee2014a7cd",
+    "sbf_bytes": 344240,
+    "toolchain": {
+      "rust": "1.89.0",
+      "solana_cli": "3.1.10",
+      "anchor_lang": "1.1.2"
+    },
+    "rebuild_determinism": "two consecutive local builds after touching a source file produced the same digest; this is a same-host check only and does not establish a verified build",
+    "keypair_retained": true,
+    "keypair_location": "outside every Git repository, mode 0600",
+    "keypair_in_repo": false,
+    "deployed": false
+  },
+  "instruction_surface": [
+    "open_policy",
+    "report_volume",
+    "deposit",
+    "approve",
+    "release_beneficiary",
+    "release_purpose"
+  ],
+  "absent_by_construction": [
+    "update",
+    "configure",
+    "close",
+    "migrate",
+    "emergency_release",
+    "alternate_destination",
+    "administrative_transfer",
+    "oracle_replacement",
+    "approver_replacement"
+  ],
+  "frozen_parameters": {
+    "max_annual_release_bps": 500,
+    "max_market_capacity_bps": 500,
+    "min_cliff_seconds": 63072000,
+    "period_seconds": 2592000,
+    "min_notice_seconds": 2592000,
+    "max_input_age_ceiling_seconds": 604800
+  },
+  "parity_vector": {
+    "beneficiary_deposit": 300000000,
+    "purpose_deposit": 500000000,
+    "annual_release_bps": 500,
+    "eligible_volume": 120000000,
+    "market_capacity_bps": 250,
+    "beneficiary_monthly_cap": 1250000,
+    "purpose_monthly_cap": 2083333,
+    "aggregate_market_capacity": 3000000,
+    "note": "each vault is individually under the ceiling; together they exceed it by 333333 base units, which is the case the aggregate rule exists for",
+    "checked_in": [
+      "programs/purpose-vault/src/policy.rs::cross_language_parity_vector",
+      "programs/purpose-vault/tests/b2_litesvm.rs::two_vaults_each_within_cap_cannot_jointly_exceed_market_capacity",
+      "tests/test_purpose_vault_b2_parity.py"
+    ]
+  },
+  "tests": {
+    "rust_unit_b2": 9,
+    "litesvm_integration_b2": 20,
+    "python_parity_b2": 7,
+    "workspace_rust_total": 38,
+    "python_total_including_one_skipped_live_surfpool_test": 38,
+    "fmt": "PASS",
+    "clippy_deny_warnings": "PASS"
+  },
+  "covenant_rejection_vectors": {
+    "1_beneficiary_cliff": "ENFORCED",
+    "2_monthly_rate_cap_either_vault": "ENFORCED",
+    "3_purpose_without_or_above_approved_need": "ENFORCED",
+    "4_aggregate_above_market_capacity": "ENFORCED",
+    "5_zero_eligible_volume": "ENFORCED",
+    "6_carry_forward_of_unused_capacity": "ENFORCED",
+    "7_bypass_event_omitted_from_circulation": "NOT ENFORCED — off-chain classification",
+    "8_emergency_acceleration": "NO SUCH INSTRUCTION EXISTS",
+    "9_authority_inconsistent_with_declaration": "NOT ENFORCED — deployment-layer check",
+    "10_artifact_hash_inconsistent": "NOT ENFORCED — verified-build layer"
+  },
+  "defects_found_and_fixed_during_this_build": [
+    {
+      "id": "B2-D-1",
+      "found_by": "cargo build-sbf",
+      "symptom": "ReleasePurpose::try_accounts stack frame 4672 bytes against the 4096 SBF limit, over by 296",
+      "severity": "the compiler states this may cause undefined behaviour at runtime; it is not a style warning",
+      "fix": "boxed the seven deserialized accounts in that context so they live on the heap",
+      "regression_guard": "the purpose-vault-b2 CI job fails if the build log contains a stack-offset report"
+    },
+    {
+      "id": "B2-D-2",
+      "found_by": "clippy",
+      "symptom": "assert! over compile-time constants is optimised out, so the headline invariant was not actually being checked",
+      "fix": "the unit test now asserts over values returned by the policy functions; the integration test uses const _: () = assert!(..) so the relation is checked at compile time"
+    }
+  ],
+  "known_limits": [
+    "not deployed to localnet, devnet, testnet or mainnet",
+    "no published IDL: the Anchor CLI cannot run on the build host because of a glibc mismatch, and a hand-assembled IDL was deliberately not shipped",
+    "the deployed B1 program cannot debit a B2 capacity window; a complete aggregate guarantee requires both pools to live in B2",
+    "market_capacity_bps and the definition of eligible volume are test parameters, not frozen production values",
+    "the oracle and the approver are single keys; no multisig and no treasury signers exist",
+    "if the oracle key is lost, no further release is possible and deposits stay locked; this is the accepted conservative failure direction",
+    "no independent security review",
+    "purpose truthfulness is not verified on chain and is not claimed"
+  ]
+}

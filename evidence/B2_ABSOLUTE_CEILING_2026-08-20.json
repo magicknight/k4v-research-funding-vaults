@@ -1,0 +1,83 @@
+{
+  "artifact": "B2_ABSOLUTE_CEILING",
+  "recorded_utc": "2026-08-20",
+  "status": "LOCAL IMPLEMENTATION PASS / NOT DEPLOYED / NO INDEPENDENT REVIEW",
+  "supersedes_nothing": "evidence/B2_LOCAL_VALIDATION_2026-08-19.json stands as recorded; this file records what changed after it.",
+  "claim": "The covenant's market-capacity window is now the tighter of the oracle-derived absorption term and an absolute ceiling frozen at policy creation, and the volume input is stated to be denominated in mint base units. Nothing here was sent to any cluster.",
+  "program": {
+    "name": "purpose_vault",
+    "declared_id": "2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w",
+    "sbf_sha256": "d36a58041b42376e98f8980be2bdc475da4c3b7a07a9fc0573fefdf51d8eb1c3",
+    "sbf_bytes": 345376,
+    "previous_sbf_sha256": "3a2132266bc6b1f7181d6e2baa1cf3d1f5646c5302f17312040603ee2014a7cd",
+    "rebuild_determinism": "two consecutive local builds after touching a source file produced the same digest; this is a same-host check only and does not establish a verified build",
+    "deployed": false,
+    "instruction_surface_unchanged": true,
+    "instruction_count": 6
+  },
+  "changes": [
+    {
+      "id": "B2-C-1",
+      "kind": "unit statement",
+      "what": "eligible_volume is denominated in mint base units, not in a quote currency. Stated in the covenant, in spec/PURPOSE_VAULT_B2.md, on the MarketInput account, on the policy function, and in the Python model.",
+      "why": "\"Spot volume\" conventionally means a quote-currency figure. A USD-denominated report would silently rescale every ceiling derived from it, and no code would notice. Base units also cancel price out of every inequality in the covenant and let separate venues be summed without a per-venue price.",
+      "behaviour_change": "none; it names the unit the arithmetic already assumed"
+    },
+    {
+      "id": "B2-C-2",
+      "kind": "new frozen parameter",
+      "what": "PolicyWindow.hard_ceiling, set at open_policy, u64::MAX for inert, zero rejected with ZeroHardCeiling. The enforced window is min(absorption, hard_ceiling).",
+      "why": "It is the only term in the window that no key can move, and B2 has no update instruction: a ceiling not set at creation can never be added.",
+      "behaviour_change": "strictly narrowing. With hard_ceiling = u64::MAX every prior test vector is unchanged, which the parity vector asserts directly."
+    }
+  ],
+  "finding_recorded_against_the_original_design": {
+    "id": "B2-F-1",
+    "proposed": "a ceiling derived at deposit time as the running sum of every attached vault's monthly cap, min-ed into the capacity window, presented as the term that stops a compromised oracle from accelerating a release",
+    "finding": "REDUNDANT — NOT IMPLEMENTED",
+    "reason": "policy.released_this_period is by construction the sum of the participating vaults' released_this_period, and each of those is separately bounded by that vault's monthly_cap. A ceiling equal to the sum of those caps can therefore never reject a release the per-vault checks do not already reject.",
+    "consequence": "The guarantee the derived ceiling was meant to add already held without it, and held in the 2026-08-19 build. A compromised oracle can widen the shared window until the aggregate rule stops binding; it cannot touch monthly_cap, cliff_end_ts, approved_need or the notice period, so the sum of the frozen caps still bounds the period.",
+    "action": "Shipped as a test that pins the property rather than as a runtime check that costs account space and compute while adding nothing: an_inflated_oracle_report_cannot_lift_a_release_past_the_frozen_schedule."
+  },
+  "covenant_version": {
+    "from": "Purpose-Bound Vault Covenant v0.1",
+    "to": "Purpose-Bound Vault Covenant v0.2",
+    "receipt_schema": "purpose-bound-vault-receipt/v0.2",
+    "b1_unaffected": "B1 implements v0.1 and its statements are unchanged; v0.2 adds the unit statement and the optional ceiling and alters no cap, rate, cliff or notice period"
+  },
+  "tests": {
+    "rust_unit_b2": 10,
+    "litesvm_integration_b2": 23,
+    "python_parity_b2": 10,
+    "workspace_rust_total": 43,
+    "python_total_including_one_skipped_live_surfpool_test": 41,
+    "fmt": "PASS",
+    "clippy_deny_warnings": "PASS",
+    "added": [
+      "policy::tests::a_frozen_ceiling_bounds_what_any_oracle_report_can_open",
+      "policy::tests::the_widest_admissible_report_does_not_overflow",
+      "an_inflated_oracle_report_cannot_lift_a_release_past_the_frozen_schedule",
+      "a_frozen_hard_ceiling_binds_the_window_below_the_market_term",
+      "a_zero_hard_ceiling_is_refused_at_policy_creation",
+      "test_an_inflated_report_cannot_lift_a_release_past_the_frozen_schedule",
+      "test_a_frozen_ceiling_binds_below_the_market_term",
+      "test_an_inert_ceiling_changes_nothing_and_zero_is_refused"
+    ]
+  },
+  "parity_vector_unchanged": {
+    "beneficiary_monthly_cap": 1250000,
+    "purpose_monthly_cap": 2083333,
+    "aggregate_market_capacity": 3000000,
+    "sum_of_monthly_caps": 3333333,
+    "note": "the sum of the frozen caps is the bound an inflated oracle report cannot pass; it exceeds the honest window by 333333 base units, which is why the aggregate rule binds under an honest report and does not under an inflated one"
+  },
+  "known_limits": [
+    "not deployed to localnet, devnet, testnet or mainnet",
+    "no published IDL: the Anchor CLI cannot run on the build host because of a glibc mismatch, and a hand-assembled IDL was deliberately not shipped",
+    "no production value has been chosen for hard_ceiling; it is inert in every fixture but the one that exercises it, and it cannot be added after policy creation",
+    "the oracle and the approver are still single keys; no multisig and no treasury signers exist",
+    "if the oracle key is lost, no further release is possible and deposits stay locked; there is still no rotation instruction and no inactivity fallback",
+    "which venues count toward eligible volume, and which addresses are excluded, is decided off chain; B2 receives one integer and cannot check how it was assembled",
+    "no independent security review"
+  ]
+}
