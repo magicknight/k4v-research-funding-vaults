@@ -1,0 +1,77 @@
+{
+  "artifact": "B2_SQUADS_AUTHORITY_COMPATIBILITY",
+  "recorded_utc": "2026-08-20",
+  "status": "LOCAL VALIDATOR PASS AGAINST THE REAL SQUADS BINARY / NO PUBLIC RECEIPT / DEVNET BLOCKED ON FAUCET",
+  "question": "Does a Squads multisig vault PDA satisfy B2's Signer constraint, and does replacing a member leave B2 unaware?",
+  "answer": "Yes to both, established locally. B2's authority may be an m-of-n committee rather than one key, and the committee's membership can change without the program observing anything.",
+  "why_it_had_to_be_tested": "Squads signs CPIs with its vault PDA through invoke_signed, which is how it holds upgrade authorities and token accounts. That is documentation, not evidence. B2 freezes the approver's address into the vault PDA seeds and has no close or migrate instruction, so a wrong answer discovered after the first deposit could not be repaired.",
+  "environment": {
+    "cluster": "solana-test-validator, local, offline",
+    "why_not_devnet": "the devnet faucet rate-limited every request; the retained payer holds 0.8087702 SOL against roughly 1.7 SOL needed to deploy a 367,264-byte program. This is the same blocker recorded for B1 in D-0046, and it is not a program failure.",
+    "squads_program": "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
+    "squads_binary_sha256": "97fb2a5c08e5df5e862d8354ac5b97d3587117f98c4457754ca12e30bef0664d",
+    "squads_binary_provenance": "solana program dump from https://api.devnet.solana.com; the real deployed program, not a mock or a rebuild",
+    "squads_program_config": "BSTq9w3kZwNwpBXJEvTZz2G9ZTNyKBvoSeXMvwb4cNZr, dumped from devnet, multisig_creation_fee 0",
+    "b2_binary_sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb",
+    "devnet_genesis_hash_checked": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+    "toolchain": {
+      "solana_cli": "3.1.10",
+      "node": "v24.19.0",
+      "@sqds/multisig": "2.1.4",
+      "@solana/web3.js": "1.98.4",
+      "@solana/spl-token": "0.4.15"
+    },
+    "probe": "probes/squads_authority_probe.mjs"
+  },
+  "run": {
+    "multisig": "wFg4TusSnNWQhK2vwyNsEPukaGbPiosKXLgijswGAzb",
+    "threshold": "2 of 3",
+    "vault_pda": "7n7SpXcTjuPaug8pN3vfJwEhCnW47qpdzK8ZT6mHNZNb",
+    "policy_hash": "4216f868aef17466b34e5d99d8ac008811ad13dce93db3932ca4645d3d65236e",
+    "policy_pda": "cpbgzrzXLvyDUHsJbdXVZimj67Q3QBn3rcE7g2pNaHL",
+    "mint": "xzaH6vWKG5yEHdSp2aJ41WQXBYzvsVbwPmx7WicGrbX"
+  },
+  "results": [
+    {
+      "step": "open_policy through the multisig",
+      "signature": "8SXF9Rpgxy9T7iLKHedjKCjmxZtaFW5Vnp5jWXV1LSNm3U1Yk28P7oWqDPJsY5gMnfEtkELf1iZZX5ARBkkvc4J",
+      "established": "the vault PDA satisfied Signer and served as the rent payer for two init accounts; policy.authority reads back as the vault PDA",
+      "policy_authority_on_chain": "7n7SpXcTjuPaug8pN3vfJwEhCnW47qpdzK8ZT6mHNZNb"
+    },
+    {
+      "step": "deposit with two signers",
+      "signature": "3Mwer35kvcUDhbKwxYKf9VzuqKuxg7UHbeLmXgUVb74vZMGaGkGg11QaerLNDsKMGu9UJv3aY56XKmpVsmRwT1t9",
+      "established": "a Squads-executed instruction can carry an additional ordinary signer: the depositor signed the outer transaction while the vault PDA signed as policy_authority. vault.authority, the approver, reads back as the vault PDA",
+      "vault_authority_on_chain": "7n7SpXcTjuPaug8pN3vfJwEhCnW47qpdzK8ZT6mHNZNb"
+    },
+    {
+      "step": "a member is lost and replaced",
+      "lost_member": "38YHCoLTn5QtTthA9xNFmC7X2aG7S4pWcK3wxhte364L",
+      "replacement_member": "4qV6WBZ4sMGFPM4qzuTL7ynrYTskso2yvPtSr5Uz9ePh",
+      "voted_by": "the two surviving keys; the lost key signed nothing and was never reconstructed",
+      "multisig_address_unchanged": true,
+      "vault_pda_unchanged": true,
+      "established": "the lost key is not rebuilt from the others — it is replaced. A threshold signature scheme has no secret to reassemble, which is the property a Shamir-sharded single key does not have: reconstructing that would put the whole key in one place, if only for a moment."
+    },
+    {
+      "step": "approve, signed by the post-replacement key set",
+      "signature": "4FdRW6epD3AiFFjdArneeDpy8myorQtup5EqJmHpPgewh5nU76buTMD6MLbCZ7VyzCpPNPUmoZjRDgSWtMX4VmmB",
+      "signed_by": "one surviving member and the brand-new one",
+      "approval_approver_on_chain": "7n7SpXcTjuPaug8pN3vfJwEhCnW47qpdzK8ZT6mHNZNb",
+      "established": "the treasury still functions after a key was lost, and B2 recorded the same approver address as before. The program observed nothing at all."
+    }
+  ],
+  "what_this_establishes": [
+    "B2's authority may be a Squads multisig rather than a single key, with no change to B2's source",
+    "an instruction requiring two signers works when one of them is the multisig vault PDA",
+    "membership can change while the address B2 stores stays fixed, so key rotation needs no rotation instruction in B2"
+  ],
+  "what_this_does_not_establish": [
+    "no public receipt: this ran on a local validator and its signatures have no explorer value, exactly as recorded for B1's Surfpool evidence",
+    "the disclosed devnet transaction group in 25_B2_SQUADS_AUTHORITY_DEVNET_DISCLOSURE.md has NOT been executed; it remains blocked on the faucet",
+    "a local validator has no time control, so the 90-day rotation notice, the 180-to-730-day silence grace and the 730-day cliff cannot complete here and were not exercised",
+    "all three multisig members were generated by the probe. This tests a mechanism, not independence: a committee of keys one person holds survives loss, not collusion",
+    "mainnet behaviour is not claimed, though the binary tested is the one deployed on devnet",
+    "no security review of Squads, of B2, or of their interaction"
+  ]
+}
