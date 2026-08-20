@@ -54,4 +54,12 @@ pub enum CovenantError {
     WrongPolicyAuthority,
     #[msg("hard ceiling must be positive; use u64::MAX to leave it inert")]
     ZeroHardCeiling,
+    #[msg("a silence floor requires a grace period between 180 and 730 days, and no floor requires zero")]
+    InvalidSilenceGrace,
+    #[msg("the proposed oracle must not be the default pubkey")]
+    ZeroOracle,
+    #[msg("no oracle rotation is pending")]
+    NoPendingRotation,
+    #[msg("the proposed oracle has not completed its 90-day notice")]
+    RotationNoticeActive,
 }

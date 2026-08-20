@@ -67,13 +67,14 @@ already on chain.
   with the aggregate rule B1 structurally cannot express. One `PolicyWindow` is
   debited by every vault bound to a policy, so two vaults that are each inside
   their own monthly cap are still refused when they jointly exceed the
-  market-capacity ceiling. Twenty-three LiteSVM tests against the compiled SBF
+  market-capacity ceiling. Thirty-two LiteSVM tests against the compiled SBF
   cover the approved need, the 30-day notice, approver recusal, oracle
   staleness, zero eligible volume, non-carrying capacity in both counters, an
   attempt to attach a foreign vault to someone else's capacity window, and the
-  absolute ceiling below. Ten Rust unit tests and ten Python tests pin the same
-  integers on both sides of the language boundary. B2 is **not deployed
-  anywhere**; see [PURPOSE_VAULT_B2.md](spec/PURPOSE_VAULT_B2.md).
+  ceiling, rotation and floor below. Fifteen Rust unit tests and ten Python
+  tests pin the same integers on both sides of the language boundary. B2 is
+  **not deployed anywhere**; see
+  [PURPOSE_VAULT_B2.md](spec/PURPOSE_VAULT_B2.md).
 - **A compromised oracle cannot lift a release past the frozen schedule.** An
   inflated volume report widens the shared window until the aggregate rule stops
   binding, and that is all it can do: the per-vault caps, the cliff, the
@@ -82,8 +83,21 @@ already on chain.
   spends an inflated window down to the sum of the frozen caps and shows the
   next base unit refused by a per-vault gate. A policy may additionally freeze
   an absolute ceiling on the window at creation — the one term no key can move —
-  which the covenant now carries as v0.2 alongside an explicit statement that
-  volume is denominated in token base units, not in a quote currency.
+  which the covenant now carries alongside an explicit statement that volume is
+  denominated in token base units, not in a quote currency.
+- **A lost oracle is no longer necessarily permanent.** Covenant v0.3 names two
+  exceptions to a frozen reporter, in a deliberate order. The policy authority
+  may *propose* a replacement, which takes effect only after a public 90-day
+  notice and through a permissionless execution; a rotation restores who may
+  report and never what was reported, leaving the figure, its timestamp and its
+  count untouched, so the incoming oracle must speak before any release
+  resumes. A policy may additionally declare a *silence floor* at creation,
+  engaging only after 180 to 730 days of silence — longer than the rotation
+  notice, so replacing the oracle is always the faster path. The floor defaults
+  to zero, which keeps the old behaviour: a lost oracle seals the vaults
+  permanently. Whether the oracle has ever spoken is now carried by
+  `report_count` rather than by a timestamp, because zero is also a real
+  instant and a report made at it was indistinguishable from no report at all.
 
 ## Reproduce the devnet receipt yourself
 
@@ -192,12 +206,17 @@ and hashes are frozen in the evidence file.
   no published IDL, and no unrelated party has run it. Its market-capacity rate
   and its definition of eligible volume are test parameters, not frozen
   production values.
-- B2's oracle and its approver are single keys. A real treasury needs a
-  multisig, and no treasury signers exist. B2 builds the mechanism, not the
-  governance.
-- If B2's oracle key is lost, no further release is possible and deposits stay
-  locked. There is no rotation instruction and no inactivity fallback. This is
-  the accepted conservative failure direction, not a solved problem.
+- B2's oracle, its approver and its policy authority are single keys. A real
+  treasury needs a multisig, and no treasury signers exist. B2 builds the
+  mechanism, not the governance.
+- The oracle rotation is only as trustworthy as the policy authority that holds
+  it. Whoever holds it can name themselves and report an inflated figure; that
+  is bounded by the per-vault caps, the cliff, the approved need and the notice
+  period, all of which it cannot reach, and the 90-day notice makes the attempt
+  visible before it binds. It is not prevented.
+- A policy that declares no silence floor still seals permanently if its oracle
+  is lost and its policy authority is lost with it. Zero is the default and no
+  production floor has been chosen.
 - B2's absolute ceiling is inert in every fixture but the one that exercises it.
   No production value has been chosen, and one cannot be added after creation.
 - Which venues count toward eligible volume, and which addresses are excluded,

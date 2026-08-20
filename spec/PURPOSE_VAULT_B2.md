@@ -58,9 +58,12 @@ calendar-year accounting. That semantic bridge remains open, exactly as in B1.
 For every successful release, with `amount > 0`:
 
 ~~~text
-now - market.updated_at <= market.max_age_seconds        # and market.updated_at > 0
+market.report_count > 0                                  # the oracle has spoken at least once
+now - market.updated_at <= market.max_age_seconds        # or the silence floor below
 absorption      = floor(market.eligible_volume * market.market_capacity_bps / 10000)
-market_capacity = min(absorption, policy.hard_ceiling)
+market_capacity = min(absorption, policy.hard_ceiling)          # fresh input
+                = min(policy.silence_floor, policy.hard_ceiling) # declared floor,
+                                                                # after the grace
 
 vault.released_this_period  + amount <= vault.monthly_cap
 vault.released_total        + amount <= vault.deposited_amount
@@ -110,6 +113,12 @@ does not decide whether the referenced prose is true or legally effective.
 observable on chain. B2 therefore carries a `MarketInput` account written by a
 single frozen oracle key.
 
+`market.report_count`, not `market.updated_at`, is what says whether the oracle
+has ever spoken. A timestamp cannot carry that meaning: zero is also a real
+instant, and a report made at it would be indistinguishable from no report at
+all. The distinction is not academic — the test fixture's clock starts at zero
+and sat exactly on the collision.
+
 Three rules make this conservative rather than convenient:
 
 1. **A stale input rejects the release.** It does not fall back to the previous
@@ -122,7 +131,54 @@ Three rules make this conservative rather than convenient:
    of the same inequality.
 
 The oracle can only report volume. It cannot move funds, change a cap, change a
-rate, or name a destination.
+rate, name a destination, or replace itself.
+
+## Losing the oracle, and the two ways out
+
+A frozen key is a single point of failure over a twenty-year release schedule,
+and the failure is not only theft or loss: a reporter that simply stops has the
+same effect. B2 carries two answers, in a deliberate order.
+
+**Rotation is the repair.** `propose_oracle` lets the policy authority — and
+only it — name a replacement. The proposal is recorded on chain with its
+timestamp and takes effect no sooner than 90 days later, through a permissionless
+`execute_oracle_rotation`: the authorisation was the proposal, the public
+already had its notice, and requiring the authority again would only add a way
+for an aged, announced rotation to be silently withheld. There is no cancel
+instruction; a second proposal replaces the first and restarts its clock, and
+proposing the sitting oracle is how one is withdrawn.
+
+A rotation restores **who may report, never what was reported**. It does not
+touch `eligible_volume`, `updated_at` or `report_count`, so a stale input stays
+stale across the change and the incoming oracle must speak before any release
+resumes. That is what keeps rotation from being a release path.
+
+The rotation authority is worth stating plainly: whoever holds it can name
+themselves and report an inflated figure. That is bounded, and bounded by
+things they cannot reach — the per-vault caps, the cliff, the approved need and
+the notice period — so the widest window they can open still leaves the sum of
+the frozen caps as the bound on the period. `hard_ceiling` bounds it further
+where one is set. The 90-day notice is what makes the attempt visible before it
+binds.
+
+**A declared floor is the backstop**, for the case where the authority that
+would rotate the oracle is gone as well. `silence_floor` and
+`silence_grace_seconds` are frozen at `open_policy`; the floor defaults to zero,
+which means the policy fails closed on a lost oracle exactly as before. Where
+one is declared:
+
+- the grace period is bounded to between 180 and 730 days, so it always exceeds
+  the 90-day rotation notice and replacing the oracle stays the faster path;
+- a floor without a grace period, or a grace period without a floor, is
+  rejected: a floor that engaged the instant an input went stale would be a
+  fallback in everything but name;
+- the floor is a fixed number chosen in advance, never the last reported
+  volume, and it is bounded by `hard_ceiling` like any other window;
+- it releases a trickle, not an income. Its purpose is that a lost oracle does
+  not mean a permanently sealed vault, not that operations continue.
+
+An honest report puts the ordinary window straight back. The floor is a
+backstop, not a ratchet.
 
 `eligible_volume` is denominated in **mint base units**, not in a quote
 currency. The unit is stated here, in the covenant, and on the account itself
@@ -157,9 +213,11 @@ that can never release and can never be repaired.
 ## No update surface
 
 B2 has no update, configure, close, migrate, emergency-release, alternate
-destination, or administrative transfer instruction. There is no way to change
-the oracle, the approver, the beneficiary, a rate, a cliff, a ceiling, or a cap
-after
+destination, or administrative transfer instruction. **The oracle is the one
+exception, and it is a noticed one:** it can be replaced through the 90-day
+rotation above, which is why the surface is eight instructions rather than six.
+There is no way to change the approver, the beneficiary, a rate, a cliff, a
+ceiling, a floor, or a cap after
 creation.
 
 The cost of that is real and is accepted deliberately: **if the oracle key is
@@ -196,7 +254,7 @@ Against the numbered list in
 | 2 | either vault over its monthly rate cap | enforced for both kinds |
 | 3 | purpose release without approved need or above it | enforced |
 | 4 | aggregate above market-capacity cap, or above a frozen absolute ceiling | enforced across every vault on the policy |
-| 5 | any release with zero eligible volume | enforced |
+| 5 | any release with a fresh report of zero eligible volume | enforced; a declared silence floor is a stated exception where there is no fresh report at all |
 | 6 | carry-forward of unused monthly capacity | enforced for both counters |
 | 7 | bypass event omitted from economic circulation | **not enforced** — off-chain classification |
 | 8 | emergency acceleration | no such instruction exists |
@@ -217,6 +275,13 @@ a working answer.
 - `market_capacity_bps` and the definition of eligible volume are **test
   parameters**, not frozen production values. The covenant's `alpha` range of
   2–5% and the IRB data sources remain open until the parameter-freeze gate.
+- `silence_floor` is zero in every test fixture except the one that exercises
+  it, so B2's default remains "a lost oracle locks the vaults permanently". No
+  production value has been chosen, and like the ceiling it cannot be added
+  after policy creation.
+- The rotation authority is the policy authority, which in every fixture is a
+  single key. A rotation is only as trustworthy as whoever holds it, and the
+  90-day notice bounds the damage rather than preventing it.
 - `hard_ceiling` is inert in every test fixture except the one that exercises
   it. Whether a deployment sets one, and at what number, is a policy decision
   that belongs with the same parameter freeze. B2 provides the field because it

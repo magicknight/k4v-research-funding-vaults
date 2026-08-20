@@ -10,8 +10,8 @@ use litesvm::LiteSVM;
 use purpose_vault::{
     accounts,
     constants::{
-        APPROVAL_SEED, MARKET_SEED, MIN_CLIFF_SECONDS, PERIOD_SECONDS, POLICY_SEED,
-        TOKEN_VAULT_SEED, VAULT_SEED,
+        APPROVAL_SEED, MARKET_SEED, MIN_CLIFF_SECONDS, MIN_SILENCE_GRACE_SECONDS,
+        ORACLE_ROTATION_NOTICE_SECONDS, PERIOD_SECONDS, POLICY_SEED, TOKEN_VAULT_SEED, VAULT_SEED,
     },
     instruction,
     state::{Approval, CovenantVault, MarketInput, PolicyWindow, VaultKind},
@@ -45,6 +45,9 @@ const POLICY_HASH: [u8; 32] = [0x42; 32];
 /// oracle report can raise it, because no oracle touches a vault's cap.
 const SUM_OF_MONTHLY_CAPS: u64 = BENEFICIARY_CAP + PURPOSE_CAP;
 const NO_CEILING: u64 = u64::MAX;
+const SILENCE_FLOOR: u64 = 30_000;
+const SILENCE_GRACE: i64 = 180 * 24 * 60 * 60;
+const ROTATION_NOTICE: i64 = 90 * 24 * 60 * 60;
 const LOW_CEILING: u64 = 1_500_000;
 /// A report inflated by six orders of magnitude, as a captured oracle would.
 const INFLATED_VOLUME: u64 = ELIGIBLE_VOLUME * 1_000_000;
@@ -59,6 +62,14 @@ const _: () = assert!(BENEFICIARY_CAP + PURPOSE_CAP > MARKET_CAPACITY);
 const _: () = assert!(LOW_CEILING < MARKET_CAPACITY);
 const _: () = assert!(BENEFICIARY_CAP < LOW_CEILING);
 const _: () = assert!(MARKET_CAPACITY < SUM_OF_MONTHLY_CAPS);
+/// The two frozen delays this file pins against the program's own constants.
+const _: () = assert!(SILENCE_GRACE == MIN_SILENCE_GRACE_SECONDS);
+const _: () = assert!(ROTATION_NOTICE == ORACLE_ROTATION_NOTICE_SECONDS);
+/// A trickle, not an income: the floor must be far under a vault's own cap, or
+/// silence would become a way to release at the ordinary rate.
+const _: () = assert!(SILENCE_FLOOR * 40 < BENEFICIARY_CAP);
+/// Replacing a lost oracle has to be the faster path, or nobody would use it.
+const _: () = assert!(ROTATION_NOTICE < SILENCE_GRACE);
 
 struct Fixture {
     svm: LiteSVM,
@@ -173,13 +184,34 @@ fn approval_pda(vault: Pubkey, period_index: u64) -> Pubkey {
     .0
 }
 
+/// How a policy is opened. Everything but `report_volume` is frozen at
+/// creation and has no instruction that can change it afterwards.
+#[derive(Clone, Copy)]
+struct PolicyConfig {
+    report_volume: bool,
+    hard_ceiling: u64,
+    silence_floor: u64,
+    silence_grace_seconds: i64,
+}
+
+impl Default for PolicyConfig {
+    fn default() -> Self {
+        Self {
+            report_volume: true,
+            hard_ceiling: NO_CEILING,
+            silence_floor: 0,
+            silence_grace_seconds: 0,
+        }
+    }
+}
+
 fn open_policy_instruction(
     authority: Pubkey,
     oracle: Pubkey,
     mint: Pubkey,
     market_capacity_bps: u16,
     max_age_seconds: i64,
-    hard_ceiling: u64,
+    config: PolicyConfig,
 ) -> Instruction {
     Instruction {
         program_id: purpose_vault::ID,
@@ -196,9 +228,35 @@ fn open_policy_instruction(
             policy_hash: POLICY_HASH,
             market_capacity_bps,
             max_age_seconds,
-            hard_ceiling,
+            hard_ceiling: config.hard_ceiling,
+            silence_floor: config.silence_floor,
+            silence_grace_seconds: config.silence_grace_seconds,
         }
         .data(),
+    }
+}
+
+fn propose_oracle_instruction(policy_authority: Pubkey, new_oracle: Pubkey) -> Instruction {
+    Instruction {
+        program_id: purpose_vault::ID,
+        accounts: accounts::ProposeOracle {
+            policy_authority,
+            policy: policy_pda(),
+            market: market_pda(),
+        }
+        .to_account_metas(None),
+        data: instruction::ProposeOracle { new_oracle }.data(),
+    }
+}
+
+fn execute_rotation_instruction() -> Instruction {
+    Instruction {
+        program_id: purpose_vault::ID,
+        accounts: accounts::ExecuteOracleRotation {
+            market: market_pda(),
+        }
+        .to_account_metas(None),
+        data: instruction::ExecuteOracleRotation {}.data(),
     }
 }
 
@@ -369,12 +427,16 @@ fn period_start(fixture: &Fixture, period_index: u64) -> i64 {
 
 /// The first period that is both after the beneficiary cliff and far enough
 /// past an approval written at the cliff to clear the 30-day notice.
+fn period_at(fixture: &Fixture, unix_timestamp: i64) -> u64 {
+    ((unix_timestamp - fixture.genesis_ts) / PERIOD_SECONDS) as u64
+}
+
 fn first_joint_period() -> u64 {
     let cliff_period = (MIN_CLIFF_SECONDS / PERIOD_SECONDS) as u64;
     cliff_period + 2
 }
 
-fn setup_with(report_volume: bool, hard_ceiling: u64) -> Fixture {
+fn setup_with(config: PolicyConfig) -> Fixture {
     let mut svm = LiteSVM::new();
     svm.add_program_from_file(purpose_vault::ID, program_path())
         .unwrap();
@@ -451,7 +513,7 @@ fn setup_with(report_volume: bool, hard_ceiling: u64) -> Fixture {
             mint,
             MARKET_BPS,
             MAX_AGE_SECONDS,
-            hard_ceiling,
+            config,
         ),
         &[&policy_authority],
         &mut svm,
@@ -493,7 +555,7 @@ fn setup_with(report_volume: bool, hard_ceiling: u64) -> Fixture {
     );
     send(purpose_deposit, &[&depositor, &policy_authority], &mut svm).unwrap();
 
-    if report_volume {
+    if config.report_volume {
         send(
             report_instruction(oracle.pubkey(), ELIGIBLE_VOLUME),
             &[&oracle],
@@ -533,7 +595,7 @@ fn setup_with(report_volume: bool, hard_ceiling: u64) -> Fixture {
 }
 
 fn setup() -> Fixture {
-    setup_with(true, NO_CEILING)
+    setup_with(PolicyConfig::default())
 }
 
 /// Approve at `approve_at`, then move to the start of `period_index`.
@@ -853,7 +915,10 @@ fn a_stale_market_input_rejects_instead_of_reusing_the_last_value() {
 
 #[test]
 fn a_policy_whose_oracle_never_reported_releases_nothing() {
-    let mut fixture = setup_with(false, NO_CEILING);
+    let mut fixture = setup_with(PolicyConfig {
+        report_volume: false,
+        ..PolicyConfig::default()
+    });
     assert_eq!(read_market(&fixture).updated_at, 0);
 
     let period = 3;
@@ -1226,7 +1291,10 @@ fn a_frozen_hard_ceiling_binds_the_window_below_the_market_term() {
     // The ceiling is the one term in the window no key can move: not the
     // oracle's, not the policy authority's. Here the market would allow
     // MARKET_CAPACITY and the ceiling allows less, so the ceiling decides.
-    let mut fixture = setup_with(true, LOW_CEILING);
+    let mut fixture = setup_with(PolicyConfig {
+        hard_ceiling: LOW_CEILING,
+        ..PolicyConfig::default()
+    });
     assert_eq!(read_policy(&fixture).hard_ceiling, LOW_CEILING);
 
     let period = first_joint_period();
@@ -1304,7 +1372,10 @@ fn a_zero_hard_ceiling_is_refused_at_policy_creation() {
             mint,
             MARKET_BPS,
             MAX_AGE_SECONDS,
-            0,
+            PolicyConfig {
+                hard_ceiling: 0,
+                ..PolicyConfig::default()
+            },
         ),
         &[&authority],
         &mut svm,
@@ -1318,10 +1389,478 @@ fn a_zero_hard_ceiling_is_refused_at_policy_creation() {
             mint,
             MARKET_BPS,
             MAX_AGE_SECONDS,
-            NO_CEILING,
+            PolicyConfig::default(),
         ),
         &[&authority],
         &mut svm,
     )
     .unwrap();
+}
+
+// ---------------------------------------------------------------------------
+// Oracle rotation. The repair for a lost or silent reporter, and the only
+// authority anyone holds over the market input.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn only_the_policy_authority_may_propose_an_oracle() {
+    let mut fixture = setup();
+    let impostor = Keypair::new();
+    let replacement = Keypair::new();
+    fixture
+        .svm
+        .airdrop(&impostor.pubkey(), 10_000_000_000)
+        .unwrap();
+
+    let outcome = send(
+        propose_oracle_instruction(impostor.pubkey(), replacement.pubkey()),
+        &[&impostor],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "WrongPolicyAuthority");
+    assert_eq!(read_market(&fixture).pending_oracle, Pubkey::default());
+
+    // The oracle cannot promote itself either: reporting is its only power.
+    let oracle = fixture.oracle.insecure_clone();
+    let outcome = send(
+        propose_oracle_instruction(oracle.pubkey(), replacement.pubkey()),
+        &[&oracle],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "WrongPolicyAuthority");
+
+    // And the default pubkey is not a proposal; it is the absence of one.
+    let authority = fixture.policy_authority.insecure_clone();
+    let outcome = send(
+        propose_oracle_instruction(authority.pubkey(), Pubkey::default()),
+        &[&authority],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "ZeroOracle");
+}
+
+#[test]
+fn a_proposed_oracle_cannot_take_effect_before_its_ninety_day_notice() {
+    let mut fixture = setup();
+    let authority = fixture.policy_authority.insecure_clone();
+    let replacement = Keypair::new();
+    let proposed_at = fixture.genesis_ts + 60;
+    set_time(proposed_at, &mut fixture);
+    send(
+        propose_oracle_instruction(authority.pubkey(), replacement.pubkey()),
+        &[&authority],
+        &mut fixture.svm,
+    )
+    .unwrap();
+
+    let market = read_market(&fixture);
+    assert_eq!(market.pending_oracle, replacement.pubkey());
+    assert_eq!(market.pending_since, proposed_at);
+    // The sitting oracle keeps its post for the whole notice.
+    assert_eq!(market.oracle, fixture.oracle.pubkey());
+
+    set_time(proposed_at + ROTATION_NOTICE - 1, &mut fixture);
+    let outcome = send(
+        execute_rotation_instruction(),
+        &[&authority],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "RotationNoticeActive");
+    assert_eq!(read_market(&fixture).oracle, fixture.oracle.pubkey());
+
+    // Execution is permissionless once the notice is served: the authorisation
+    // was the proposal, and the public already had its ninety days.
+    set_time(proposed_at + ROTATION_NOTICE, &mut fixture);
+    let stranger = Keypair::new();
+    fixture
+        .svm
+        .airdrop(&stranger.pubkey(), 10_000_000_000)
+        .unwrap();
+    send(
+        execute_rotation_instruction(),
+        &[&stranger],
+        &mut fixture.svm,
+    )
+    .unwrap();
+
+    let market = read_market(&fixture);
+    assert_eq!(market.oracle, replacement.pubkey());
+    assert_eq!(market.pending_oracle, Pubkey::default());
+    assert_eq!(market.pending_since, 0);
+}
+
+#[test]
+fn executing_a_rotation_that_was_never_proposed_is_rejected() {
+    let mut fixture = setup();
+    let authority = fixture.policy_authority.insecure_clone();
+    set_time(fixture.genesis_ts + 10 * ROTATION_NOTICE, &mut fixture);
+    let outcome = send(
+        execute_rotation_instruction(),
+        &[&authority],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "NoPendingRotation");
+}
+
+#[test]
+fn a_second_proposal_replaces_the_first_and_restarts_its_clock() {
+    // This is also how a proposal is withdrawn. There is no cancel instruction:
+    // proposing the oracle already in place lets the rotation that eventually
+    // executes change nothing, which is a weaker power than a cancel and needs
+    // no extra entry point.
+    let mut fixture = setup();
+    let authority = fixture.policy_authority.insecure_clone();
+    let first = Keypair::new();
+    let sitting = fixture.oracle.pubkey();
+
+    let proposed_at = fixture.genesis_ts + 60;
+    set_time(proposed_at, &mut fixture);
+    send(
+        propose_oracle_instruction(authority.pubkey(), first.pubkey()),
+        &[&authority],
+        &mut fixture.svm,
+    )
+    .unwrap();
+
+    let withdrawn_at = proposed_at + ROTATION_NOTICE - 1;
+    set_time(withdrawn_at, &mut fixture);
+    send(
+        propose_oracle_instruction(authority.pubkey(), sitting),
+        &[&authority],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    assert_eq!(read_market(&fixture).pending_since, withdrawn_at);
+
+    // The first proposal's original deadline arrives and buys nothing.
+    set_time(proposed_at + ROTATION_NOTICE, &mut fixture);
+    let outcome = send(
+        execute_rotation_instruction(),
+        &[&authority],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "RotationNoticeActive");
+
+    set_time(withdrawn_at + ROTATION_NOTICE, &mut fixture);
+    send(
+        execute_rotation_instruction(),
+        &[&authority],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    let market = read_market(&fixture);
+    assert_eq!(market.oracle, sitting);
+    assert_eq!(market.pending_oracle, Pubkey::default());
+}
+
+#[test]
+fn a_rotation_restores_who_may_speak_and_nothing_else() {
+    let mut fixture = setup();
+    let authority = fixture.policy_authority.insecure_clone();
+    let outgoing = fixture.oracle.insecure_clone();
+    let incoming = Keypair::new();
+    fixture
+        .svm
+        .airdrop(&incoming.pubkey(), 10_000_000_000)
+        .unwrap();
+    let before = read_market(&fixture);
+
+    let proposed_at = fixture.genesis_ts + 60;
+    set_time(proposed_at, &mut fixture);
+    send(
+        propose_oracle_instruction(authority.pubkey(), incoming.pubkey()),
+        &[&authority],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    set_time(proposed_at + ROTATION_NOTICE, &mut fixture);
+    send(
+        execute_rotation_instruction(),
+        &[&authority],
+        &mut fixture.svm,
+    )
+    .unwrap();
+
+    // What the rotation did not do: it did not refresh the reported figure or
+    // its timestamp. A stale input stays stale across the change, so a rotation
+    // can never be used to reopen a window by itself.
+    let after = read_market(&fixture);
+    assert_eq!(after.eligible_volume, before.eligible_volume);
+    assert_eq!(after.updated_at, before.updated_at);
+    assert_eq!(after.report_count, before.report_count);
+    assert_eq!(after.market_capacity_bps, before.market_capacity_bps);
+    assert_eq!(after.max_age_seconds, before.max_age_seconds);
+
+    // What it did do: moved the post, in one direction only.
+    let outcome = send(
+        report_instruction(outgoing.pubkey(), u64::MAX),
+        &[&outgoing],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "ConstraintHasOne");
+    send(
+        report_instruction(incoming.pubkey(), ELIGIBLE_VOLUME),
+        &[&incoming],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    assert_eq!(read_market(&fixture).report_count, before.report_count + 1);
+}
+
+#[test]
+fn a_release_resumes_only_after_the_replacement_oracle_has_spoken() {
+    // The whole recovery path, end to end: the reporter goes silent, the
+    // authority proposes a replacement, the notice runs, the rotation executes,
+    // and releases stay refused right up until the new reporter speaks.
+    let mut fixture = setup();
+    let authority = fixture.policy_authority.insecure_clone();
+    let incoming = Keypair::new();
+    fixture
+        .svm
+        .airdrop(&incoming.pubkey(), 10_000_000_000)
+        .unwrap();
+
+    let cliff_end = read_vault(&fixture, fixture.beneficiary_vault).cliff_end_ts;
+    set_time(cliff_end, &mut fixture);
+    send(
+        propose_oracle_instruction(authority.pubkey(), incoming.pubkey()),
+        &[&authority],
+        &mut fixture.svm,
+    )
+    .unwrap();
+
+    let rotated_at = cliff_end + ROTATION_NOTICE;
+    set_time(rotated_at, &mut fixture);
+    send(
+        execute_rotation_instruction(),
+        &[&authority],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    assert_eq!(read_market(&fixture).oracle, incoming.pubkey());
+
+    // Past the cliff, with a working oracle seat and no fresh report: refused.
+    let outcome = send(
+        release_beneficiary_instruction(&fixture, 1),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "StaleMarketInput");
+
+    send(
+        report_instruction(incoming.pubkey(), ELIGIBLE_VOLUME),
+        &[&incoming],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    send(
+        release_beneficiary_instruction(&fixture, BENEFICIARY_CAP),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    assert_eq!(
+        token_balance(&fixture.svm, fixture.beneficiary_token),
+        BENEFICIARY_CAP
+    );
+    assert_eq!(
+        read_policy(&fixture).current_period_index,
+        period_at(&fixture, rotated_at)
+    );
+}
+
+// ---------------------------------------------------------------------------
+// The silence floor. The backstop for the case where the authority that would
+// rotate the oracle is gone as well.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn without_a_declared_floor_a_silent_oracle_locks_both_vaults() {
+    let mut fixture = setup();
+    let period = first_joint_period();
+    let destination = fixture.contractor_token;
+    let cliff_end = read_vault(&fixture, fixture.beneficiary_vault).cliff_end_ts;
+    // Deliberately no refresh_market: by the joint period the only report ever
+    // made is years old.
+    approve_and_advance(cliff_end, period, PURPOSE_CAP, destination, &mut fixture);
+
+    let outcome = send(
+        release_beneficiary_instruction(&fixture, 1),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "StaleMarketInput");
+    let outcome = send(
+        release_purpose_instruction(&fixture, destination, period, 1),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "StaleMarketInput");
+    assert_eq!(token_balance(&fixture.svm, destination), 0);
+}
+
+#[test]
+fn a_declared_floor_releases_a_trickle_and_only_after_the_grace_period() {
+    let mut fixture = setup_with(PolicyConfig {
+        silence_floor: SILENCE_FLOOR,
+        silence_grace_seconds: SILENCE_GRACE,
+        ..PolicyConfig::default()
+    });
+    let policy = read_policy(&fixture);
+    assert_eq!(policy.silence_floor, SILENCE_FLOOR);
+    assert_eq!(policy.silence_grace_seconds, SILENCE_GRACE);
+
+    let destination = fixture.contractor_token;
+
+    // Stale, but the silence is younger than the grace period, so the floor has
+    // not engaged and the release is still refused. This is exactly the gap the
+    // ninety-day rotation is meant to be completed inside.
+    let early = 3;
+    assert!(period_start(&fixture, early) - fixture.genesis_ts > MAX_AGE_SECONDS);
+    assert!(period_start(&fixture, early) - fixture.genesis_ts < SILENCE_GRACE);
+    approve_and_advance(
+        fixture.genesis_ts,
+        early,
+        PURPOSE_CAP,
+        destination,
+        &mut fixture,
+    );
+    let outcome = send(
+        release_purpose_instruction(&fixture, destination, early, 1),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "StaleMarketInput");
+
+    // Past the grace period, and past the cliff so both vaults can compete.
+    let period = first_joint_period();
+    assert!(period_start(&fixture, period) - fixture.genesis_ts > SILENCE_GRACE);
+    approve_and_advance(
+        period_start(&fixture, early),
+        period,
+        PURPOSE_CAP,
+        destination,
+        &mut fixture,
+    );
+
+    // The floor is the whole shared window now, so the two vaults compete for
+    // it exactly as they compete for the market term.
+    let outcome = send(
+        release_purpose_instruction(&fixture, destination, period, SILENCE_FLOOR + 1),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "AggregateCapacityExceeded");
+
+    send(
+        release_purpose_instruction(&fixture, destination, period, SILENCE_FLOOR),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    assert_eq!(token_balance(&fixture.svm, destination), SILENCE_FLOOR);
+
+    let outcome = send(
+        release_beneficiary_instruction(&fixture, 1),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "AggregateCapacityExceeded");
+
+    // And an honest report puts the ordinary window back: the floor is a
+    // backstop, not a ratchet.
+    refresh_market(&mut fixture);
+    send(
+        release_beneficiary_instruction(&fixture, BENEFICIARY_CAP),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+}
+
+#[test]
+fn a_policy_may_not_declare_half_a_silence_rule() {
+    let mut svm = LiteSVM::new();
+    svm.add_program_from_file(purpose_vault::ID, program_path())
+        .unwrap();
+    let authority = Keypair::new();
+    let oracle = Keypair::new();
+    svm.airdrop(&authority.pubkey(), 10_000_000_000).unwrap();
+
+    let mint = Pubkey::new_unique();
+    let mut mint_data = vec![0; Mint::LEN];
+    Mint::pack(
+        Mint {
+            mint_authority: COption::None,
+            supply: 0,
+            decimals: 9,
+            is_initialized: true,
+            freeze_authority: COption::None,
+        },
+        &mut mint_data,
+    )
+    .unwrap();
+    svm.set_account(
+        mint,
+        Account {
+            lamports: 10_000_000,
+            data: mint_data,
+            owner: TOKEN_PROGRAM_ID,
+            executable: false,
+            rent_epoch: 0,
+        },
+    )
+    .unwrap();
+
+    let open = |config| {
+        open_policy_instruction(
+            authority.pubkey(),
+            oracle.pubkey(),
+            mint,
+            MARKET_BPS,
+            MAX_AGE_SECONDS,
+            config,
+        )
+    };
+
+    // A floor with no grace period would engage the instant an input went
+    // stale, which is a fallback in everything but name.
+    let outcome = send(
+        open(PolicyConfig {
+            silence_floor: SILENCE_FLOOR,
+            silence_grace_seconds: 0,
+            ..PolicyConfig::default()
+        }),
+        &[&authority],
+        &mut svm,
+    );
+    assert_failed_with(outcome, "InvalidSilenceGrace");
+
+    // Under the frozen minimum, and over the frozen maximum.
+    for grace in [SILENCE_GRACE - 1, 730 * 24 * 60 * 60 + 1] {
+        let outcome = send(
+            open(PolicyConfig {
+                silence_floor: SILENCE_FLOOR,
+                silence_grace_seconds: grace,
+                ..PolicyConfig::default()
+            }),
+            &[&authority],
+            &mut svm,
+        );
+        assert_failed_with(outcome, "InvalidSilenceGrace");
+    }
+
+    // A grace period with no floor describes nothing.
+    let outcome = send(
+        open(PolicyConfig {
+            silence_floor: 0,
+            silence_grace_seconds: SILENCE_GRACE,
+            ..PolicyConfig::default()
+        }),
+        &[&authority],
+        &mut svm,
+    );
+    assert_failed_with(outcome, "InvalidSilenceGrace");
+
+    send(open(PolicyConfig::default()), &[&authority], &mut svm).unwrap();
 }

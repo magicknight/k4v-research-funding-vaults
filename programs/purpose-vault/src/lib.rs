@@ -23,6 +23,8 @@ pub mod purpose_vault {
         market_capacity_bps: u16,
         max_age_seconds: i64,
         hard_ceiling: u64,
+        silence_floor: u64,
+        silence_grace_seconds: i64,
     ) -> Result<()> {
         instructions::open_policy::open_policy_handler(
             ctx,
@@ -30,6 +32,8 @@ pub mod purpose_vault {
             market_capacity_bps,
             max_age_seconds,
             hard_ceiling,
+            silence_floor,
+            silence_grace_seconds,
         )
     }
 
@@ -37,6 +41,19 @@ pub mod purpose_vault {
     /// do nothing else: no transfer, no cap change, no destination.
     pub fn report_volume(ctx: Context<ReportVolume>, eligible_volume: u64) -> Result<()> {
         instructions::report_volume::report_volume_handler(ctx, eligible_volume)
+    }
+
+    /// Propose a replacement oracle. The policy authority may do this and
+    /// nothing else to the market input; the proposal binds nobody for 90 days.
+    pub fn propose_oracle(ctx: Context<ProposeOracle>, new_oracle: Pubkey) -> Result<()> {
+        instructions::rotate_oracle::propose_oracle_handler(ctx, new_oracle)
+    }
+
+    /// Put an aged proposal into effect. Permissionless, and it does not touch
+    /// the reported volume or its timestamp: the incoming oracle must speak
+    /// before any release resumes.
+    pub fn execute_oracle_rotation(ctx: Context<ExecuteOracleRotation>) -> Result<()> {
+        instructions::rotate_oracle::execute_oracle_rotation_handler(ctx)
     }
 
     pub fn deposit(
@@ -68,10 +85,12 @@ pub mod purpose_vault {
 mod surface {
     /// `spec/PURPOSE_VAULT_B2.md` claims B2 has no update, configure, close,
     /// migrate, emergency-release, alternate-destination or administrative
-    /// transfer instruction. That claim is only worth as much as something that
-    /// fails when a seventh entry point appears, so this asserts it directly.
+    /// transfer instruction, and that the only authority over the oracle is a
+    /// noticed rotation. That claim is only worth as much as something that
+    /// fails when a ninth entry point appears, so this asserts the surface
+    /// directly, in order.
     #[test]
-    fn the_program_exposes_exactly_six_instructions() {
+    fn the_program_exposes_exactly_eight_instructions() {
         let source = include_str!("lib.rs");
         let module = source
             .split_once("pub mod purpose_vault {")
@@ -87,6 +106,8 @@ mod surface {
             [
                 "open_policy",
                 "report_volume",
+                "propose_oracle",
+                "execute_oracle_rotation",
                 "deposit",
                 "approve",
                 "release_beneficiary",

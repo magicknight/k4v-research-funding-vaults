@@ -3,7 +3,7 @@
 The protected property is not price. It is that no actor can cause more
 economic circulation than the disclosed covenant permits.
 
-| Threat | Smallest dependency | Status (covenant v0.2) | Required repair or test |
+| Threat | Smallest dependency | Status (covenant v0.3) | Required repair or test |
 |---|---|---|---|
 | Direct release above cap | Release arithmetic | B1 PUBLIC SBF + LOCAL REAL-LOADER TRANSACTION RPC EVIDENCE | Reproduce on public devnet and in an independent environment |
 | Alternate on-chain release path | Instruction surface plus shared counter | B1 PUBLIC IDL/SBF EVIDENCE | Independently inspect deployed compiled interface |
@@ -15,7 +15,8 @@ economic circulation than the disclosed covenant permits.
 | Emergency power accelerates release | Emergency instruction set | B1 ABSENT | Preserve two-instruction surface; test pause-only if later added |
 | Unsolicited direct transfer into vault | SPL Token account is publicly creditable | B1 SAFE SURPLUS / GRIEFING VISIBLE | Keep entitlement based on frozen deposit; report surplus without granting release capacity |
 | Signer loss or collusion | Multisig operations | OPEN | Recovery design that cannot lower threshold silently |
-| Oracle key loss | Single frozen oracle key | OPEN — DEPOSITS LOCK | B2 has no rotation instruction and no inactivity fallback; a threshold reporter set or a fail-closed silence floor, either of which must not be able to raise a cap |
+| Oracle key loss | Policy authority, or a declared floor | B2 REPAIRABLE / GOVERNANCE OPEN | Rotation by the policy authority after a 90-day public notice, restoring who may report and not what was reported; optionally a declared silence floor engaging after 180–730 days. Both are inert unless configured, and the policy authority is still a single key |
+| Rotation authority captured | Policy authority key | OPEN — BOUNDED, NOT PREVENTED | Whoever may rotate can name themselves and inflate a report; bounded by the per-vault caps, cliff, approved need and notice period, and visible for 90 days first. Repair is a multisig authority, not a contract change |
 | Hash/version mismatch | Deployment provenance | OPEN | Reproducible build and on-chain configuration digest |
 | Hidden mint or freeze power | SPL mint state | LOCALNET EVIDENCE | Repeat on public testnet and reconcile independently |
 

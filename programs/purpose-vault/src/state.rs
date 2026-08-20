@@ -35,6 +35,13 @@ pub struct PolicyWindow {
     /// creation. `u64::MAX` leaves it inert. There is no instruction to change
     /// it, so a deployment that wants one must set it before any deposit.
     pub hard_ceiling: u64,
+    /// The window granted once the oracle has been silent for
+    /// `silence_grace_seconds`, in mint base units. Zero disables it and the
+    /// policy fails closed on a stale input, which is the default.
+    pub silence_floor: u64,
+    /// How long silence must last before the floor engages. Zero when no floor
+    /// is declared.
+    pub silence_grace_seconds: i64,
     pub vault_count: u32,
     pub bump: u8,
 }
@@ -59,6 +66,12 @@ pub struct MarketInput {
     pub report_count: u64,
     pub market_capacity_bps: u16,
     pub bump: u8,
+    /// A rotation proposed by the policy authority and not yet in effect.
+    /// `Pubkey::default()` means none is pending. Executing a rotation does not
+    /// refresh `updated_at`: the incoming oracle still has to speak before any
+    /// release resumes.
+    pub pending_oracle: Pubkey,
+    pub pending_since: i64,
 }
 
 #[account]

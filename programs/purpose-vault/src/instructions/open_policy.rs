@@ -1,5 +1,6 @@
 use crate::constants::{
-    MARKET_SEED, MAX_INPUT_AGE_CEILING_SECONDS, MAX_MARKET_CAPACITY_BPS, POLICY_SEED,
+    MARKET_SEED, MAX_INPUT_AGE_CEILING_SECONDS, MAX_MARKET_CAPACITY_BPS, MAX_SILENCE_GRACE_SECONDS,
+    MIN_SILENCE_GRACE_SECONDS, POLICY_SEED,
 };
 use crate::error::CovenantError;
 use crate::state::{MarketInput, PolicyWindow};
@@ -40,11 +41,22 @@ pub fn open_policy_handler(
     market_capacity_bps: u16,
     max_age_seconds: i64,
     hard_ceiling: u64,
+    silence_floor: u64,
+    silence_grace_seconds: i64,
 ) -> Result<()> {
     require!(policy_hash != [0; 32], CovenantError::ZeroPolicyHash);
     // Zero would freeze the policy the moment it opened, with no instruction to
     // undo it. A deployment that wants no ceiling passes u64::MAX and says so.
     require!(hard_ceiling > 0, CovenantError::ZeroHardCeiling);
+    // A floor without a grace period, or a grace period without a floor, is a
+    // half-declared rule. Either both are set inside the frozen band or neither
+    // is, and neither is the default.
+    let grace_declared = if silence_floor > 0 {
+        (MIN_SILENCE_GRACE_SECONDS..=MAX_SILENCE_GRACE_SECONDS).contains(&silence_grace_seconds)
+    } else {
+        silence_grace_seconds == 0
+    };
+    require!(grace_declared, CovenantError::InvalidSilenceGrace);
     require!(
         (1..=MAX_MARKET_CAPACITY_BPS).contains(&market_capacity_bps),
         CovenantError::InvalidMarketCapacityRate
@@ -64,6 +76,8 @@ pub fn open_policy_handler(
     policy.current_period_index = 0;
     policy.released_this_period = 0;
     policy.hard_ceiling = hard_ceiling;
+    policy.silence_floor = silence_floor;
+    policy.silence_grace_seconds = silence_grace_seconds;
     policy.vault_count = 0;
     policy.bump = ctx.bumps.policy;
 
@@ -78,6 +92,8 @@ pub fn open_policy_handler(
     market.report_count = 0;
     market.market_capacity_bps = market_capacity_bps;
     market.bump = ctx.bumps.market;
+    market.pending_oracle = Pubkey::default();
+    market.pending_since = 0;
 
     emit!(PolicyOpened {
         policy: policy.key(),
@@ -90,6 +106,8 @@ pub fn open_policy_handler(
         market_capacity_bps,
         max_age_seconds,
         hard_ceiling,
+        silence_floor,
+        silence_grace_seconds,
     });
     Ok(())
 }
@@ -106,4 +124,6 @@ pub struct PolicyOpened {
     pub market_capacity_bps: u16,
     pub max_age_seconds: i64,
     pub hard_ceiling: u64,
+    pub silence_floor: u64,
+    pub silence_grace_seconds: i64,
 }
