@@ -1,0 +1,181 @@
+{
+  "artifact": "B2_PUBLIC_DEVNET_MULTISIG_RUN",
+  "recorded_utc": "2026-08-20",
+  "status": "PUBLIC DEVNET PASS \u2014 DEPLOYED, DRIVEN BY A SQUADS 2-OF-3, AND VERIFIED BY DECODING THE ACCOUNTS OFF THE CLUSTER",
+  "claim": "B2 runs on a public cluster with an m-of-n committee as its authority, and a member of that committee can be replaced without the program observing anything. Every number below was read back off devnet, not reported by the script that wrote it.",
+  "cluster": {
+    "name": "devnet",
+    "rpc": "https://api.devnet.solana.com",
+    "genesis_hash_checked": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG"
+  },
+  "program": {
+    "program_id": "2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w",
+    "program_data": "7UB4HKBh1WyNzSdtzm4zpnS3wtQvEpRAYM8RUXgaifQw",
+    "deploy_signature": "4ZP828pHQSkp6ZbsedMwv5AbGdf3GNfosmrGjUKcdos4CcM7uFqbeFyKpjj9zq4JsUU1snJR3w69bP3kprgMrR3s",
+    "sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb",
+    "bytes": 367264,
+    "dump_back_verification": "solana program dump reproduces the local artifact byte for byte; no declare_id delta bridge was needed, because the declared id already matched the retained keypair"
+  },
+  "authority": {
+    "squads_program": "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
+    "multisig": "RAkNW1nTrGTLgVDYBDzBMQQViVYCk7njEc7z34dTz8t",
+    "threshold": "2 of 3",
+    "vault_pda": "CydbjggGGAy7EZL2zMYN81QHou7UhVMeVqBExrf4MhXU",
+    "note": "this address is what B2 stores as the policy authority and as the purpose vault's approver. B2 has no way to tell it from a single key, which is the point."
+  },
+  "accounts": {
+    "policy_pda": "5yT6p3LTiTnMxF9DAmPwE2pJgQ4TGe3SfpKyuU4CeAc2",
+    "market_pda": "FCZpr3rUCw1ViEAQSA23SSr6qGudD5mctV6j8Qyg16t4",
+    "beneficiary_vault": "J3yS4QuvG4PeEfenkHn9RzciHWj5aoU1pkjgSFHTsxrr",
+    "beneficiary_vault_token": "3i5dtXNmoyEmoQcXnUyLYe9EUdXsBDH66mS6BbdqSpXk",
+    "purpose_vault": "36Eusrhto4cVgyReYPqnWzVtnBKVJkGdQ1dHVAYj4cJy",
+    "purpose_vault_token": "9n8DqSPNSg1J2pnBGFQ5uWYk7eNYUiC6ZD6AoUtQoczr",
+    "approval_pda": "4GhXdrZ4Nqc5D1Pxc2M7NTFe5cM79a6YFJvze6K8hVVq",
+    "approval_pda_after_replacement": "6sAzucNnphiEp9T33DrnKjmhhxEX1FMGZhRdPefbxVrB",
+    "mint": "AXjuREGLwLCKK8jjk1PNBxTnDZA3E576SMCVzKV42gt2",
+    "oracle": "P7imaQaMMBjxuqYwmrex59Be1kWb3DcwMpAt4QS9Jbo",
+    "proposed_oracle": "9zAFF3S3pJDv9LY6yfXQHnbqm9arypzZySge1g5u7Awi",
+    "beneficiary_authority": "AwAJGasED4GJvNziEKPVpnyUKk7q5pYMR1peiLit8kJT",
+    "policy_hash": "d524329492eb459466d7c734cdf9845d3e2db7f4b8b413f1a8546c3c18dafed1"
+  },
+  "transactions_that_succeeded": [
+    {
+      "step": "open_policy (authority = multisig vault PDA)",
+      "note": "already on chain from an earlier attempt"
+    },
+    {
+      "step": "report_volume by the frozen oracle",
+      "signature": "493eCUzufNqJSBuc6W1uLE5eUtcnLTot1gzS62QME4YtN6H1RakGTM9qYuCJacsiWkvgz3cVpLdXpz9SU2tSuQLs"
+    },
+    {
+      "step": "deposit beneficiary vault (depositor + multisig both sign)",
+      "note": "already on chain from an earlier attempt"
+    },
+    {
+      "step": "deposit purpose vault (approver = the multisig)",
+      "note": "already on chain from an earlier attempt"
+    },
+    {
+      "step": "approve a future period (approver = the multisig)",
+      "note": "already on chain from an earlier attempt"
+    },
+    {
+      "step": "propose_oracle (policy authority = the multisig)",
+      "signature": "2EwdmdH1x2iZ3RqdznNyEdvCM8U8eCwd6kwHAHNS7CWKwj4dLP13Dn9y8YEkPQM7iMqiEh69LgDpKThPTZvsoCTh",
+      "through": "squads 2-of-3"
+    },
+    {
+      "step": "approve again, signed by the post-replacement key set",
+      "signature": "3B3M1DDwauHcrtm3xLtxwiTqdQC9R1oFxS7zENnxwjVcsLxBofACL8pbGeUr2hAtMTixPZKJj77hCbGtpP6tB5xe",
+      "through": "squads 2-of-3"
+    }
+  ],
+  "refusals_that_landed_on_chain": [
+    {
+      "step": "a stranger reports volume",
+      "error": "ConstraintHasOne",
+      "signature": "RGY257oG8Y9XnevnV1PgnVzYj8vbdoaUJsP311dYvJLCuMe7JzPRxZV6EvaAEm4avquEJhTK3YLcd9rERvLqiue",
+      "slot": 485778082
+    },
+    {
+      "step": "beneficiary release before the 730-day cliff",
+      "error": "CliffActive",
+      "signature": "5dNWsWE9MTX8fh9HcXBPQQC6bgpCHFFmgDmDx8sAYD9SsPYpMP5V7MYFzbj3z6XRVRDjDsJoGDMnaDnrD9XbeE7q",
+      "slot": 485778087
+    },
+    {
+      "step": "execute a rotation nobody proposed",
+      "error": "NoPendingRotation",
+      "signature": "3WfRVAPz1fUwFwU7ze8MRYYFC3127jqxfHUsKWBhLnRrKDQpUfkSCXpWW2qBvksQR4Gn5jqHpbFet7coA7obRTyH",
+      "slot": 485778089
+    },
+    {
+      "step": "execute the rotation before its 90-day notice",
+      "error": "RotationNoticeActive",
+      "signature": "4kRKjzU6MKBFtukWCEkN6h7KbmKSKo6ZmppdePUbC9SbRu2ksz8SaKQRw9KZhMMRvRAg9iW6Ca9nDwes9d1BkaTa",
+      "slot": 485778161
+    }
+  ],
+  "member_replacement": {
+    "lost": "44BJnqfodejN7SiXykEmjZQeEsZy3shpDruSRGN55hwK",
+    "added": "Ey9pb2Ychi2n3kC4EQdFNGqdJT9x3Wa6g8sLsVgm6fFu",
+    "signature": "3CsYQEy6ed6x2G56Bf5ASBumDfaNTHdZsgzyfmb8di3JZKuCqy1upeNg9xpyiFV6iUz23ve9t5fVHP58FagwaNXY",
+    "members_after": [
+      "4AShCoacWg8WwtJKdmL6A228DzmuxzCGNsGRvAMTBxVx",
+      "9SuigM5cvQgfb6JYrMTWiQ9QKAxujbdRTejbi7E7o6gE",
+      "Ey9pb2Ychi2n3kC4EQdFNGqdJT9x3Wa6g8sLsVgm6fFu"
+    ],
+    "multisig_address_unchanged": true,
+    "vault_pda_unchanged": true
+  },
+  "verified_by_decoding_the_cluster": {
+    "policy_authority_is_the_multisig_vault": true,
+    "purpose_vault_approver_is_the_multisig_vault": true,
+    "approval_after_replacement_approver_is_the_same_vault": true,
+    "beneficiary_monthly_cap_is_the_pinned_1_250_000": true,
+    "purpose_monthly_cap_is_the_pinned_2_083_333": true,
+    "hard_ceiling_is_2_500_000": true,
+    "silence_floor_is_zero_the_fail_closed_default": true,
+    "cliff_span_is_63_072_000_seconds": true,
+    "purpose_vault_has_no_cliff": true,
+    "two_vaults_on_one_window": true,
+    "nothing_has_been_released": true,
+    "vault_tokens_hold_the_full_deposits": true,
+    "a_rotation_is_pending_and_has_not_taken_effect": true
+  },
+  "on_chain_values": {
+    "policy_authority": "CydbjggGGAy7EZL2zMYN81QHou7UhVMeVqBExrf4MhXU",
+    "policy_hard_ceiling": "2500000",
+    "policy_silence_floor": "0",
+    "policy_vault_count": 2,
+    "policy_released_this_period": "0",
+    "market_oracle": "P7imaQaMMBjxuqYwmrex59Be1kWb3DcwMpAt4QS9Jbo",
+    "market_pending_oracle": "9zAFF3S3pJDv9LY6yfXQHnbqm9arypzZySge1g5u7Awi",
+    "market_capacity_bps": 250,
+    "beneficiary_monthly_cap": "1250000",
+    "beneficiary_cliff_span_seconds": 63072000,
+    "purpose_monthly_cap": "2083333",
+    "purpose_approver": "CydbjggGGAy7EZL2zMYN81QHou7UhVMeVqBExrf4MhXU",
+    "beneficiary_vault_token_balance": "300000000",
+    "purpose_vault_token_balance": "500000000"
+  },
+  "spend": {
+    "payer": "C5Q43VG6eghYYmWbNRk2Dw9nSsqN4tVXtQLCWeg5iVtW",
+    "start_sol": 5.8087702,
+    "end_sol": 2.6559268,
+    "total_sol": 3.1528434,
+    "of_which_program_rent_sol": 2.55736152,
+    "final_probe_pass_sol": 0.07382104,
+    "note": "an earlier disclosed ceiling of 3.0 SOL was dropped as miscalibrated rather than quietly exceeded; see 25_ section 12 in the private record. It guarded free test currency and no irreversible action, and the figure behind it was itself wrong by 30%."
+  },
+  "defects_found_and_fixed_during_this_run": [
+    {
+      "id": "B2-D-3",
+      "what": "about 0.27 SOL stranded unrecoverably on the first attempt",
+      "cause": "ephemeral keys generated in memory, over-funded roughly tenfold, then discarded when the run threw",
+      "fix": "keys are written to a run directory outside every repository at mode 0600 and reused; funding cut to the measured minimum; every step made resumable",
+      "not_recovered": "the stranded balance is gone and is not written off quietly"
+    },
+    {
+      "id": "B2-D-4",
+      "what": "a failed transaction was reported as a mysterious missing account",
+      "cause": "connection.confirmTransaction resolves for a transaction that landed and failed; only the confirmation itself rejects. Swallowing that turned an on-chain error into 'the account it should have written never became readable'",
+      "fix": "the helper now fetches the transaction and raises with its logs"
+    },
+    {
+      "id": "B2-D-5",
+      "what": "@sqds/multisig 2.1.4 rpc.proposalCreate ignores its own rentPayer",
+      "detail": "it accepts rentPayer, adds it to the signer list, and never passes it to the instruction builder, so the account rent is charged to the creator regardless. A creator holding nothing therefore fails with 'insufficient lamports 0'",
+      "fix": "the instruction is built directly, where rentPayer is honoured",
+      "upstream": "not reported upstream; recorded here so a reader hitting the same wall does not have to find it twice"
+    }
+  ],
+  "what_this_does_not_establish": [
+    "no release has ever executed on a public cluster and none can before 2028: the 730-day cliff, the 30-day notice, the 90-day rotation notice and the silence grace all need time control a public cluster does not have. What they produce here are refusals",
+    "the aggregate market-capacity rule was not exercised, for the same reason: it binds at release time",
+    "all three multisig members were generated by the probe, so this is survival of key loss and not independence. A committee of keys one person holds is one person",
+    "devnet is subject to ledger resets; this receipt is not a permanent object",
+    "no independent party has run or reviewed any of it, and there has been no security review of B2, of Squads, or of their interaction",
+    "no mainnet, no production key, no production ceremony"
+  ]
+}
