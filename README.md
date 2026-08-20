@@ -85,6 +85,15 @@ already on chain.
   an absolute ceiling on the window at creation — the one term no key can move —
   which the covenant now carries alongside an explicit statement that volume is
   denominated in token base units, not in a quote currency.
+- **B2 is deployed on public devnet**, and the bytes on the cluster are the
+  bytes that were tested: `solana program dump` of
+  `2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w` reproduces the local artifact
+  byte for byte at `081b6c16…`, 367,264 bytes, ProgramData holding exactly the
+  `2.55736152` SOL that `solana rent 367309` predicts. Unlike B1 this needed no
+  rebuild and no `declare_id` delta bridge, because the declared id already
+  matched the retained keypair. **Nothing has been done with it there:** no
+  policy, no vault, no deposit — the program has never been invoked on a public
+  cluster. See `evidence/B2_PUBLIC_DEVNET_2026-08-20.json`.
 - **B2's authority can be a committee, not a key, and B2 does not know the
   difference.** A Squads 2-of-3 multisig vault PDA satisfies B2's `Signer`
   constraint: it opened a policy and paid the rent for it, and it co-signed a
@@ -224,9 +233,15 @@ and hashes are frozen in the evidence file.
   survival of key loss, not independence, and a committee of keys one person
   holds is one person. No treasury signers exist. B2 builds the mechanism, not
   the governance.
-- The Squads compatibility result is local. The disclosed devnet run has not
-  happened — the faucet rate-limited every request — so no public receipt
-  exists for it and its local signatures have no explorer value.
+- The Squads compatibility result is local and has not been reproduced on a
+  public cluster. The devnet run that would have done so stopped at its
+  disclosed spend cap after the deployment consumed 2.56 SOL of a 3.0 ceiling;
+  B2 therefore has a public deployment receipt and no public behaviour receipt.
+- Roughly 0.27 devnet SOL is stranded and unrecoverable: the probe over-funded
+  ephemeral keys it then discarded when it crashed. Recorded as `B2-D-3` in
+  `evidence/B2_PUBLIC_DEVNET_2026-08-20.json` because the mistake is
+  operational and would matter far more on a network where the units cost
+  something.
 - The oracle rotation is only as trustworthy as the policy authority that holds
   it. Whoever holds it can name themselves and report an inflated figure; that
   is bounded by the per-vault caps, the cliff, the approved need and the notice

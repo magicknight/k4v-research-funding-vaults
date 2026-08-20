@@ -1,0 +1,57 @@
+{
+  "artifact": "B2_PUBLIC_DEVNET_DEPLOYMENT",
+  "recorded_utc": "2026-08-20",
+  "status": "PUBLIC DEVNET DEPLOYMENT PASS / NO B2 STATE ACCOUNTS EXIST / MULTISIG RUN STOPPED AT THE DISCLOSED SPEND CAP",
+  "claim": "The B2 program is deployed on public devnet and the bytes on the cluster are the bytes that were tested locally. Nothing has been done with it there: no policy, no vault, no deposit.",
+  "cluster": {
+    "name": "devnet",
+    "rpc": "https://api.devnet.solana.com",
+    "genesis_hash_checked": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG"
+  },
+  "deployment": {
+    "program_id": "2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w",
+    "program_data": "7UB4HKBh1WyNzSdtzm4zpnS3wtQvEpRAYM8RUXgaifQw",
+    "deploy_signature": "4ZP828pHQSkp6ZbsedMwv5AbGdf3GNfosmrGjUKcdos4CcM7uFqbeFyKpjj9zq4JsUU1snJR3w69bP3kprgMrR3s",
+    "last_deployed_in_slot": 485760252,
+    "upgrade_authority": "6by73aSGoWtvtfy6pn49v4yL3ecAQSFh3FZgcWLKwgfE",
+    "upgrade_authority_note": "a retained devnet-only test key held outside every repository at mode 0600; this is not a production authority and no production ceremony has occurred",
+    "data_length_bytes": 367264,
+    "sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb",
+    "dump_back_verification": "solana program dump reproduces the local artifact byte for byte; cmp reports no difference",
+    "program_data_rent": "2.55736152 SOL, exactly the figure solana rent 367309 predicts",
+    "no_rebuild_was_needed": "unlike B1, the declared program id already matched the retained keypair, so the artifact tested locally is the artifact on the cluster. B1 needed a 192-byte declare_id delta bridge; this deployment needs none."
+  },
+  "what_exists_on_devnet": [
+    "the program account and its ProgramData, and nothing else belonging to B2"
+  ],
+  "what_does_not_exist_on_devnet": [
+    "no PolicyWindow, no MarketInput, no CovenantVault, no token vault, no Approval",
+    "no deposit of any kind, no token controlled by the program",
+    "the multisig half of the run failed before open_policy executed, so B2 has never been invoked on a public cluster"
+  ],
+  "why_the_run_stopped": {
+    "reason": "the disclosed spend cap, not a program failure",
+    "disclosed_hard_cap_sol": 3.0,
+    "payer": "C5Q43VG6eghYYmWbNRk2Dw9nSsqN4tVXtQLCWeg5iVtW",
+    "payer_start_sol": 5.8087702,
+    "payer_now_sol": 2.94605916,
+    "measured_outflow_sol": 2.86271104,
+    "headroom_left_sol": 0.13728896,
+    "judgement": "95.4% of the cap is spent. 25_B2_SQUADS_AUTHORITY_DEVNET_DISCLOSURE.md section 5 requires stopping and reporting when spend approaches the cap rather than raising it, so the run stops here and the remaining steps need a Founder decision.",
+    "first_attempt_failure": "the public devnet endpoint returned 429 repeatedly and a just-created Squads VaultTransaction account was not readable when the execute step needed it. Propagation waits were added; the fix was not exercised, because the cap was reached first."
+  },
+  "operational_defect_found": {
+    "id": "B2-D-3",
+    "what": "roughly 0.27 SOL is stranded and unrecoverable on devnet",
+    "how": "the probe generated its depositor and its three multisig members in process and funded them before doing any work — 0.15 SOL to the depositor and 0.12 SOL to the multisig's vault PDA. When the run crashed, those keys were discarded with it, so nothing can move that balance again.",
+    "why_it_matters_beyond_devnet": "the amounts were over-provisioned by roughly ten times what the accounts actually needed, and the loss was caused by the combination of over-funding and ephemeral keys. On a real network either mistake alone is affordable; together they are not.",
+    "repair": "fund ephemeral accounts with the measured minimum, and write ephemeral keys to disk outside every repository for the duration of a run so a crash is recoverable rather than terminal"
+  },
+  "known_limits": [
+    "a public cluster has no time control, so the 730-day cliff, the 30-day notice, the 90-day rotation notice and the silence grace cannot complete on devnet and were not exercised",
+    "devnet is subject to ledger resets; this receipt is not a permanent object",
+    "the Squads authority compatibility result remains the local one in evidence/B2_SQUADS_AUTHORITY_2026-08-20.json; it has not been reproduced on a public cluster",
+    "no independent party has run or reviewed anything here",
+    "no mainnet, no production key, no production ceremony, no audit"
+  ]
+}
