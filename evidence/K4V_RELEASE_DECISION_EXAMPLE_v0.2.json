@@ -1,0 +1,38 @@
+{
+  "decision": {
+    "aggregate_market_capacity": 5000000,
+    "allowed": true,
+    "beneficiary_monthly_rate_cap": 750000,
+    "beneficiary_net_release": 500000,
+    "market_absorption_capacity": 5000000,
+    "purpose_monthly_rate_cap": 1250000,
+    "purpose_net_release": 1000000,
+    "reasons": []
+  },
+  "request": {
+    "annual_release_bps": 300,
+    "beneficiary_cliff_months": 24,
+    "beneficiary_events": [
+      {
+        "amount": 500000,
+        "kind": "sale"
+      }
+    ],
+    "beneficiary_locked_balance_at_year_start": 300000000,
+    "beneficiary_months_since_genesis": 24,
+    "eligible_trailing_30d_spot_volume": 100000000,
+    "hard_ceiling": null,
+    "market_capacity_bps": 500,
+    "period_id": "2026-08",
+    "purpose_approved_need": 1000000,
+    "purpose_events": [
+      {
+        "amount": 1000000,
+        "kind": "sale"
+      }
+    ],
+    "purpose_locked_balance_at_year_start": 500000000
+  },
+  "schema": "purpose-bound-vault-receipt/v0.2",
+  "sha256": "e3ba3bf2a9be717bdbd2b3c0beea56abec91a3d178a4fae8c37042ed5198be05"
+}

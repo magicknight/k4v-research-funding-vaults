@@ -52,4 +52,6 @@ pub enum CovenantError {
     ApprovalDestinationMismatch,
     #[msg("only the policy authority may attach a vault to this capacity window")]
     WrongPolicyAuthority,
+    #[msg("hard ceiling must be positive; use u64::MAX to leave it inert")]
+    ZeroHardCeiling,
 }

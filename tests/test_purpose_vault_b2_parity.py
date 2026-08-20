@@ -31,6 +31,9 @@ MARKET_CAPACITY_BPS = 250
 BENEFICIARY_CAP = 1_250_000
 PURPOSE_CAP = 2_083_333
 MARKET_CAPACITY = 3_000_000
+SUM_OF_MONTHLY_CAPS = BENEFICIARY_CAP + PURPOSE_CAP
+LOW_CEILING = 1_500_000
+INFLATED_VOLUME = ELIGIBLE_VOLUME * 1_000_000
 
 PERIOD_SECONDS = 30 * 24 * 60 * 60
 MIN_CLIFF_SECONDS = 730 * 24 * 60 * 60
@@ -39,15 +42,23 @@ MAX_ANNUAL_RELEASE_BPS = 500
 MAX_MARKET_CAPACITY_BPS = 500
 
 
-def request(beneficiary_release, purpose_release, approved_need, months=36):
+def request(
+    beneficiary_release,
+    purpose_release,
+    approved_need,
+    months=36,
+    volume=ELIGIBLE_VOLUME,
+    hard_ceiling=None,
+):
     return ReleaseRequest(
         period_id="2028-09",
         beneficiary_locked_balance_at_year_start=BENEFICIARY_DEPOSIT,
         purpose_locked_balance_at_year_start=PURPOSE_DEPOSIT,
         annual_release_bps=ANNUAL_RELEASE_BPS,
-        eligible_trailing_30d_spot_volume=ELIGIBLE_VOLUME,
+        eligible_trailing_30d_spot_volume=volume,
         market_capacity_bps=MARKET_CAPACITY_BPS,
         beneficiary_months_since_genesis=months,
+        hard_ceiling=hard_ceiling,
         beneficiary_events=(
             (ReleaseEvent(EventKind.SALE, beneficiary_release),)
             if beneficiary_release
@@ -114,6 +125,80 @@ class TestB2Parity(unittest.TestCase):
         decision = evaluate_release(request(1, 0, 0, months=23))
         self.assertFalse(decision.allowed)
         self.assertIn("BENEFICIARY_CLIFF", decision.reasons)
+
+    def test_an_inflated_report_cannot_lift_a_release_past_the_frozen_schedule(self):
+        """Mirrors the LiteSVM test of the same name.
+
+        A captured oracle can widen the shared window until the aggregate rule
+        stops binding. It cannot touch a vault's own cap, so the two caps still
+        bound the period between them.
+        """
+        self.assertGreater(SUM_OF_MONTHLY_CAPS, MARKET_CAPACITY)
+        allowed = evaluate_release(
+            request(
+                BENEFICIARY_CAP,
+                PURPOSE_CAP,
+                PURPOSE_CAP,
+                volume=INFLATED_VOLUME,
+            )
+        )
+        self.assertTrue(allowed.allowed)
+        self.assertEqual(
+            allowed.beneficiary_net_release + allowed.purpose_net_release,
+            SUM_OF_MONTHLY_CAPS,
+        )
+
+        over = evaluate_release(
+            request(
+                BENEFICIARY_CAP + 1,
+                PURPOSE_CAP + 1,
+                PURPOSE_CAP + 1,
+                volume=INFLATED_VOLUME,
+            )
+        )
+        self.assertFalse(over.allowed)
+        self.assertEqual(
+            over.reasons,
+            ("BENEFICIARY_MONTHLY_RATE_CAP", "PURPOSE_MONTHLY_RATE_CAP"),
+        )
+
+    def test_a_frozen_ceiling_binds_below_the_market_term(self):
+        """Mirrors `a_frozen_hard_ceiling_binds_the_window_below_the_market_term`."""
+        self.assertLess(LOW_CEILING, MARKET_CAPACITY)
+        headroom = LOW_CEILING - BENEFICIARY_CAP
+
+        at_ceiling = evaluate_release(
+            request(
+                BENEFICIARY_CAP,
+                headroom,
+                headroom,
+                volume=INFLATED_VOLUME,
+                hard_ceiling=LOW_CEILING,
+            )
+        )
+        self.assertTrue(at_ceiling.allowed)
+        self.assertEqual(at_ceiling.aggregate_market_capacity, LOW_CEILING)
+        # The market term is reported unmodified next to the enforced window.
+        self.assertGreater(at_ceiling.market_absorption_capacity, LOW_CEILING)
+
+        over = evaluate_release(
+            request(
+                BENEFICIARY_CAP,
+                headroom + 1,
+                headroom + 1,
+                volume=INFLATED_VOLUME,
+                hard_ceiling=LOW_CEILING,
+            )
+        )
+        self.assertFalse(over.allowed)
+        self.assertEqual(over.reasons, ("AGGREGATE_MARKET_CAPACITY",))
+
+    def test_an_inert_ceiling_changes_nothing_and_zero_is_refused(self):
+        inert = evaluate_release(request(0, 0, 0, hard_ceiling=None))
+        self.assertEqual(inert.aggregate_market_capacity, MARKET_CAPACITY)
+        self.assertEqual(inert.market_absorption_capacity, MARKET_CAPACITY)
+        with self.assertRaises(ValueError):
+            request(0, 0, 0, hard_ceiling=0)
 
     def test_the_constants_the_program_freezes_are_the_model_bounds(self):
         """The program's hard floors and ceilings, restated where they can be read.

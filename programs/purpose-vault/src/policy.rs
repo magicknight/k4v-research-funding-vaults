@@ -13,12 +13,25 @@ pub fn monthly_cap(deposit: u64, annual_release_bps: u16) -> Result<u64> {
     u64::try_from(monthly).map_err(|_| error!(CovenantError::ArithmeticOverflow))
 }
 
+/// `eligible_volume` is in mint base units, so no price enters this function
+/// and none is needed to compare it against a vault's cap.
 pub fn market_capacity(eligible_volume: u64, market_capacity_bps: u16) -> Result<u64> {
     let capacity = u128::from(eligible_volume)
         .checked_mul(u128::from(market_capacity_bps))
         .ok_or(CovenantError::ArithmeticOverflow)?
         / BPS_DENOMINATOR;
     u64::try_from(capacity).map_err(|_| error!(CovenantError::ArithmeticOverflow))
+}
+
+/// The shared window is the tighter of what the market can absorb and the
+/// policy's frozen absolute ceiling. The ceiling is the only term the oracle
+/// cannot move, which is what makes it worth carrying.
+pub fn effective_capacity(
+    eligible_volume: u64,
+    market_capacity_bps: u16,
+    hard_ceiling: u64,
+) -> Result<u64> {
+    Ok(market_capacity(eligible_volume, market_capacity_bps)?.min(hard_ceiling))
 }
 
 /// Every vault on a policy indexes the same windows. B1 anchored periods per
@@ -75,6 +88,41 @@ mod tests {
         // reason the aggregate rule exists at all.
         assert!(beneficiary <= capacity && purpose <= capacity);
         assert!(beneficiary + purpose > capacity);
+        // With no ceiling set the window is the market term alone; the vector
+        // is unchanged by the ceiling's introduction.
+        assert_eq!(
+            effective_capacity(120_000_000, 250, u64::MAX).unwrap(),
+            capacity
+        );
+    }
+
+    /// The property the absolute ceiling exists to make legible: a compromised
+    /// oracle can widen the shared window, but the per-vault schedule it cannot
+    /// touch still bounds every release. This asserts the widening itself is
+    /// bounded, and that an inert ceiling is genuinely inert.
+    #[test]
+    fn a_frozen_ceiling_bounds_what_any_oracle_report_can_open() {
+        let honest = effective_capacity(120_000_000, 250, u64::MAX).unwrap();
+        assert_eq!(honest, 3_000_000);
+
+        // A report inflated by six orders of magnitude, with no ceiling set.
+        let inflated = effective_capacity(120_000_000_000_000, 250, u64::MAX).unwrap();
+        assert_eq!(inflated, 3_000_000_000_000);
+
+        // The same report against a policy that froze a ceiling.
+        let bounded = effective_capacity(120_000_000_000_000, 250, 2_500_000).unwrap();
+        assert_eq!(bounded, 2_500_000);
+
+        // And the ceiling never widens a window the market has already closed.
+        assert_eq!(effective_capacity(0, 250, 2_500_000).unwrap(), 0);
+    }
+
+    /// The largest volume and rate the program accepts must not overflow, or a
+    /// large honest report would reject releases instead of permitting them.
+    #[test]
+    fn the_widest_admissible_report_does_not_overflow() {
+        let widest = effective_capacity(u64::MAX, 500, u64::MAX).unwrap();
+        assert_eq!(widest, u64::MAX / 20);
     }
 
     #[test]

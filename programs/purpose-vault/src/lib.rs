@@ -22,12 +22,14 @@ pub mod purpose_vault {
         policy_hash: [u8; 32],
         market_capacity_bps: u16,
         max_age_seconds: i64,
+        hard_ceiling: u64,
     ) -> Result<()> {
         instructions::open_policy::open_policy_handler(
             ctx,
             policy_hash,
             market_capacity_bps,
             max_age_seconds,
+            hard_ceiling,
         )
     }
 

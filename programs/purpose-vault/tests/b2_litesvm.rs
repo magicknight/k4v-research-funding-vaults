@@ -41,12 +41,24 @@ const ELIGIBLE_VOLUME: u64 = 120_000_000;
 const MARKET_CAPACITY: u64 = 3_000_000;
 const MAX_AGE_SECONDS: i64 = 3 * 24 * 60 * 60;
 const POLICY_HASH: [u8; 32] = [0x42; 32];
+/// What the two frozen vault schedules permit in one period between them. No
+/// oracle report can raise it, because no oracle touches a vault's cap.
+const SUM_OF_MONTHLY_CAPS: u64 = BENEFICIARY_CAP + PURPOSE_CAP;
+const NO_CEILING: u64 = u64::MAX;
+const LOW_CEILING: u64 = 1_500_000;
+/// A report inflated by six orders of magnitude, as a captured oracle would.
+const INFLATED_VOLUME: u64 = ELIGIBLE_VOLUME * 1_000_000;
 
 /// The premise of the headline test, checked at compile time: each vault fits
 /// under the market ceiling on its own, and the two together do not.
 const _: () = assert!(BENEFICIARY_CAP <= MARKET_CAPACITY);
 const _: () = assert!(PURPOSE_CAP <= MARKET_CAPACITY);
 const _: () = assert!(BENEFICIARY_CAP + PURPOSE_CAP > MARKET_CAPACITY);
+/// The premises of the two ceiling tests: a low ceiling must bind before the
+/// market term does, and an inflated report must widen the window past it.
+const _: () = assert!(LOW_CEILING < MARKET_CAPACITY);
+const _: () = assert!(BENEFICIARY_CAP < LOW_CEILING);
+const _: () = assert!(MARKET_CAPACITY < SUM_OF_MONTHLY_CAPS);
 
 struct Fixture {
     svm: LiteSVM,
@@ -167,6 +179,7 @@ fn open_policy_instruction(
     mint: Pubkey,
     market_capacity_bps: u16,
     max_age_seconds: i64,
+    hard_ceiling: u64,
 ) -> Instruction {
     Instruction {
         program_id: purpose_vault::ID,
@@ -183,6 +196,7 @@ fn open_policy_instruction(
             policy_hash: POLICY_HASH,
             market_capacity_bps,
             max_age_seconds,
+            hard_ceiling,
         }
         .data(),
     }
@@ -360,7 +374,7 @@ fn first_joint_period() -> u64 {
     cliff_period + 2
 }
 
-fn setup_with(report_volume: bool) -> Fixture {
+fn setup_with(report_volume: bool, hard_ceiling: u64) -> Fixture {
     let mut svm = LiteSVM::new();
     svm.add_program_from_file(purpose_vault::ID, program_path())
         .unwrap();
@@ -437,6 +451,7 @@ fn setup_with(report_volume: bool) -> Fixture {
             mint,
             MARKET_BPS,
             MAX_AGE_SECONDS,
+            hard_ceiling,
         ),
         &[&policy_authority],
         &mut svm,
@@ -518,7 +533,7 @@ fn setup_with(report_volume: bool) -> Fixture {
 }
 
 fn setup() -> Fixture {
-    setup_with(true)
+    setup_with(true, NO_CEILING)
 }
 
 /// Approve at `approve_at`, then move to the start of `period_index`.
@@ -526,9 +541,13 @@ fn setup() -> Fixture {
 /// is what the tolerance is for, so a test that moves a whole period forward
 /// has to refresh rather than assume the old number still counts.
 fn refresh_market(fixture: &mut Fixture) {
+    report_volume(ELIGIBLE_VOLUME, fixture);
+}
+
+fn report_volume(eligible_volume: u64, fixture: &mut Fixture) {
     let oracle = fixture.oracle.insecure_clone();
     send(
-        report_instruction(oracle.pubkey(), ELIGIBLE_VOLUME),
+        report_instruction(oracle.pubkey(), eligible_volume),
         &[&oracle],
         &mut fixture.svm,
     )
@@ -572,6 +591,7 @@ fn deposit_freezes_two_kinds_against_one_shared_window() {
     assert_eq!(policy.vault_count, 2);
     assert_eq!(policy.released_this_period, 0);
     assert_eq!(policy.current_period_index, 0);
+    assert_eq!(policy.hard_ceiling, NO_CEILING);
 
     let market = read_market(&fixture);
     assert_eq!(market.oracle, fixture.oracle.pubkey());
@@ -833,7 +853,7 @@ fn a_stale_market_input_rejects_instead_of_reusing_the_last_value() {
 
 #[test]
 fn a_policy_whose_oracle_never_reported_releases_nothing() {
-    let mut fixture = setup_with(false);
+    let mut fixture = setup_with(false, NO_CEILING);
     assert_eq!(read_market(&fixture).updated_at, 0);
 
     let period = 3;
@@ -1143,4 +1163,165 @@ fn only_the_frozen_oracle_may_report_volume() {
     );
     assert_failed_with(outcome, "ConstraintHasOne");
     assert_eq!(read_market(&fixture).eligible_volume, ELIGIBLE_VOLUME);
+}
+
+#[test]
+fn an_inflated_oracle_report_cannot_lift_a_release_past_the_frozen_schedule() {
+    // What a captured oracle can do: widen the shared window until the
+    // aggregate rule stops binding. What it cannot do: touch a vault's cap, its
+    // cliff, its approved need or its notice period. This test spends the
+    // widened window down to the last unit the frozen schedule allows, and then
+    // shows the next unit is refused by a gate the oracle has no access to.
+    let mut fixture = setup();
+    let period = first_joint_period();
+    let destination = fixture.contractor_token;
+    let cliff_end = read_vault(&fixture, fixture.beneficiary_vault).cliff_end_ts;
+    approve_and_advance(
+        cliff_end,
+        period,
+        PURPOSE_CAP + 1,
+        destination,
+        &mut fixture,
+    );
+    report_volume(INFLATED_VOLUME, &mut fixture);
+
+    // The window really did widen: this release would have been refused under
+    // an honest report, since BENEFICIARY_CAP + PURPOSE_CAP > MARKET_CAPACITY.
+    send(
+        release_beneficiary_instruction(&fixture, BENEFICIARY_CAP),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    send(
+        release_purpose_instruction(&fixture, destination, period, PURPOSE_CAP),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    assert_eq!(
+        read_policy(&fixture).released_this_period,
+        SUM_OF_MONTHLY_CAPS
+    );
+
+    // And there it stops. Both refusals name a per-vault gate, not the
+    // aggregate one, which is the whole claim.
+    let outcome = send(
+        release_purpose_instruction(&fixture, destination, period, 1),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "PeriodCapExceeded");
+    let outcome = send(
+        release_beneficiary_instruction(&fixture, 1),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "PeriodCapExceeded");
+    assert_eq!(token_balance(&fixture.svm, destination), PURPOSE_CAP);
+}
+
+#[test]
+fn a_frozen_hard_ceiling_binds_the_window_below_the_market_term() {
+    // The ceiling is the one term in the window no key can move: not the
+    // oracle's, not the policy authority's. Here the market would allow
+    // MARKET_CAPACITY and the ceiling allows less, so the ceiling decides.
+    let mut fixture = setup_with(true, LOW_CEILING);
+    assert_eq!(read_policy(&fixture).hard_ceiling, LOW_CEILING);
+
+    let period = first_joint_period();
+    let destination = fixture.contractor_token;
+    let cliff_end = read_vault(&fixture, fixture.beneficiary_vault).cliff_end_ts;
+    approve_and_advance(cliff_end, period, PURPOSE_CAP, destination, &mut fixture);
+    // An inflated report cannot buy back what the ceiling took away.
+    report_volume(INFLATED_VOLUME, &mut fixture);
+
+    send(
+        release_beneficiary_instruction(&fixture, BENEFICIARY_CAP),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+
+    let headroom = LOW_CEILING - BENEFICIARY_CAP;
+    let outcome = send(
+        release_purpose_instruction(&fixture, destination, period, headroom + 1),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "AggregateCapacityExceeded");
+
+    send(
+        release_purpose_instruction(&fixture, destination, period, headroom),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    assert_eq!(token_balance(&fixture.svm, destination), headroom);
+    assert_eq!(read_policy(&fixture).released_this_period, LOW_CEILING);
+}
+
+#[test]
+fn a_zero_hard_ceiling_is_refused_at_policy_creation() {
+    // Zero would open a policy that can never release anything, with no
+    // instruction to undo it. A deployment that wants no ceiling says u64::MAX.
+    let mut svm = LiteSVM::new();
+    svm.add_program_from_file(purpose_vault::ID, program_path())
+        .unwrap();
+    let authority = Keypair::new();
+    let oracle = Keypair::new();
+    svm.airdrop(&authority.pubkey(), 10_000_000_000).unwrap();
+
+    let mint = Pubkey::new_unique();
+    let mut mint_data = vec![0; Mint::LEN];
+    Mint::pack(
+        Mint {
+            mint_authority: COption::None,
+            supply: 0,
+            decimals: 9,
+            is_initialized: true,
+            freeze_authority: COption::None,
+        },
+        &mut mint_data,
+    )
+    .unwrap();
+    svm.set_account(
+        mint,
+        Account {
+            lamports: 10_000_000,
+            data: mint_data,
+            owner: TOKEN_PROGRAM_ID,
+            executable: false,
+            rent_epoch: 0,
+        },
+    )
+    .unwrap();
+
+    let outcome = send(
+        open_policy_instruction(
+            authority.pubkey(),
+            oracle.pubkey(),
+            mint,
+            MARKET_BPS,
+            MAX_AGE_SECONDS,
+            0,
+        ),
+        &[&authority],
+        &mut svm,
+    );
+    assert_failed_with(outcome, "ZeroHardCeiling");
+
+    send(
+        open_policy_instruction(
+            authority.pubkey(),
+            oracle.pubkey(),
+            mint,
+            MARKET_BPS,
+            MAX_AGE_SECONDS,
+            NO_CEILING,
+        ),
+        &[&authority],
+        &mut svm,
+    )
+    .unwrap();
 }

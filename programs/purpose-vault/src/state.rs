@@ -31,12 +31,23 @@ pub struct PolicyWindow {
     pub genesis_ts: i64,
     pub current_period_index: u64,
     pub released_this_period: u64,
+    /// An absolute ceiling on the shared window, in mint base units, frozen at
+    /// creation. `u64::MAX` leaves it inert. There is no instruction to change
+    /// it, so a deployment that wants one must set it before any deposit.
+    pub hard_ceiling: u64,
     pub vault_count: u32,
     pub bump: u8,
 }
 
 /// Eligible trailing 30-day spot volume is not observable on chain. It arrives
 /// through one frozen oracle key and expires; it never falls back.
+///
+/// `eligible_volume` is denominated in **mint base units**, not in any quote
+/// currency. "Spot volume" conventionally means a quote-currency figure, so the
+/// unit is stated here and in the covenant rather than left to convention: a
+/// USD-denominated report would silently change every ceiling this account
+/// feeds. Base units also make the price cancel out of the covenant entirely,
+/// and let venues be summed without a per-venue price.
 #[account]
 #[derive(InitSpace)]
 pub struct MarketInput {

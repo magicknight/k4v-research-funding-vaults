@@ -67,13 +67,23 @@ already on chain.
   with the aggregate rule B1 structurally cannot express. One `PolicyWindow` is
   debited by every vault bound to a policy, so two vaults that are each inside
   their own monthly cap are still refused when they jointly exceed the
-  market-capacity ceiling. Twenty LiteSVM tests against the compiled SBF cover
-  the approved need, the 30-day notice, approver recusal, oracle staleness,
-  zero eligible volume, non-carrying capacity in both counters, and an attempt
-  to attach a foreign vault to someone else's capacity window. Eight Rust unit
-  tests and seven Python tests pin the same integers on both sides of the
-  language boundary. B2 is **not deployed anywhere**; see
-  [PURPOSE_VAULT_B2.md](spec/PURPOSE_VAULT_B2.md).
+  market-capacity ceiling. Twenty-three LiteSVM tests against the compiled SBF
+  cover the approved need, the 30-day notice, approver recusal, oracle
+  staleness, zero eligible volume, non-carrying capacity in both counters, an
+  attempt to attach a foreign vault to someone else's capacity window, and the
+  absolute ceiling below. Ten Rust unit tests and ten Python tests pin the same
+  integers on both sides of the language boundary. B2 is **not deployed
+  anywhere**; see [PURPOSE_VAULT_B2.md](spec/PURPOSE_VAULT_B2.md).
+- **A compromised oracle cannot lift a release past the frozen schedule.** An
+  inflated volume report widens the shared window until the aggregate rule stops
+  binding, and that is all it can do: the per-vault caps, the cliff, the
+  approved need and the notice period are derived from data no oracle touches.
+  `an_inflated_oracle_report_cannot_lift_a_release_past_the_frozen_schedule`
+  spends an inflated window down to the sum of the frozen caps and shows the
+  next base unit refused by a per-vault gate. A policy may additionally freeze
+  an absolute ceiling on the window at creation — the one term no key can move —
+  which the covenant now carries as v0.2 alongside an explicit statement that
+  volume is denominated in token base units, not in a quote currency.
 
 ## Reproduce the devnet receipt yourself
 
@@ -185,6 +195,14 @@ and hashes are frozen in the evidence file.
 - B2's oracle and its approver are single keys. A real treasury needs a
   multisig, and no treasury signers exist. B2 builds the mechanism, not the
   governance.
+- If B2's oracle key is lost, no further release is possible and deposits stay
+  locked. There is no rotation instruction and no inactivity fallback. This is
+  the accepted conservative failure direction, not a solved problem.
+- B2's absolute ceiling is inert in every fixture but the one that exercises it.
+  No production value has been chosen, and one cannot be added after creation.
+- Which venues count toward eligible volume, and which addresses are excluded,
+  is decided off chain. B2 receives one integer and cannot check how it was
+  assembled.
 - **The deployed B1 program cannot participate in a B2 joint cap.** B1 has no
   knowledge of any aggregate and cannot be given one. A complete aggregate
   guarantee requires both pools to live in B2.

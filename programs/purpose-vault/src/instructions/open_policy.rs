@@ -39,8 +39,12 @@ pub fn open_policy_handler(
     policy_hash: [u8; 32],
     market_capacity_bps: u16,
     max_age_seconds: i64,
+    hard_ceiling: u64,
 ) -> Result<()> {
     require!(policy_hash != [0; 32], CovenantError::ZeroPolicyHash);
+    // Zero would freeze the policy the moment it opened, with no instruction to
+    // undo it. A deployment that wants no ceiling passes u64::MAX and says so.
+    require!(hard_ceiling > 0, CovenantError::ZeroHardCeiling);
     require!(
         (1..=MAX_MARKET_CAPACITY_BPS).contains(&market_capacity_bps),
         CovenantError::InvalidMarketCapacityRate
@@ -59,6 +63,7 @@ pub fn open_policy_handler(
     policy.genesis_ts = now;
     policy.current_period_index = 0;
     policy.released_this_period = 0;
+    policy.hard_ceiling = hard_ceiling;
     policy.vault_count = 0;
     policy.bump = ctx.bumps.policy;
 
@@ -84,6 +89,7 @@ pub fn open_policy_handler(
         genesis_ts: now,
         market_capacity_bps,
         max_age_seconds,
+        hard_ceiling,
     });
     Ok(())
 }
@@ -99,4 +105,5 @@ pub struct PolicyOpened {
     pub genesis_ts: i64,
     pub market_capacity_bps: u16,
     pub max_age_seconds: i64,
+    pub hard_ceiling: u64,
 }

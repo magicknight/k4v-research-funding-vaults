@@ -48,8 +48,11 @@ pub fn apply_release(gate: ReleaseGate, now: i64, period: u64, amount: u64) -> R
         CovenantError::DepositExceeded
     );
 
-    let capacity =
-        policy::market_capacity(gate.market.eligible_volume, gate.market.market_capacity_bps)?;
+    let capacity = policy::effective_capacity(
+        gate.market.eligible_volume,
+        gate.market.market_capacity_bps,
+        gate.policy.hard_ceiling,
+    )?;
     let next_window = gate
         .policy
         .released_this_period

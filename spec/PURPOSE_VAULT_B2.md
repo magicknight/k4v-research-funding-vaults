@@ -59,7 +59,8 @@ For every successful release, with `amount > 0`:
 
 ~~~text
 now - market.updated_at <= market.max_age_seconds        # and market.updated_at > 0
-market_capacity = floor(market.eligible_volume * market.market_capacity_bps / 10000)
+absorption      = floor(market.eligible_volume * market.market_capacity_bps / 10000)
+market_capacity = min(absorption, policy.hard_ceiling)
 
 vault.released_this_period  + amount <= vault.monthly_cap
 vault.released_total        + amount <= vault.deposited_amount
@@ -123,11 +124,42 @@ Three rules make this conservative rather than convenient:
 The oracle can only report volume. It cannot move funds, change a cap, change a
 rate, or name a destination.
 
+`eligible_volume` is denominated in **mint base units**, not in a quote
+currency. The unit is stated here, in the covenant, and on the account itself
+because "spot volume" conventionally means a quote-currency figure, and a
+report in USD would rescale every ceiling this account feeds without any code
+noticing. Base units also keep price out of the comparison — `market_capacity`
+and `vault.monthly_cap` are then the same kind of quantity — and let separate
+venues be summed without a per-venue price.
+
+## What a compromised oracle can and cannot do
+
+Worth stating exactly, because the intuition runs the wrong way. A captured
+oracle key reports an inflated volume, `market_capacity` grows, and the
+aggregate rule stops binding. It cannot do anything else: `vault.monthly_cap`,
+`cliff_end_ts`, `approval.approved_need` and the 30-day notice are all derived
+from data the oracle never touches. So the widest window any report can open
+still leaves the sum of the frozen per-vault caps as the bound on the period —
+the oracle can only ever slow a release down, never speed one past the
+schedule. `an_inflated_oracle_report_cannot_lift_a_release_past_the_frozen_schedule`
+spends an inflated window down to that bound and shows the next base unit
+refused by a per-vault gate.
+
+`policy.hard_ceiling` is an absolute bound in base units, frozen at
+`open_policy` and inert at `u64::MAX`. It adds nothing against a compromised
+oracle — the paragraph above already holds without it. It exists because it is
+the only term in the window that **no** key can move, so a deployment wanting
+to promise a bound tighter than its own release schedule has somewhere to say
+it, and because B2 has no update instruction: a ceiling that is not set at
+creation can never be added. Zero is rejected, since it would open a policy
+that can never release and can never be repaired.
+
 ## No update surface
 
 B2 has no update, configure, close, migrate, emergency-release, alternate
 destination, or administrative transfer instruction. There is no way to change
-the oracle, the approver, the beneficiary, a rate, a cliff, or a cap after
+the oracle, the approver, the beneficiary, a rate, a cliff, a ceiling, or a cap
+after
 creation.
 
 The cost of that is real and is accepted deliberately: **if the oracle key is
@@ -163,7 +195,7 @@ Against the numbered list in
 | 1 | beneficiary release before cliff | enforced |
 | 2 | either vault over its monthly rate cap | enforced for both kinds |
 | 3 | purpose release without approved need or above it | enforced |
-| 4 | aggregate above market-capacity cap | enforced across every vault on the policy |
+| 4 | aggregate above market-capacity cap, or above a frozen absolute ceiling | enforced across every vault on the policy |
 | 5 | any release with zero eligible volume | enforced |
 | 6 | carry-forward of unused monthly capacity | enforced for both counters |
 | 7 | bypass event omitted from economic circulation | **not enforced** — off-chain classification |
@@ -185,6 +217,14 @@ a working answer.
 - `market_capacity_bps` and the definition of eligible volume are **test
   parameters**, not frozen production values. The covenant's `alpha` range of
   2–5% and the IRB data sources remain open until the parameter-freeze gate.
+- `hard_ceiling` is inert in every test fixture except the one that exercises
+  it. Whether a deployment sets one, and at what number, is a policy decision
+  that belongs with the same parameter freeze. B2 provides the field because it
+  cannot be added afterwards, not because a value has been chosen.
+- Which venues count toward eligible volume, and which addresses are excluded
+  from it, is decided off chain. B2 receives one integer and does not know how
+  it was assembled. Denominating that integer in base units removes the price
+  from the aggregation but not the judgement.
 - The approval authority in tests is a single key. Production requires a
   multisig, and no treasury signers exist yet. B2 builds the mechanism, not the
   governance.
