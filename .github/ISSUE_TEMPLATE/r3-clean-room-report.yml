@@ -1,0 +1,73 @@
+name: R3 clean-room reproduction
+description: Report a clean-clone run of the full-scale local transaction, Squads and RPC bundle
+title: "[R3 clean-room] "
+labels: ["reproduction", "r3"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Run `bash tools/run_r3_local_reproduction.sh` from a clean clone. The
+        command uses only local Surfpool ledgers; its Squads leg reads the public
+        devnet program through a local fork and sends nothing to devnet or
+        mainnet. A disagreement is as valuable as a match.
+
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options:
+        - PASS and all recorded values matched
+        - The command completed but a value differed
+        - The command did not complete
+    validations:
+      required: true
+
+  - type: input
+    id: fork_commit
+    attributes:
+      label: Clean-clone commit
+      description: Full Git commit checked out before the run
+    validations:
+      required: true
+
+  - type: textarea
+    id: result
+    attributes:
+      label: RESULT.json
+      description: Paste the complete machine-readable result
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: checksums
+    attributes:
+      label: SHA256SUMS
+      description: Paste the checksum bundle produced by the command
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: transcript
+    attributes:
+      label: Environment and transcript
+      description: OS, architecture, Rust, Solana CLI, Surfpool, Node and any error or discrepancy
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: relationship
+    attributes:
+      label: Relationship and compensation
+      options:
+        - label: I ran this from a clean clone without an author-supplied state snapshot.
+          required: true
+        - label: I am not the author and do not control the project.
+        - label: I disclose below any affiliation, compensation or conflict.
+
+  - type: textarea
+    id: conflict
+    attributes:
+      label: Affiliation, compensation or conflict disclosure
+      placeholder: None, or describe the relationship and compensation.

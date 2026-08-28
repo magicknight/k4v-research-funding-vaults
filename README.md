@@ -3,18 +3,19 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
-The strongest current capability is B1: a two-instruction Anchor program whose
-PDA-owned SPL token vault enforces a beneficiary cliff and a frozen,
-non-carrying period cap. Its exact compiled SBF has now been installed by real
-upgradeable-loader transactions on an offline Surfpool process, followed in
-one account history by signed deposit and capped-release transactions and an
-independent raw-RPC reconstruction.
+The strongest current capability is the completed local R3 integration: one
+transaction-created 1-billion-token mint carries exact 30/50/12/8 allocations,
+the full aligned 80% enters B2, a real Squads 2-of-3 replaces a member and then
+releases under the unchanged stored authority, and a read-only RPC verifier
+reconstructs the result. The exact B2 program is also on public devnet. B1
+remains the smaller independently reconstructable beneficiary core and a useful
+separate receipt.
 
-The broader, chain-independent covenant remains alongside B1. It models
-separate beneficiary and purpose vaults, approved need, joint market capacity,
-and circulation-equivalent bypasses such as OTC, collateral, grants, and
-transfers of economic rights. B1 does not pretend those broader gates are
-already on chain.
+The broader, chain-independent covenant remains alongside both programs. It
+also models circulation-equivalent bypasses such as OTC, collateral, grants,
+and transfers of economic rights. Neither a devnet receipt nor the current
+programs pretend to establish production parameters, independent review,
+issuer/legal readiness, LP behavior or mainnet authorization.
 
 ## What is established
 
@@ -67,14 +68,25 @@ already on chain.
   with the aggregate rule B1 structurally cannot express. One `PolicyWindow` is
   debited by every vault bound to a policy, so two vaults that are each inside
   their own monthly cap are still refused when they jointly exceed the
-  market-capacity ceiling. Thirty-two LiteSVM tests against the compiled SBF
+  market-capacity ceiling. Thirty-four LiteSVM tests against the compiled SBF
   cover the approved need, the 30-day notice, approver recusal, oracle
   staleness, zero eligible volume, non-carrying capacity in both counters, an
   attempt to attach a foreign vault to someone else's capacity window, and the
-  ceiling, rotation and floor below. Fifteen Rust unit tests and ten Python
-  tests pin the same integers on both sides of the language boundary. B2 is
-  **not deployed anywhere**; see
-  [PURPOSE_VAULT_B2.md](spec/PURPOSE_VAULT_B2.md).
+  ceiling, rotation and floor below. Sixteen Rust unit tests and ten Python
+  tests pin the same integers on both sides of the language boundary. The local
+  implementation is the exact artifact later deployed and driven on devnet;
+  see [PURPOSE_VAULT_B2.md](spec/PURPOSE_VAULT_B2.md).
+- **R3 passes as local full-scale integration.** Signed System/SPL transactions
+  create one 9-decimal mint with `1e18` raw supply and four independent
+  allocations of `3e17`, `5e17`, `1.2e17` and `8e16`; both mint authorities are
+  revoked and both staging accounts end at zero after the aligned 80% enters B2.
+  A real Squads v4 2-of-3 then replaces a member, approves with the new key set,
+  and releases `1.75e15` after the Founder release of `1.25e15`, exactly
+  exhausting the `3e15` shared window without changing the vault PDA. A
+  read-only RPC verifier passes nineteen checks. This remains author-run local
+  evidence, not independent review or production authorization; see
+  [FULL_SCALE_ONE_MINT_R3.md](spec/FULL_SCALE_ONE_MINT_R3.md) and
+  `evidence/R3_FULL_SCALE_LOCAL_VALIDATION_2026-08-28.json`.
 - **A compromised oracle cannot lift a release past the frozen schedule.** An
   inflated volume report widens the shared window until the aggregate rule stops
   binding, and that is all it can do: the per-vault caps, the cliff, the
@@ -85,15 +97,17 @@ already on chain.
   an absolute ceiling on the window at creation — the one term no key can move —
   which the covenant now carries alongside an explicit statement that volume is
   denominated in token base units, not in a quote currency.
-- **B2 is deployed on public devnet**, and the bytes on the cluster are the
+- **The first B2 public-devnet attempt produced a deployment-only receipt.** The
+  bytes on the cluster are the
   bytes that were tested: `solana program dump` of
   `2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w` reproduces the local artifact
   byte for byte at `081b6c16…`, 367,264 bytes, ProgramData holding exactly the
   `2.55736152` SOL that `solana rent 367309` predicts. Unlike B1 this needed no
   rebuild and no `declare_id` delta bridge, because the declared id already
-  matched the retained keypair. **Nothing has been done with it there:** no
-  policy, no vault, no deposit — the program has never been invoked on a public
-  cluster receipt. See `evidence/B2_PUBLIC_DEVNET_2026-08-20.json`.
+  matched the retained keypair. That attempt stopped before a policy or vault
+  existed and is preserved in `evidence/B2_PUBLIC_DEVNET_2026-08-20.json`; it is
+  **superseded as the current B2 status** by the successful run in the next
+  bullet and is not a claim that the cluster remains empty.
 - **B2 runs on devnet with a Squads 2-of-3 as its authority, and a member of
   that committee was replaced without the program noticing.** On the public
   cluster: a policy opened by the multisig vault PDA, two vaults deposited with
@@ -326,6 +340,47 @@ PYTHONPATH=src python3 -m unittest discover -s tests \
   -p 'test_purpose_vault_b2_parity.py' -v
 ~~~
 
+The R3-B1 raw-RPC probe uses an offline Surfpool and the public test-only
+candidate. Every transaction is simulated before the explicit local send gate:
+
+~~~sh
+NO_DNA=1 surfpool start --ci --offline --no-deploy --daemon \
+  --port 19399 --ws-port 19400
+K4V_SURFPOOL_RPC=http://127.0.0.1:19399 \
+K4V_LOCAL_TRANSACTION_SEND_CONFIRMED=1 \
+K4V_R3_CANDIDATE_CONFIG=spec/R3_TEST_ONLY_CANDIDATE_v1.json \
+NO_DNA=1 cargo run --locked --package purpose-vault \
+  --example r3_full_scale_rpc_probe
+~~~
+
+The R3-B2 Squads probe needs a local Surfpool that may read the public devnet
+Squads program. It creates no key files and sends nothing to devnet:
+
+~~~sh
+npm ci
+NO_DNA=1 surfpool start --ci --network devnet --no-deploy --daemon \
+  --port 19199 --ws-port 19200
+K4V_SURFPOOL_RPC=http://127.0.0.1:19199 \
+K4V_R3_CANDIDATE_CONFIG=spec/R3_TEST_ONLY_CANDIDATE_v1.json \
+K4V_R3_SQUADS_RECEIPT_OUT=/tmp/r3-squads.json \
+NO_DNA=1 node probes/r3_full_scale_squads_probe.mjs
+K4V_SURFPOOL_RPC=http://127.0.0.1:19199 \
+K4V_R3_SQUADS_RECEIPT_IN=/tmp/r3-squads.json \
+NO_DNA=1 node probes/r3_full_scale_squads_verify.mjs
+~~~
+
+For the complete clean-room path, use the single orchestrator. It performs the
+build, lint, tests, both local networks, both probes, the read-only verifier and
+the final checksum bundle:
+
+~~~sh
+bash tools/run_r3_local_reproduction.sh
+~~~
+
+Its author-run receipt passed on 2026-08-28. R4 remains open until an unrelated
+operator runs the same command from a clean clone and submits the resulting
+`RESULT.json`, `SHA256SUMS`, fork commit and environment transcript.
+
 The real-loader probe additionally requires an offline Surfpool 1.5.0 process
 on `127.0.0.1:18999`. It creates no key files and rejects execution unless the
 explicit local send gate is present:
@@ -348,23 +403,31 @@ npm ci
 npm run check
 ~~~
 
-The probe creates ephemeral keys in memory and accepts only localnet, devnet,
-or testnet. It rejects mainnet configuration. Its historical JavaScript
-dependencies are intentionally not installed by default because their current
-npm dependency tree contains known advisories. See [probes/README.md](probes/README.md).
+The JavaScript probe dependencies are pinned as dev-only packages. Production
+dependency audit is clean; the full dev tree currently reports six moderate and
+four high transitive advisories in the legacy web3/Squads stack, with npm
+offering only incompatible downgrades. These runners are therefore local-test
+tools only and must never receive production keys. See
+[probes/README.md](probes/README.md).
 
 ## Frontier map
 
-- **Champion:** B2 now carries the purpose vault and the shared capacity
-  window locally. The next step is an independent review of its oracle
-  boundary, then a public-cluster receipt for the aggregate rule.
-- **Independent alternative:** the implemented read-only RPC adapter can
-  reconstruct a B1 snapshot and receipt without controlling custody.
-- **Decisive probe:** repeat the now-working real-loader transaction/RPC
-  receipt on public devnet with a newly declared program address whose signer
-  exists, then obtain an independent preflight.
-- **Reliable core:** this executable covenant, receipt format, threat model,
-  B1 source and local SBF tests, fixed-supply probe, and recorded local evidence.
+- **Champion:** turn the passing R3 integration into a one-command clean-room
+  bundle, obtain an unrelated transcript, and procure an independent security
+  preflight.
+- **Independent alternative:** freeze the current B1/B2 receipt and verifier
+  interface as a narrower public-good package without claiming production
+  oracle, governance or independent-review coverage.
+- **Decisive probe:** issue the R3 clean-room command to an unrelated operator;
+  accept only a fork commit, toolchain, transcript and machine-readable verdict
+  produced without private applicant artifacts.
+- **Reliable core:** covenant and threat model, exact B1/B2 source and hashes,
+  B1/B2 public-devnet receipts, negative on-chain transactions, stable Squads
+  authority across member replacement, fixed-supply probe and read-only
+  decoders.
+- **Floors:** author-run CI/decoding is not independent review; probe-generated
+  members are not independent governance; an upgradeable program is not called
+  immutable; no public-devnet result is a production or mainnet claim.
 
 See [ROADMAP.md](docs/ROADMAP.md) for the proposed five-milestone public-good
 program and [COMMERCIAL_DISCLOSURE.md](docs/COMMERCIAL_DISCLOSURE.md) for the
@@ -374,3 +437,5 @@ K4V conflict boundary. The B1 program contract is specified in
 ## License
 
 Licensed at your option under either the MIT License or Apache License 2.0.
+See [TRADEMARKS.md](TRADEMARKS.md) for the boundary between permission to reuse
+the software and any claim of official K4V/K4 Cell identity or endorsement.

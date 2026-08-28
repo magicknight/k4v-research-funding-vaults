@@ -1,0 +1,134 @@
+{
+  "schema": "k4v-r3-full-scale-local-validation/v1",
+  "checked_at": "2026-08-28T07:50:18Z",
+  "result_class": "MISSION_ADVANCE",
+  "stage_verdict": "R3 PASS - LOCAL FULL-SCALE INTEGRATION",
+  "target_gate": "OPEN -> OPEN",
+  "epistemic_status": "ESTABLISHED_LOCAL_TEST_EVIDENCE_NOT_INDEPENDENT_REVIEW",
+  "scope": {
+    "cluster": [
+      "local Surfpool offline",
+      "local Surfpool with a read-only devnet fork for the real Squads v4 program"
+    ],
+    "mainnet_authorized": false,
+    "official_mint": null,
+    "production_keys_used": false,
+    "private_keys_serialized": false,
+    "classic_spl_token_only": true
+  },
+  "public_test_binding": {
+    "path": "spec/R3_TEST_ONLY_CANDIDATE_v1.json",
+    "sha256": "45354f805d90748e4a5b0f055b6653f777fedef446ed3b59e25cfed89c16f07f",
+    "open_production_parameters": 26,
+    "production_candidate_source_sha256": "123c65fe5fa382dcba6b0b406abb89f78cdc761927527def79cdb60a2fa0558b",
+    "test_values_do_not_freeze_production": true
+  },
+  "program": {
+    "id": "2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w",
+    "sbf_sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb",
+    "sbf_bytes": 367264,
+    "source_behavior_claim": "current loaded hash only; not an immutability claim"
+  },
+  "transaction_created_rpc_probe": {
+    "runner": "programs/purpose-vault/examples/r3_full_scale_rpc_probe.rs",
+    "runner_sha256": "a7c2b627bca0611aa610d68b780fda1abea9d4e68320e88335e0bde22ebd17db",
+    "receipt_sha256": "6a4b3a9afa73a1225f7d9f9daa55f13dc4b94d6f11c2f4e70c5ed197637b9275",
+    "valid": true,
+    "raw_rpc_reconstruction": true,
+    "supply_base_units": "1000000000000000000",
+    "allocation_base_units": {
+      "founder": "300000000000000000",
+      "treasury": "500000000000000000",
+      "genesis": "120000000000000000",
+      "lp": "80000000000000000"
+    },
+    "founder_staging_final": "0",
+    "treasury_staging_final": "0",
+    "mint_authority_final": null,
+    "freeze_authority_final": null,
+    "policy_released_this_period": "3000000000000000",
+    "conserved_total": "1000000000000000000"
+  },
+  "full_scale_squads_probe": {
+    "runner": "probes/r3_full_scale_squads_probe.mjs",
+    "runner_sha256": "0b1016e2c55f785883fba553942bda84a1b281f7fdd86cb4a55ff8c009787dd2",
+    "receipt_sha256": "5b191bd63e9da8492b63a0e7831098c8da5c8680123ddd289324d0bf7abee5fe",
+    "note": "This byte hash is the final public-candidate run before documentation-only changes; reruns use fresh local addresses and signatures.",
+    "squads_program": "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
+    "threshold": "2-of-3",
+    "member_replaced": true,
+    "multisig_address_unchanged": true,
+    "vault_pda_unchanged": true,
+    "approval_before_replacement": true,
+    "approval_after_replacement": true,
+    "release_after_replacement": true,
+    "founder_release_base_units": "1250000000000000",
+    "purpose_release_base_units": "1750000000000000",
+    "shared_window_consumed_base_units": "3000000000000000",
+    "unsafe_javascript_number_rejected_before_encoding": true,
+    "valid": true
+  },
+  "read_only_verifier": {
+    "runner": "probes/r3_full_scale_squads_verify.mjs",
+    "runner_sha256": "c8db39d9ea73460cc7d83f8d0af11059ff9d524396d85281d00ff71bec187f13",
+    "receipt_sha256": "d59c59a2ac843f6c8847e633110208c3d3b72e2538d0ab15815fed9693ab73de",
+    "checks_passed": 19,
+    "valid": true,
+    "authority": "standard RPC account bytes, canonical PDA derivation, Squads account state, and transaction statuses"
+  },
+  "clean_room_interface": {
+    "runner": "tools/run_r3_local_reproduction.sh",
+    "runner_sha256": "edc3d41c1234692148dd8a9894754cf6d98e3a340482fbfa74413a1089aa6c3b",
+    "author_run_result_sha256": "3647e73a1761c3160c80eb0d2b205ca06c324e6879b23e7beba01a8c6e85f68a",
+    "author_run_checksums_sha256": "d2bca483d78720536491ff64684e7ac8e0873f2028024a327a5fecbd0ffdebce",
+    "author_run_checked_at": "2026-08-28T07:55:07Z",
+    "author_run_result": "PASS",
+    "independent_reproduction": "OPEN",
+    "note": "The one-command interface exists and passed author execution; the author run does not count as unrelated acceptance."
+  },
+  "negative_case_coverage": {
+    "R3-N01": "full-scale Surfpool simulation rejects MintTo after authority revocation with fixed-supply error",
+    "R3-N02": "both transaction-created staging accounts are zero and both RPC verifiers make nonzero staging invalidate the verdict",
+    "R3-N03": "full-scale Surfpool simulation rejects the pre-cliff Founder release with CliffActive",
+    "R3-N04": "an_approval_younger_than_the_notice_period_cannot_be_consumed",
+    "R3-N05": "an_inflated_oracle_report_cannot_lift_a_release_past_the_frozen_schedule exercises PeriodCapExceeded for both vault kinds",
+    "R3-N06": "full-scale LiteSVM and Surfpool reject shared headroom plus one with AggregateCapacityExceeded",
+    "R3-N07": "unused_capacity_expires_in_both_the_vault_and_the_shared_window",
+    "R3-N08": "only_the_frozen_oracle_may_report_volume rejects a stranger with ConstraintHasOne",
+    "R3-N09": "an_inflated_oracle_report_cannot_lift_a_release_past_the_frozen_schedule",
+    "R3-N10": "RPC verifier reads the post-replacement Squads member table: lost member absent, replacement present, stable vault PDA",
+    "R3-N11": "production-candidate semantic validator rejects an immutable claim while upgrade authority is open",
+    "R3-N12": "the full-scale JavaScript runner self-tests and rejects an unsafe Number before u64 encoding"
+  },
+  "validation": {
+    "cargo_build_sbf": "PASS",
+    "cargo_fmt_check": "PASS",
+    "cargo_clippy_workspace_all_targets_deny_warnings": "PASS",
+    "rust_tests": {
+      "passed": 59,
+      "failed": 0
+    },
+    "python_tests": {
+      "passed": 40,
+      "skipped": 1,
+      "skip_reason": "the historical B1 opt-in Surfpool test requires a separately supplied endpoint; both new R3 Surfpool probes ran directly"
+    },
+    "node_syntax_checks": "PASS",
+    "npm_audit_omit_dev": {
+      "vulnerabilities": 0
+    },
+    "npm_full_dev_tree": {
+      "moderate": 6,
+      "high": 4,
+      "scope": "dev-only legacy web3/Squads probe dependencies",
+      "disposition": "disclosed; no production package or key path; npm offered only incompatible downgrades"
+    }
+  },
+  "open_bridges": [
+    "R1 signed canonical no-mint publication",
+    "R2 production parameter selection and freeze",
+    "R4 unrelated clean-room reproduction and procured security review",
+    "issuer/legal, demand, funding, LP, closing and mainnet gates"
+  ],
+  "next_decisive_construction": "Run the published one-command clean-room R3 bundle from an unrelated clean clone and record its transcript, while keeping production and mainnet authorization closed."
+}

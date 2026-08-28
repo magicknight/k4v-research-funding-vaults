@@ -1,0 +1,61 @@
+{
+  "schema": "k4v-r3-test-only-candidate/v1",
+  "artifact_status": "PUBLIC_TEST_BINDING_NOT_PRODUCTION",
+  "mainnet_authorized": false,
+  "official_mint": null,
+  "open_parameter_count": 26,
+  "production_candidate": {
+    "source_sha256": "123c65fe5fa382dcba6b0b406abb89f78cdc761927527def79cdb60a2fa0558b",
+    "closure_ready": false,
+    "production_values_remain_open": true
+  },
+  "test_vector": {
+    "cluster": "local_surfpool_only",
+    "chain": "solana",
+    "token_program": "classic_spl_token",
+    "token_program_id": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    "decimals": 9,
+    "total_supply_whole": "1000000000",
+    "total_supply_base_units": "1000000000000000000",
+    "allocations_base_units": {
+      "founder": "300000000000000000",
+      "research_treasury": "500000000000000000",
+      "genesis": "120000000000000000",
+      "lp": "80000000000000000"
+    },
+    "purpose_vault_program_id": "2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w",
+    "purpose_vault_sbf_sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb",
+    "purpose_vault_sbf_bytes": 367264,
+    "annual_release_bps": 500,
+    "market_capacity_bps": 250,
+    "eligible_volume_base_units": "120000000000000000",
+    "hard_ceiling_base_units": "18446744073709551615",
+    "oracle_max_age_seconds": 259200,
+    "founder_cliff_seconds": 63072000,
+    "purpose_notice_seconds": 2592000,
+    "oracle_rotation_notice_seconds": 7776000,
+    "silence_floor_base_units": "0",
+    "silence_grace_seconds": 0,
+    "squads_program_id": "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf",
+    "squads_threshold": 2,
+    "squads_member_count": 3,
+    "mint_authority_end_state": "REVOKED",
+    "freeze_authority_end_state": "REVOKED",
+    "metadata_authority_end_state": "OUT_OF_SCOPE_FOR_THIS_CLASSIC_SPL_TEST_MINT",
+    "upgrade_authority_claim": "CURRENT_LOADED_HASH_ONLY_NOT_IMMUTABLE"
+  },
+  "numeric_floor": {
+    "javascript_raw_amount_type": "bigint_only_above_Number.MAX_SAFE_INTEGER",
+    "json_raw_amount_type": "unsigned_decimal_string",
+    "rust_intermediate": "checked_u128",
+    "on_chain_amount": "u64"
+  },
+  "non_claims": [
+    "No official K4V mint exists.",
+    "No mainnet transaction or production key is authorized.",
+    "These test-only values do not select or freeze production values.",
+    "Probe-generated Squads members establish key-loss resilience, not independent governance.",
+    "Author or AI execution and verification are not independent review.",
+    "Classic SPL Token evidence does not establish Token-2022 compatibility."
+  ]
+}

@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-      - name: Install package metadata without historical probe dependencies
+      - name: Install pinned dev-only probe dependencies
         run: npm ci
       - name: Syntax-check non-mainnet Solana probe
         run: npm run check
@@ -75,6 +75,50 @@ jobs:
           python-version: "3.12"
       - name: Check cross-language parity with the chain-independent model
         run: PYTHONPATH=src python3 -m unittest discover -s tests -p 'test_purpose_vault_b2_parity.py' -v
+
+  purpose-vault-r3-transaction-rpc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Solana CLI 3.1.10
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Install pinned Surfpool 1.5.0
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSfL \
+            -o "$RUNNER_TEMP/surfpool.tar.gz" \
+            https://github.com/solana-foundation/surfpool/releases/download/v1.5.0/surfpool-linux-x64.tar.gz
+          echo "5b20a3b46e60c4f819af7b4da5c3ea211f76041710617841cc23247d15887ddc  $RUNNER_TEMP/surfpool.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/surfpool.tar.gz" -C "$RUNNER_TEMP"
+          install -m 0755 "$RUNNER_TEMP/surfpool" "$RUNNER_TEMP/surfpool-bin"
+      - name: Build the exact B2 SBF artifact
+        run: NO_DNA=1 cargo build-sbf --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy
+      - name: Start an offline surfnet
+        run: |
+          NO_DNA=1 "$RUNNER_TEMP/surfpool-bin" start --ci --daemon \
+            --offline --no-deploy --port 19399 --ws-port 19400
+          timeout 30s bash -c \
+            'until curl --fail --silent -H "Content-Type: application/json" --data '\''{"jsonrpc":"2.0","id":1,"method":"getHealth","params":[]}'\'' http://127.0.0.1:19399 | grep -q '"ok"'; do sleep 1; done'
+      - name: Execute and reconstruct the R3-B1 full-scale receipt
+        env:
+          K4V_SURFPOOL_RPC: http://127.0.0.1:19399
+          K4V_LOCAL_TRANSACTION_SEND_CONFIRMED: "1"
+          K4V_R3_CANDIDATE_CONFIG: spec/R3_TEST_ONLY_CANDIDATE_v1.json
+        run: |
+          set -euo pipefail
+          probe_output="$(NO_DNA=1 cargo run --locked --package purpose-vault --example r3_full_scale_rpc_probe)"
+          printf '%s\n' "$probe_output"
+          result_json="$(printf '%s\n' "$probe_output" | sed -n 's/^RESULT_JSON //p')"
+          test -n "$result_json"
+          test "$(printf '%s' "$result_json" | jq -er '.valid')" = true
+          test "$(printf '%s' "$result_json" | jq -er '.mainnet_authorized')" = false
+          test "$(printf '%s' "$result_json" | jq -er '.candidate_config.open_parameter_count')" = 26
+          test "$(printf '%s' "$result_json" | jq -er '.mint.supply')" = 1000000000000000000
+          test "$(printf '%s' "$result_json" | jq -r '.mint.mint_authority == null')" = true
+          test "$(printf '%s' "$result_json" | jq -r '.mint.freeze_authority == null')" = true
+          test "$(printf '%s' "$result_json" | jq -er '.reconstruction.conserved_total')" = 1000000000000000000
+          test "$(printf '%s' "$result_json" | jq -er '.reconstruction.policy_released_this_period')" = 3000000000000000
 
   beneficiary-vault-rpc:
     runs-on: ubuntu-latest

@@ -24,8 +24,10 @@ use solana_program_option::COption;
 use solana_program_pack::Pack;
 use solana_pubkey::Pubkey;
 use solana_signer::Signer;
+use solana_system_interface::instruction as system_instruction;
 use solana_transaction::Transaction;
 use spl_token_interface::{
+    instruction::{self as token_instruction, AuthorityType},
     state::{Account as SplAccount, AccountState, Mint},
     ID as TOKEN_PROGRAM_ID,
 };
@@ -33,12 +35,23 @@ use std::path::PathBuf;
 
 const BENEFICIARY_DEPOSIT: u64 = 300_000_000;
 const PURPOSE_DEPOSIT: u64 = 500_000_000;
+const GENESIS_ALLOCATION: u64 = 0;
+const LP_ALLOCATION: u64 = 0;
 const ANNUAL_BPS: u16 = 500;
 const BENEFICIARY_CAP: u64 = 1_250_000;
 const PURPOSE_CAP: u64 = 2_083_333;
 const MARKET_BPS: u16 = 250;
 const ELIGIBLE_VOLUME: u64 = 120_000_000;
 const MARKET_CAPACITY: u64 = 3_000_000;
+const FULL_BENEFICIARY_DEPOSIT: u64 = 300_000_000_000_000_000;
+const FULL_PURPOSE_DEPOSIT: u64 = 500_000_000_000_000_000;
+const FULL_GENESIS_ALLOCATION: u64 = 120_000_000_000_000_000;
+const FULL_LP_ALLOCATION: u64 = 80_000_000_000_000_000;
+const FULL_TOTAL_SUPPLY: u64 = 1_000_000_000_000_000_000;
+const FULL_BENEFICIARY_CAP: u64 = 1_250_000_000_000_000;
+const FULL_PURPOSE_CAP: u64 = 2_083_333_333_333_333;
+const FULL_ELIGIBLE_VOLUME: u64 = 120_000_000_000_000_000;
+const FULL_MARKET_CAPACITY: u64 = 3_000_000_000_000_000;
 const MAX_AGE_SECONDS: i64 = 3 * 24 * 60 * 60;
 const POLICY_HASH: [u8; 32] = [0x42; 32];
 /// What the two frozen vault schedules permit in one period between them. No
@@ -70,6 +83,50 @@ const _: () = assert!(ROTATION_NOTICE == ORACLE_ROTATION_NOTICE_SECONDS);
 const _: () = assert!(SILENCE_FLOOR * 40 < BENEFICIARY_CAP);
 /// Replacing a lost oracle has to be the faster path, or nobody would use it.
 const _: () = assert!(ROTATION_NOTICE < SILENCE_GRACE);
+const _: () = assert!(
+    FULL_BENEFICIARY_DEPOSIT + FULL_PURPOSE_DEPOSIT + FULL_GENESIS_ALLOCATION + FULL_LP_ALLOCATION
+        == FULL_TOTAL_SUPPLY
+);
+const _: () = assert!(FULL_BENEFICIARY_CAP <= FULL_MARKET_CAPACITY);
+const _: () = assert!(FULL_PURPOSE_CAP <= FULL_MARKET_CAPACITY);
+const _: () = assert!(FULL_BENEFICIARY_CAP + FULL_PURPOSE_CAP > FULL_MARKET_CAPACITY);
+
+#[derive(Clone, Copy)]
+struct FixtureAmounts {
+    decimals: u8,
+    beneficiary_deposit: u64,
+    purpose_deposit: u64,
+    genesis_allocation: u64,
+    lp_allocation: u64,
+    beneficiary_cap: u64,
+    purpose_cap: u64,
+    eligible_volume: u64,
+    market_capacity: u64,
+}
+
+const SCALED_AMOUNTS: FixtureAmounts = FixtureAmounts {
+    decimals: 9,
+    beneficiary_deposit: BENEFICIARY_DEPOSIT,
+    purpose_deposit: PURPOSE_DEPOSIT,
+    genesis_allocation: GENESIS_ALLOCATION,
+    lp_allocation: LP_ALLOCATION,
+    beneficiary_cap: BENEFICIARY_CAP,
+    purpose_cap: PURPOSE_CAP,
+    eligible_volume: ELIGIBLE_VOLUME,
+    market_capacity: MARKET_CAPACITY,
+};
+
+const FULL_SCALE_AMOUNTS: FixtureAmounts = FixtureAmounts {
+    decimals: 9,
+    beneficiary_deposit: FULL_BENEFICIARY_DEPOSIT,
+    purpose_deposit: FULL_PURPOSE_DEPOSIT,
+    genesis_allocation: FULL_GENESIS_ALLOCATION,
+    lp_allocation: FULL_LP_ALLOCATION,
+    beneficiary_cap: FULL_BENEFICIARY_CAP,
+    purpose_cap: FULL_PURPOSE_CAP,
+    eligible_volume: FULL_ELIGIBLE_VOLUME,
+    market_capacity: FULL_MARKET_CAPACITY,
+};
 
 struct Fixture {
     svm: LiteSVM,
@@ -83,6 +140,8 @@ struct Fixture {
     beneficiary_token: Pubkey,
     contractor_token: Pubkey,
     approver_token: Pubkey,
+    genesis_token: Pubkey,
+    lp_token: Pubkey,
     policy: Pubkey,
     market: Pubkey,
     beneficiary_vault: Pubkey,
@@ -90,6 +149,7 @@ struct Fixture {
     purpose_vault: Pubkey,
     purpose_vault_token: Pubkey,
     genesis_ts: i64,
+    amounts: FixtureAmounts,
 }
 
 fn program_path() -> PathBuf {
@@ -125,10 +185,18 @@ fn send(
     signers: &[&Keypair],
     svm: &mut LiteSVM,
 ) -> Result<litesvm::types::TransactionMetadata, Box<litesvm::types::FailedTransactionMetadata>> {
+    send_instructions(&[instruction], signers, svm)
+}
+
+fn send_instructions(
+    instructions: &[Instruction],
+    signers: &[&Keypair],
+    svm: &mut LiteSVM,
+) -> Result<litesvm::types::TransactionMetadata, Box<litesvm::types::FailedTransactionMetadata>> {
     svm.expire_blockhash();
     let payer = signers[0];
     svm.send_transaction(Transaction::new_signed_with_payer(
-        &[instruction],
+        instructions,
         Some(&payer.pubkey()),
         signers,
         svm.latest_blockhash(),
@@ -436,7 +504,7 @@ fn first_joint_period() -> u64 {
     cliff_period + 2
 }
 
-fn setup_with(config: PolicyConfig) -> Fixture {
+fn setup_amounts_with(config: PolicyConfig, amounts: FixtureAmounts) -> Fixture {
     let mut svm = LiteSVM::new();
     svm.add_program_from_file(purpose_vault::ID, program_path())
         .unwrap();
@@ -461,8 +529,11 @@ fn setup_with(config: PolicyConfig) -> Fixture {
     let mint = Pubkey::new_unique();
     let mint_value = Mint {
         mint_authority: COption::None,
-        supply: BENEFICIARY_DEPOSIT + PURPOSE_DEPOSIT,
-        decimals: 9,
+        supply: amounts.beneficiary_deposit
+            + amounts.purpose_deposit
+            + amounts.genesis_allocation
+            + amounts.lp_allocation,
+        decimals: amounts.decimals,
         is_initialized: true,
         freeze_authority: COption::None,
     };
@@ -484,12 +555,14 @@ fn setup_with(config: PolicyConfig) -> Fixture {
     let beneficiary_token = Pubkey::new_unique();
     let contractor_token = Pubkey::new_unique();
     let approver_token = Pubkey::new_unique();
+    let genesis_token = Pubkey::new_unique();
+    let lp_token = Pubkey::new_unique();
     svm.set_account(
         depositor_token,
         token_account(
             mint,
             depositor.pubkey(),
-            BENEFICIARY_DEPOSIT + PURPOSE_DEPOSIT,
+            amounts.beneficiary_deposit + amounts.purpose_deposit,
         ),
     )
     .unwrap();
@@ -505,6 +578,16 @@ fn setup_with(config: PolicyConfig) -> Fixture {
     .unwrap();
     svm.set_account(approver_token, token_account(mint, approver.pubkey(), 0))
         .unwrap();
+    svm.set_account(
+        genesis_token,
+        token_account(mint, Pubkey::new_unique(), amounts.genesis_allocation),
+    )
+    .unwrap();
+    svm.set_account(
+        lp_token,
+        token_account(mint, Pubkey::new_unique(), amounts.lp_allocation),
+    )
+    .unwrap();
 
     send(
         open_policy_instruction(
@@ -528,7 +611,7 @@ fn setup_with(config: PolicyConfig) -> Fixture {
         depositor_token,
         DepositArgs {
             kind: VaultKind::Beneficiary,
-            amount: BENEFICIARY_DEPOSIT,
+            amount: amounts.beneficiary_deposit,
             annual_release_bps: ANNUAL_BPS,
             cliff_seconds: MIN_CLIFF_SECONDS,
         },
@@ -548,7 +631,7 @@ fn setup_with(config: PolicyConfig) -> Fixture {
         depositor_token,
         DepositArgs {
             kind: VaultKind::Purpose,
-            amount: PURPOSE_DEPOSIT,
+            amount: amounts.purpose_deposit,
             annual_release_bps: ANNUAL_BPS,
             cliff_seconds: 0,
         },
@@ -557,7 +640,7 @@ fn setup_with(config: PolicyConfig) -> Fixture {
 
     if config.report_volume {
         send(
-            report_instruction(oracle.pubkey(), ELIGIBLE_VOLUME),
+            report_instruction(oracle.pubkey(), amounts.eligible_volume),
             &[&oracle],
             &mut svm,
         )
@@ -584,6 +667,8 @@ fn setup_with(config: PolicyConfig) -> Fixture {
         beneficiary_token,
         contractor_token,
         approver_token,
+        genesis_token,
+        lp_token,
         policy,
         market: market_pda(),
         beneficiary_vault,
@@ -591,11 +676,298 @@ fn setup_with(config: PolicyConfig) -> Fixture {
         purpose_vault,
         purpose_vault_token,
         genesis_ts,
+        amounts,
     }
+}
+
+fn setup_with(config: PolicyConfig) -> Fixture {
+    setup_amounts_with(config, SCALED_AMOUNTS)
 }
 
 fn setup() -> Fixture {
     setup_with(PolicyConfig::default())
+}
+
+fn create_transaction_token_account(
+    svm: &mut LiteSVM,
+    payer: &Keypair,
+    mint: Pubkey,
+    owner: Pubkey,
+) -> Pubkey {
+    let account = Keypair::new();
+    send_instructions(
+        &[
+            system_instruction::create_account(
+                &payer.pubkey(),
+                &account.pubkey(),
+                10_000_000,
+                SplAccount::LEN as u64,
+                &TOKEN_PROGRAM_ID,
+            ),
+            token_instruction::initialize_account3(
+                &TOKEN_PROGRAM_ID,
+                &account.pubkey(),
+                &mint,
+                &owner,
+            )
+            .unwrap(),
+        ],
+        &[payer, &account],
+        svm,
+    )
+    .unwrap();
+    account.pubkey()
+}
+
+/// R3-B construction: unlike `setup_amounts_with`, every mint and token account
+/// in this fixture is created by signed System/SPL transactions. The four
+/// allocations are minted separately, both mint authorities are then revoked,
+/// and the exact Founder/Treasury accounts continue into B2 without replacing
+/// the mint or injecting account bytes.
+fn setup_transaction_created_full_scale() -> (Fixture, Pubkey) {
+    let amounts = FULL_SCALE_AMOUNTS;
+    let mut svm = LiteSVM::new();
+    svm.add_program_from_file(purpose_vault::ID, program_path())
+        .unwrap();
+
+    let depositor = Keypair::new();
+    let policy_authority = Keypair::new();
+    let oracle = Keypair::new();
+    let beneficiary = Keypair::new();
+    let approver = Keypair::new();
+    let contractor = Keypair::new();
+    for key in [
+        &depositor,
+        &policy_authority,
+        &oracle,
+        &beneficiary,
+        &approver,
+        &contractor,
+    ] {
+        svm.airdrop(&key.pubkey(), 10_000_000_000).unwrap();
+    }
+
+    let mint_keypair = Keypair::new();
+    let mint = mint_keypair.pubkey();
+    send_instructions(
+        &[
+            system_instruction::create_account(
+                &depositor.pubkey(),
+                &mint,
+                10_000_000,
+                Mint::LEN as u64,
+                &TOKEN_PROGRAM_ID,
+            ),
+            token_instruction::initialize_mint2(
+                &TOKEN_PROGRAM_ID,
+                &mint,
+                &depositor.pubkey(),
+                Some(&depositor.pubkey()),
+                amounts.decimals,
+            )
+            .unwrap(),
+        ],
+        &[&depositor, &mint_keypair],
+        &mut svm,
+    )
+    .unwrap();
+
+    let founder_token =
+        create_transaction_token_account(&mut svm, &depositor, mint, depositor.pubkey());
+    let treasury_token =
+        create_transaction_token_account(&mut svm, &depositor, mint, depositor.pubkey());
+    let genesis_token =
+        create_transaction_token_account(&mut svm, &depositor, mint, Pubkey::new_unique());
+    let lp_token =
+        create_transaction_token_account(&mut svm, &depositor, mint, Pubkey::new_unique());
+    let beneficiary_token =
+        create_transaction_token_account(&mut svm, &depositor, mint, beneficiary.pubkey());
+    let contractor_token =
+        create_transaction_token_account(&mut svm, &depositor, mint, contractor.pubkey());
+    let approver_token =
+        create_transaction_token_account(&mut svm, &depositor, mint, approver.pubkey());
+
+    let allocation_instructions = [
+        (founder_token, amounts.beneficiary_deposit),
+        (treasury_token, amounts.purpose_deposit),
+        (genesis_token, amounts.genesis_allocation),
+        (lp_token, amounts.lp_allocation),
+    ]
+    .into_iter()
+    .map(|(account, amount)| {
+        token_instruction::mint_to(
+            &TOKEN_PROGRAM_ID,
+            &mint,
+            &account,
+            &depositor.pubkey(),
+            &[],
+            amount,
+        )
+        .unwrap()
+    })
+    .collect::<Vec<_>>();
+    send_instructions(&allocation_instructions, &[&depositor], &mut svm).unwrap();
+
+    let created_mint = Mint::unpack(&svm.get_account(&mint).unwrap().data).unwrap();
+    assert_eq!(created_mint.supply, FULL_TOTAL_SUPPLY);
+    assert_eq!(
+        created_mint.mint_authority,
+        COption::Some(depositor.pubkey())
+    );
+    assert_eq!(
+        created_mint.freeze_authority,
+        COption::Some(depositor.pubkey())
+    );
+    assert_eq!(
+        token_balance(&svm, founder_token),
+        amounts.beneficiary_deposit
+    );
+    assert_eq!(token_balance(&svm, treasury_token), amounts.purpose_deposit);
+    assert_eq!(
+        token_balance(&svm, genesis_token),
+        amounts.genesis_allocation
+    );
+    assert_eq!(token_balance(&svm, lp_token), amounts.lp_allocation);
+
+    send_instructions(
+        &[
+            token_instruction::set_authority(
+                &TOKEN_PROGRAM_ID,
+                &mint,
+                None,
+                AuthorityType::MintTokens,
+                &depositor.pubkey(),
+                &[],
+            )
+            .unwrap(),
+            token_instruction::set_authority(
+                &TOKEN_PROGRAM_ID,
+                &mint,
+                None,
+                AuthorityType::FreezeAccount,
+                &depositor.pubkey(),
+                &[],
+            )
+            .unwrap(),
+        ],
+        &[&depositor],
+        &mut svm,
+    )
+    .unwrap();
+
+    let revoked_mint = Mint::unpack(&svm.get_account(&mint).unwrap().data).unwrap();
+    assert_eq!(revoked_mint.supply, FULL_TOTAL_SUPPLY);
+    assert_eq!(revoked_mint.mint_authority, COption::None);
+    assert_eq!(revoked_mint.freeze_authority, COption::None);
+
+    // R3-N01: the former authority cannot mint one more base unit after
+    // revocation, and a rejected transaction must not change supply.
+    let mint_one_more = token_instruction::mint_to(
+        &TOKEN_PROGRAM_ID,
+        &mint,
+        &beneficiary_token,
+        &depositor.pubkey(),
+        &[],
+        1,
+    )
+    .unwrap();
+    assert!(send(mint_one_more, &[&depositor], &mut svm).is_err());
+    assert_eq!(
+        Mint::unpack(&svm.get_account(&mint).unwrap().data)
+            .unwrap()
+            .supply,
+        FULL_TOTAL_SUPPLY
+    );
+
+    send(
+        open_policy_instruction(
+            policy_authority.pubkey(),
+            oracle.pubkey(),
+            mint,
+            MARKET_BPS,
+            MAX_AGE_SECONDS,
+            PolicyConfig::default(),
+        ),
+        &[&policy_authority],
+        &mut svm,
+    )
+    .unwrap();
+
+    let (beneficiary_deposit, beneficiary_vault, beneficiary_vault_token) = deposit_instruction(
+        depositor.pubkey(),
+        policy_authority.pubkey(),
+        beneficiary.pubkey(),
+        mint,
+        founder_token,
+        DepositArgs {
+            kind: VaultKind::Beneficiary,
+            amount: amounts.beneficiary_deposit,
+            annual_release_bps: ANNUAL_BPS,
+            cliff_seconds: MIN_CLIFF_SECONDS,
+        },
+    );
+    send(
+        beneficiary_deposit,
+        &[&depositor, &policy_authority],
+        &mut svm,
+    )
+    .unwrap();
+
+    let (purpose_deposit, purpose_vault, purpose_vault_token) = deposit_instruction(
+        depositor.pubkey(),
+        policy_authority.pubkey(),
+        approver.pubkey(),
+        mint,
+        treasury_token,
+        DepositArgs {
+            kind: VaultKind::Purpose,
+            amount: amounts.purpose_deposit,
+            annual_release_bps: ANNUAL_BPS,
+            cliff_seconds: 0,
+        },
+    );
+    send(purpose_deposit, &[&depositor, &policy_authority], &mut svm).unwrap();
+    send(
+        report_instruction(oracle.pubkey(), amounts.eligible_volume),
+        &[&oracle],
+        &mut svm,
+    )
+    .unwrap();
+
+    let policy = policy_pda();
+    let genesis_ts = {
+        let account = svm.get_account(&policy).unwrap();
+        PolicyWindow::try_deserialize(&mut account.data.as_slice())
+            .unwrap()
+            .genesis_ts
+    };
+
+    (
+        Fixture {
+            svm,
+            depositor,
+            policy_authority,
+            oracle,
+            beneficiary,
+            approver,
+            mint,
+            depositor_token: founder_token,
+            beneficiary_token,
+            contractor_token,
+            approver_token,
+            genesis_token,
+            lp_token,
+            policy,
+            market: market_pda(),
+            beneficiary_vault,
+            beneficiary_vault_token,
+            purpose_vault,
+            purpose_vault_token,
+            genesis_ts,
+            amounts,
+        },
+        treasury_token,
+    )
 }
 
 /// Approve at `approve_at`, then move to the start of `period_index`.
@@ -603,7 +975,7 @@ fn setup() -> Fixture {
 /// is what the tolerance is for, so a test that moves a whole period forward
 /// has to refresh rather than assume the old number still counts.
 fn refresh_market(fixture: &mut Fixture) {
-    report_volume(ELIGIBLE_VOLUME, fixture);
+    report_volume(fixture.amounts.eligible_volume, fixture);
 }
 
 fn report_volume(eligible_volume: u64, fixture: &mut Fixture) {
@@ -688,6 +1060,170 @@ fn deposit_freezes_two_kinds_against_one_shared_window() {
         token_balance(&fixture.svm, fixture.purpose_vault_token),
         PURPOSE_DEPOSIT
     );
+}
+
+#[test]
+fn full_scale_nine_decimal_b2_graph_reconciles_and_enforces_shared_capacity() {
+    // R3-A: exercise the compiled B2 SBF at the actual 1B-whole-token scale on
+    // one classic-SPL mint. The mint and token accounts are injected fixtures,
+    // so this closes the B2 amount/accounting slice, not the transaction-level
+    // mint/allocation/authority-revocation slice of the full R3 specification.
+    let mut fixture = setup_amounts_with(PolicyConfig::default(), FULL_SCALE_AMOUNTS);
+    let amounts = fixture.amounts;
+
+    let mint_account = fixture.svm.get_account(&fixture.mint).unwrap();
+    let mint = Mint::unpack(&mint_account.data).unwrap();
+    assert_eq!(mint.decimals, 9);
+    assert_eq!(mint.supply, FULL_TOTAL_SUPPLY);
+    assert_eq!(mint.mint_authority, COption::None);
+    assert_eq!(mint.freeze_authority, COption::None);
+
+    let beneficiary = read_vault(&fixture, fixture.beneficiary_vault);
+    let purpose = read_vault(&fixture, fixture.purpose_vault);
+    assert_eq!(beneficiary.deposited_amount, FULL_BENEFICIARY_DEPOSIT);
+    assert_eq!(purpose.deposited_amount, FULL_PURPOSE_DEPOSIT);
+    assert_eq!(beneficiary.monthly_cap, amounts.beneficiary_cap);
+    assert_eq!(purpose.monthly_cap, amounts.purpose_cap);
+    assert_eq!(token_balance(&fixture.svm, fixture.depositor_token), 0);
+    assert_eq!(
+        token_balance(&fixture.svm, fixture.beneficiary_vault_token),
+        FULL_BENEFICIARY_DEPOSIT
+    );
+    assert_eq!(
+        token_balance(&fixture.svm, fixture.purpose_vault_token),
+        FULL_PURPOSE_DEPOSIT
+    );
+    assert_eq!(
+        token_balance(&fixture.svm, fixture.genesis_token),
+        FULL_GENESIS_ALLOCATION
+    );
+    assert_eq!(
+        token_balance(&fixture.svm, fixture.lp_token),
+        FULL_LP_ALLOCATION
+    );
+    assert_eq!(read_market(&fixture).eligible_volume, FULL_ELIGIBLE_VOLUME);
+    assert_eq!(read_policy(&fixture).vault_count, 2);
+
+    let reconciled = token_balance(&fixture.svm, fixture.beneficiary_vault_token)
+        + token_balance(&fixture.svm, fixture.purpose_vault_token)
+        + token_balance(&fixture.svm, fixture.genesis_token)
+        + token_balance(&fixture.svm, fixture.lp_token);
+    assert_eq!(reconciled, mint.supply);
+
+    let period = first_joint_period();
+    let destination = fixture.contractor_token;
+    let cliff_end = beneficiary.cliff_end_ts;
+    approve_and_advance(
+        cliff_end,
+        period,
+        amounts.purpose_cap,
+        destination,
+        &mut fixture,
+    );
+    refresh_market(&mut fixture);
+
+    send(
+        release_beneficiary_instruction(&fixture, amounts.beneficiary_cap),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+
+    let outcome = send(
+        release_purpose_instruction(&fixture, destination, period, amounts.purpose_cap),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "AggregateCapacityExceeded");
+
+    let headroom = amounts.market_capacity - amounts.beneficiary_cap;
+    let outcome = send(
+        release_purpose_instruction(&fixture, destination, period, headroom + 1),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(outcome, "AggregateCapacityExceeded");
+
+    send(
+        release_purpose_instruction(&fixture, destination, period, headroom),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    assert_eq!(token_balance(&fixture.svm, destination), headroom);
+    assert_eq!(
+        read_policy(&fixture).released_this_period,
+        amounts.market_capacity
+    );
+}
+
+#[test]
+fn r3_b_transaction_created_full_scale_graph_reconciles_and_releases() {
+    let (mut fixture, treasury_token) = setup_transaction_created_full_scale();
+    let amounts = fixture.amounts;
+
+    let mint_account = fixture.svm.get_account(&fixture.mint).unwrap();
+    assert_eq!(mint_account.owner, TOKEN_PROGRAM_ID);
+    assert_eq!(mint_account.data.len(), Mint::LEN);
+    let mint = Mint::unpack(&mint_account.data).unwrap();
+    assert_eq!(mint.supply, FULL_TOTAL_SUPPLY);
+    assert_eq!(mint.decimals, amounts.decimals);
+    assert_eq!(mint.mint_authority, COption::None);
+    assert_eq!(mint.freeze_authority, COption::None);
+
+    // Both transaction-created staging accounts are emptied into B2; the two
+    // untouched allocations plus both B2 vault accounts still conserve the
+    // exact supply under raw account-byte decoding.
+    assert_eq!(token_balance(&fixture.svm, fixture.depositor_token), 0);
+    assert_eq!(token_balance(&fixture.svm, treasury_token), 0);
+    let balances = [
+        token_balance(&fixture.svm, fixture.beneficiary_vault_token),
+        token_balance(&fixture.svm, fixture.purpose_vault_token),
+        token_balance(&fixture.svm, fixture.genesis_token),
+        token_balance(&fixture.svm, fixture.lp_token),
+    ];
+    assert_eq!(balances[0], amounts.beneficiary_deposit);
+    assert_eq!(balances[1], amounts.purpose_deposit);
+    assert_eq!(balances[2], amounts.genesis_allocation);
+    assert_eq!(balances[3], amounts.lp_allocation);
+    assert_eq!(balances.into_iter().sum::<u64>(), mint.supply);
+
+    let beneficiary = read_vault(&fixture, fixture.beneficiary_vault);
+    let period = first_joint_period();
+    let destination = fixture.contractor_token;
+    approve_and_advance(
+        beneficiary.cliff_end_ts,
+        period,
+        amounts.purpose_cap,
+        destination,
+        &mut fixture,
+    );
+    refresh_market(&mut fixture);
+
+    send(
+        release_beneficiary_instruction(&fixture, amounts.beneficiary_cap),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    let headroom = amounts.market_capacity - amounts.beneficiary_cap;
+    let too_much = send(
+        release_purpose_instruction(&fixture, destination, period, headroom + 1),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    );
+    assert_failed_with(too_much, "AggregateCapacityExceeded");
+    send(
+        release_purpose_instruction(&fixture, destination, period, headroom),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    )
+    .unwrap();
+    assert_eq!(
+        read_policy(&fixture).released_this_period,
+        amounts.market_capacity
+    );
+    assert_eq!(token_balance(&fixture.svm, destination), headroom);
 }
 
 #[test]
