@@ -1,0 +1,10 @@
+recorded_utc=2026-09-01T09:39:54Z
+os=Ubuntu 22.04.5 LTS (Jammy Jellyfish)
+kernel=Linux 5.19.0-1022-gcp x86_64
+git=git version 2.34.1
+claude_cli_path=/home/zhihua/.local/bin/claude
+claude_cli_version=2.1.252 (Claude Code)
+audit_run_started_utc_derived=2026-09-01T09:18:16.915Z
+audit_run_completed_utc=2026-09-01T09:36:30.938Z
+audit_duration_ms=1094023
+

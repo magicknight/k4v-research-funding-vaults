@@ -39,9 +39,13 @@ jobs:
           sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
       - name: Build the B1 SBF artifact
-        run: NO_DNA=1 cargo build-sbf --manifest-path programs/beneficiary-vault/Cargo.toml --sbf-out-dir target/deploy
+        run: NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path programs/beneficiary-vault/Cargo.toml --sbf-out-dir target/deploy -- --locked
       - name: Build the B2 SBF artifact
-        run: NO_DNA=1 cargo build-sbf --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy
+        run: NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy -- --locked
+      - name: Verify the frozen R3 B2 SBF binding
+        run: |
+          expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v1.json)"
+          printf '%s  %s\n' "$expected_sbf" target/deploy/purpose_vault.so | sha256sum -c -
       - name: Check formatting
         run: cargo fmt --all -- --check
       - name: Lint Rust targets
@@ -58,12 +62,17 @@ jobs:
           sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
       - name: Build the B2 SBF artifact
-        run: NO_DNA=1 cargo build-sbf --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy
+        run: NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy -- --locked
+      - name: Verify the frozen R3 B2 SBF binding
+        run: |
+          expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v1.json)"
+          printf '%s  %s\n' "$expected_sbf" target/deploy/purpose_vault.so | sha256sum -c -
       - name: Fail if the SBF build reports a stack-frame overflow
         run: |
           set -euo pipefail
-          NO_DNA=1 cargo build-sbf --manifest-path programs/purpose-vault/Cargo.toml \
-            --sbf-out-dir target/deploy 2>&1 | tee /tmp/b2-build.log
+          NO_DNA=1 cargo build-sbf --tools-version v1.52 \
+            --manifest-path programs/purpose-vault/Cargo.toml \
+            --sbf-out-dir target/deploy -- --locked 2>&1 | tee /tmp/b2-build.log
           if grep -qi "Stack offset" /tmp/b2-build.log; then
             echo "SBF stack frame exceeded; this is undefined behaviour at runtime, not a warning"
             exit 1
@@ -93,7 +102,11 @@ jobs:
           tar -xzf "$RUNNER_TEMP/surfpool.tar.gz" -C "$RUNNER_TEMP"
           install -m 0755 "$RUNNER_TEMP/surfpool" "$RUNNER_TEMP/surfpool-bin"
       - name: Build the exact B2 SBF artifact
-        run: NO_DNA=1 cargo build-sbf --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy
+        run: NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy -- --locked
+      - name: Verify the frozen R3 B2 SBF binding
+        run: |
+          expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v1.json)"
+          printf '%s  %s\n' "$expected_sbf" target/deploy/purpose_vault.so | sha256sum -c -
       - name: Start an offline surfnet
         run: |
           NO_DNA=1 "$RUNNER_TEMP/surfpool-bin" start --ci --daemon \
@@ -114,6 +127,7 @@ jobs:
           test "$(printf '%s' "$result_json" | jq -er '.valid')" = true
           test "$(printf '%s' "$result_json" | jq -er '.mainnet_authorized')" = false
           test "$(printf '%s' "$result_json" | jq -er '.candidate_config.open_parameter_count')" = 26
+          test "$(printf '%s' "$result_json" | jq -er '.program.sbf_sha256')" = "$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v1.json)"
           test "$(printf '%s' "$result_json" | jq -er '.mint.supply')" = 1000000000000000000
           test "$(printf '%s' "$result_json" | jq -r '.mint.mint_authority == null')" = true
           test "$(printf '%s' "$result_json" | jq -r '.mint.freeze_authority == null')" = true
@@ -166,7 +180,7 @@ jobs:
           tar -xzf "$RUNNER_TEMP/surfpool.tar.gz" -C "$RUNNER_TEMP"
           install -m 0755 "$RUNNER_TEMP/surfpool" "$RUNNER_TEMP/surfpool-bin"
       - name: Build the B1 SBF artifact
-        run: NO_DNA=1 cargo build-sbf --manifest-path programs/beneficiary-vault/Cargo.toml --sbf-out-dir target/deploy
+        run: NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path programs/beneficiary-vault/Cargo.toml --sbf-out-dir target/deploy -- --locked
       - name: Start an offline surfnet
         run: |
           NO_DNA=1 "$RUNNER_TEMP/surfpool-bin" start --ci --daemon \
@@ -210,7 +224,7 @@ jobs:
           tar -xzf "$RUNNER_TEMP/surfpool.tar.gz" -C "$RUNNER_TEMP"
           install -m 0755 "$RUNNER_TEMP/surfpool" "$RUNNER_TEMP/surfpool-bin"
       - name: Build the B1 SBF artifact
-        run: NO_DNA=1 cargo build-sbf --manifest-path programs/beneficiary-vault/Cargo.toml --sbf-out-dir target/deploy
+        run: NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path programs/beneficiary-vault/Cargo.toml --sbf-out-dir target/deploy -- --locked
       - name: Start an ephemeral offline surfnet
         run: |
           NO_DNA=1 "$RUNNER_TEMP/surfpool-bin" start --ci --daemon \

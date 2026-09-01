@@ -1,0 +1,2 @@
+claude --safe-mode --restricted --strict-mcp-config --disable-slash-commands --no-chrome --no-session-persistence --permission-mode dontAsk --tools Read,Glob,Grep --model opus --effort max --prompt-suggestions false --output-format json -p < /tmp/k4v-claude-preaudit-tmumYj/artifacts/AUDIT_PROMPT.md
+

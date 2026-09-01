@@ -12,9 +12,8 @@ use anchor_spl::token::Mint;
 pub struct OpenPolicy<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
-    /// CHECK: frozen at creation as the initial key that may report volume. It
-    /// never signs a transfer. A notice-gated rotation may replace who reports
-    /// without changing the last reported value or its timestamp.
+    /// CHECK: frozen at creation as the initial reporter; notice-gated rotation may
+    /// replace who reports without changing the last value or its timestamp.
     pub oracle: UncheckedAccount<'info>,
     pub mint: Account<'info, Mint>,
     #[account(

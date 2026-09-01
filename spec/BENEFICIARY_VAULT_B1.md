@@ -1,6 +1,6 @@
 # Beneficiary Vault B1
 
-Status: IMPLEMENTED PROTOTYPE / PUBLIC CI + LOCAL TRANSACTION RPC VALIDATED
+Status: PUBLIC-DEVNET BETA / PUBLIC CI + LOCAL TRANSACTION RPC VALIDATED / NOT PRODUCTION
 
 B1 is the smallest custody mechanism that can replace a beneficiary's verbal
 promise to release slowly. It is intentionally narrower than the full
@@ -87,8 +87,9 @@ exists. Any future public deployment must disclose the loader state and either
 use a non-upgradeable deployment or verifiably revoke the upgrade authority
 before claiming that the covenant is immutable.
 
-The program ID in this repository is a test identity for reproducible local VM
-loading. It is not a mainnet or devnet deployment address.
+The program ID in this repository is the public-devnet beta identity and is also
+used by the reproducible local fixtures. It is not a mainnet or production
+identity. The devnet loader retains a test upgrade authority.
 
 ## Independent verification
 

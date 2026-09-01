@@ -17,8 +17,9 @@ only a disclosed possible case study.
 ```text
 B1+B2 public-devnet receipts
   -> R3 local full-scale transaction/RPC/Squads integration (PASS)
-  -> stranger-runnable clean-room reproduction (CURRENT)
-  -> procured independent security preflight
+  -> blank-host same-user agent reproduction + hash-gate repair (PASS, bounded)
+  -> architecture findings + adversarial re-tests (CURRENT)
+  -> unrelated human reproduction + accountable security review
   -> tagged integration and incident guide
 ```
 
@@ -57,6 +58,13 @@ called immutable.
   transactions, deposits the aligned 80%, replaces a Squads member, and executes
   a post-replacement purpose release under the unchanged vault PDA. The
   read-only verifier passes nineteen RPC/PDA/membership/transaction checks.
+- A public-only xv4 clean-room run reproduced every functional R3 result and
+  exposed a missing equality check between the candidate's frozen SBF hash and
+  the freshly compiled file. The comment-only source-span drift and runner were
+  repaired locally; exact public rerun remains the publication check.
+- Claude Opus completed an `INDEPENDENT_MODEL_AI_PREAUDIT`: no critical/high or
+  confirmed theft path; seven medium design/DoS/governance findings; mainnet
+  verdict `NOT_READY`. Human-accountable review remains open.
 
 This remains author-produced public-devnet evidence. No unrelated party has
 reproduced or reviewed B2, no production parameters or authority ceremony exist,
@@ -69,7 +77,7 @@ and no release has succeeded on a public cluster.
 | M1 — Covenant and threat model | 1–3 | USD 3,000 | Frozen integer spec, receipt schema, bypass taxonomy, CI | Strong draft and executable reference evidence exist |
 | M2 — Solana vault implementation | 3–8 | USD 9,000 | Beneficiary and purpose vaults on localnet/devnet | B1/B2 public-devnet beta evidence exists; production integration remains open |
 | M3 — Adversarial and full-scale harness | 7–11 | USD 7,000 | Authority, oracle, scale, OTC, collateral, threshold and signer-loss tests | `PASS — AUTHOR-RUN LOCAL`; R3 full-scale transaction/RPC/Squads integration and 12-case coverage pass; unrelated acceptance remains R4 |
-| M4 — Independent reproduction/security preflight | 11–14 | USD 8,000 | Clean-room reproduction and independent report with repairs | Open; no author/AI/CI artifact counts as independence |
+| M4 — Independent reproduction/security preflight | 11–14 | USD 8,000 | Clean-room reproduction and independent report with repairs | Operational AI-run evidence + AI pre-audit exist; architecture decisions and human-accountable review remain open |
 | M5 — Release and integration guide | 14–16 | USD 3,000 | Tagged source, checksums, deployment, governance and incident guide | Open |
 
 Amounts are planning inputs, not vendor quotes. Pre-funding work is evidence that
@@ -97,8 +105,10 @@ If decimals are 9, the two aligned deposits are `300,000,000,000,000,000` and
 `500,000,000,000,000,000` base units. If another decimal count is selected, the
 test derives exact equivalents rather than copying these literals.
 
-The next decisive construction is R4: package these commands into a clean-room
-interface and obtain one unrelated run. Author, AI and CI reruns do not close it.
+The next decisive construction is the R4 repair transaction: classify and test
+the seven medium pre-audit mechanisms, repair the accepted defects, then obtain
+one unrelated human/accountable rerun. The same-user agent and Claude results
+advance the evidence without being relabelled as human independence.
 
 ## Independence without a personal network
 

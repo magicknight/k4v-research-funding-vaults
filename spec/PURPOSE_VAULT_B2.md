@@ -1,6 +1,6 @@
 # Purpose Vault B2
 
-Status: SPECIFICATION / LOCAL IMPLEMENTATION IN PROGRESS / NOT DEPLOYED
+Status: PUBLIC-DEVNET BETA / LOCAL FULL-SCALE INTEGRATION PASS / NOT PRODUCTION
 
 B1 is the smallest custody mechanism that can replace one beneficiary's verbal
 promise to release slowly. B2 is the smallest mechanism that can replace a
@@ -220,6 +220,12 @@ There is no way to change the approver, the beneficiary, a rate, a cliff, a
 ceiling, a floor, or a cap after
 creation.
 
+This statement is about the instruction surface under the disclosed program
+hash. It does **not** make an upgradeable deployment immutable: a loader upgrade
+authority can replace the entire program. The public-devnet beta retains a test
+upgrade authority. Any deployment holding real value must disclose the loader
+state and may be called immutable only after the authority is verifiably absent.
+
 The cost of that is real and is accepted deliberately: **if the oracle key is
 lost, no further release is possible and the deposits stay locked forever.**
 That is the conservative direction of failure. The covenant permits an
@@ -293,4 +299,6 @@ a working answer.
 - The approval authority in tests is a single key. Production requires a
   multisig, and no treasury signers exist yet. B2 builds the mechanism, not the
   governance.
-- No deployment, no audit, no mainnet, and no claim of production readiness.
+- A public-devnet beta deployment exists, along with local full-scale evidence
+  and an independent-model AI pre-audit. There is no production/mainnet
+  deployment, no human-accountable audit, and no claim of production readiness.

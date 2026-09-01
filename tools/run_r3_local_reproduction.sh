@@ -53,8 +53,16 @@ jq -e '
 ' "$candidate" >/dev/null
 
 NO_DNA=1 cargo build-sbf \
+  --tools-version v1.52 \
   --manifest-path programs/purpose-vault/Cargo.toml \
-  --sbf-out-dir target/deploy
+  --sbf-out-dir target/deploy \
+  -- --locked
+expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' "$candidate")"
+observed_sbf="$(sha256sum target/deploy/purpose_vault.so | awk '{print $1}')"
+if [[ "$observed_sbf" != "$expected_sbf" ]]; then
+  echo "built SBF hash $observed_sbf does not match candidate $expected_sbf" >&2
+  exit 1
+fi
 NO_DNA=1 cargo fmt --all -- --check
 NO_DNA=1 cargo clippy --workspace --all-targets --locked -- -D warnings
 NO_DNA=1 cargo test --package purpose-vault --locked
@@ -85,10 +93,11 @@ K4V_R3_RECEIPT_OUT="$out_dir/r3-transaction-rpc.json" \
 NO_DNA=1 cargo run --locked --package purpose-vault \
   --example r3_full_scale_rpc_probe \
   >"$out_dir/r3-transaction-rpc.log" 2>&1
-jq -e '
+jq -e --arg expected_sbf "$expected_sbf" '
   .valid == true and
   .mainnet_authorized == false and
   .candidate_config.open_parameter_count == 26 and
+  .program.sbf_sha256 == $expected_sbf and
   .mint.supply == "1000000000000000000" and
   .mint.mint_authority == null and
   .mint.freeze_authority == null and
@@ -123,7 +132,8 @@ K4V_R3_SQUADS_VERIFY_OUT="$out_dir/r3-squads-verified.json" \
 NO_DNA=1 node probes/r3_full_scale_squads_verify.mjs \
   >"$out_dir/r3-squads-verified.log" 2>&1
 
-jq -e '.valid == true and .checks.unsafe_javascript_number_rejected_before_encoding == true' \
+jq -e --arg expected_sbf "$expected_sbf" \
+  '.valid == true and .program.sbf_sha256 == $expected_sbf and .checks.unsafe_javascript_number_rejected_before_encoding == true' \
   "$out_dir/r3-squads.json" >/dev/null
 jq -e '.valid == true and ([.checks[]] | all)' \
   "$out_dir/r3-squads-verified.json" >/dev/null
@@ -140,6 +150,8 @@ jq -n \
   --arg schema "k4v-r3-clean-room-reproduction/v1" \
   --arg checked_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   --arg out_dir "$out_dir" \
+  --arg expected_sbf "$expected_sbf" \
+  --arg observed_sbf "$observed_sbf" \
   --slurpfile transaction "$out_dir/r3-transaction-rpc.json" \
   --slurpfile squads "$out_dir/r3-squads.json" \
   --slurpfile verified "$out_dir/r3-squads-verified.json" \
@@ -154,6 +166,9 @@ jq -n \
     transaction_rpc_valid: $transaction[0].valid,
     squads_valid: $squads[0].valid,
     read_only_verifier_valid: $verified[0].valid,
+    sbf_byte_reproducible: ($expected_sbf == $observed_sbf),
+    expected_sbf_sha256: $expected_sbf,
+    observed_sbf_sha256: $observed_sbf,
     supply: $transaction[0].mint.supply,
     conserved_total: $verified[0].conserved_total,
     policy_released_this_period: $verified[0].policy_released_this_period,
