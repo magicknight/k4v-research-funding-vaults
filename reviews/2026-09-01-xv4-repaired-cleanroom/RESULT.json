@@ -1,0 +1,19 @@
+{
+  "schema": "k4v-r3-clean-room-reproduction/v1",
+  "checked_at": "2026-09-01T09:55:31Z",
+  "result": "PASS",
+  "epistemic_status": "LOCAL_REPRODUCTION_NOT_INDEPENDENT_BY_ITSELF",
+  "out_dir": "/home/zhihua/k4v-r4-repaired-20260901T7FFb7h/artifacts/reproduction",
+  "no_official_mint": true,
+  "mainnet_authorized": false,
+  "transaction_rpc_valid": true,
+  "squads_valid": true,
+  "read_only_verifier_valid": true,
+  "sbf_byte_reproducible": true,
+  "expected_sbf_sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb",
+  "observed_sbf_sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb",
+  "supply": "1000000000000000000",
+  "conserved_total": "1000000000000000000",
+  "policy_released_this_period": "3000000000000000",
+  "next_gate": "unrelated operator transcript and procured security review"
+}

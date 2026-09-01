@@ -1,0 +1,5 @@
+45354f805d90748e4a5b0f055b6653f777fedef446ed3b59e25cfed89c16f07f  /home/zhihua/k4v-r4-repaired-20260901T7FFb7h/source/spec/R3_TEST_ONLY_CANDIDATE_v1.json
+081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb  target/deploy/purpose_vault.so
+80098907969c2d93df2abaa089124a7e8daab2002349ae6b1d8762cdb718d8c0  /home/zhihua/k4v-r4-repaired-20260901T7FFb7h/artifacts/reproduction/r3-transaction-rpc.json
+6ae4cc8be9fb306d82e09ab07c3e3bc4843de359a9dc3d78c24aa22b14806343  /home/zhihua/k4v-r4-repaired-20260901T7FFb7h/artifacts/reproduction/r3-squads.json
+37a05c32080e2a565dfc7bcf865597143e23a6bf92da3c9277b39dbe5f206f11  /home/zhihua/k4v-r4-repaired-20260901T7FFb7h/artifacts/reproduction/r3-squads-verified.json

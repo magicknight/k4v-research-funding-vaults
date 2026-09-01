@@ -63,7 +63,7 @@ equals the test candidate and both receipts carry the same hash.
 
 ```text
 R4A operational environment reproduction  PARTIAL PASS
-R4A frozen-byte replay after repair         LOCAL PASS / PUBLIC CLEAN RERUN OPEN
+R4A frozen-byte replay after repair         PUBLIC CLEAN-CLONE PASS, same-user bounded
 R4B independent-model static preaudit       PASS, bounded
 R4B human-accountable security audit        OPEN
 mainnet readiness                           NOT_READY

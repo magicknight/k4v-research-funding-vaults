@@ -1,0 +1,36 @@
+{
+  "schema": "k4v-r3-b2-full-scale-squads-rpc-verifier/v0.1",
+  "epistemic_status": "READ_ONLY_LOCAL_RPC_RECONSTRUCTION_NOT_INDEPENDENT_REVIEW",
+  "valid": true,
+  "source_receipt": "/home/zhihua/k4v-r4-repaired-20260901T7FFb7h/artifacts/reproduction/r3-squads.json",
+  "cluster": "http://127.0.0.1:32199",
+  "mint": "HCm86mPBxZS1t3evihwTFSD7Q2xXKJRTiSTB7DEKQnrh",
+  "conserved_total": "1000000000000000000",
+  "policy_released_this_period": "3000000000000000",
+  "members_after": [
+    "5CCNYHsJJjhGKLsMcvHcJKsAKqALzesKiL4tzRe5rzZc",
+    "FA86Tw5iCTmvdbw8PByAFdg1GpNCeUFN2KiDLmzA9fwd",
+    "FBkrTAxzQZo42MdPpktLm1Nzww2LRGntorLvWupXGyTu"
+  ],
+  "checks": {
+    "receipt_declares_local_no_mainnet": true,
+    "candidate_remains_open": true,
+    "exact_supply_and_authority_revocation": true,
+    "all_token_accounts_share_one_mint": true,
+    "four_pool_and_release_conservation": true,
+    "staging_accounts_empty": true,
+    "untouched_allocations_exact": true,
+    "full_vault_deposits_exact": true,
+    "monthly_caps_exact": true,
+    "policy_and_market_pdas_canonical": true,
+    "purpose_vault_and_token_pdas_canonical": true,
+    "approval_pda_canonical": true,
+    "policy_and_purpose_authority_are_stable_squads_vault": true,
+    "policy_and_vault_mint_match": true,
+    "market_report_exact": true,
+    "post_replacement_approval_and_release_exact": true,
+    "shared_window_exhausted_exactly": true,
+    "member_replacement_visible_in_multisig_state": true,
+    "every_indexed_transaction_succeeded": true
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "accounts": {
+    "approval": "4Wkd91VN1APyRxTLnV5FJy5U9qN4ubF53Hm96hzS9USh",
+    "beneficiary_vault": "89sPKo2MmTUU5pJDFrXW91rHdn5zzJVryb7AWjEgZ3tx",
+    "beneficiary_vault_token": "FKwurir5R1gZfbtJph5caoWAyBMu5fy3fyHXweTRaRZb",
+    "founder_staging": "FiuVY2gCmpFaTQARPyxYdrNoZdx2bMtjxDvLzXiRBPQe",
+    "genesis": "8ViUbGCmZBiF7fL7pATMmccCtdwvHNLKYSYpjKBi4sEE",
+    "lp": "5wMDNf2NXeztqvMhybnCXtgKLmhW1kjJVgqcwXGRNguk",
+    "market": "EeETsJyfoQGdeeQZW8RdhphvTqJdK3m4BUoXDCJ4sT78",
+    "policy": "55J1E33hQ4u3wykkMRaFnDXbDP12ia4keegNVBHXXfNj",
+    "purpose_vault": "BtkFSWPSRkV2i9XeSVgfK1f8ogtVYvCqz2dQAU5itBJY",
+    "purpose_vault_token": "93aT8yQYTeVxYt1NSN9YKf838XSFoGZ6FZW6WWuKoZky",
+    "treasury_staging": "FeLowNaQdiR7xJxVB48LbfT8GLctgMS3rYHveA4Mt6yn"
+  },
+  "allocation": {
+    "founder": "300000000000000000",
+    "founder_staging_final": "0",
+    "genesis": "120000000000000000",
+    "lp": "80000000000000000",
+    "treasury": "500000000000000000",
+    "treasury_staging_final": "0"
+  },
+  "candidate_config": {
+    "open_parameter_count": 26,
+    "path": "/home/zhihua/k4v-r4-repaired-20260901T7FFb7h/source/spec/R3_TEST_ONLY_CANDIDATE_v1.json",
+    "sha256": "45354f805d90748e4a5b0f055b6653f777fedef446ed3b59e25cfed89c16f07f",
+    "test_values_do_not_freeze_production": true
+  },
+  "cluster": "local-surfpool",
+  "epistemic_status": "ESTABLISHED_LOCAL_TEST_EVIDENCE_NOT_INDEPENDENT",
+  "expected_refusals": {
+    "R3-N01": "mint after authority revocation rejected in simulation",
+    "R3-N03": "beneficiary release before cliff -> CliffActive",
+    "R3-N06": "joint capacity headroom plus one -> AggregateCapacityExceeded"
+  },
+  "genesis_hash": "5SxzyFghaLmbJxoK1Yyo8Z4YnWR1MsqS7XTEAw7d3dSq",
+  "mainnet_authorized": false,
+  "mint": {
+    "address": "5qfj2JBrPtUJjmuxUrCktDo8GHFqvNmKmxrNjVz2MLm2",
+    "decimals": 9,
+    "freeze_authority": null,
+    "mint_authority": null,
+    "supply": "1000000000000000000"
+  },
+  "no_official_mint": true,
+  "open_bridges": [
+    "full-scale Squads member replacement and post-replacement release",
+    "unrelated clean-room reproduction",
+    "production parameter freeze and external review"
+  ],
+  "private_keys_serialized": false,
+  "production_keys_used": false,
+  "program": {
+    "id": "2FZ5XPBDQhdsbpj7VnFVZ5agFkMYFgEXMchAZyRWe65w",
+    "install": "surfnet_writeProgram_local_only",
+    "sbf_bytes": 367264,
+    "sbf_sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb"
+  },
+  "reconstruction": {
+    "approval_consumed": "1750000000000000",
+    "beneficiary_released": "1250000000000000",
+    "conserved_total": "1000000000000000000",
+    "founder_vault_balance": "298750000000000000",
+    "market_eligible_volume": "120000000000000000",
+    "policy_released_this_period": "3000000000000000",
+    "purpose_released": "1750000000000000",
+    "purpose_vault_balance": "498250000000000000",
+    "source": "standard getAccount RPC bytes only"
+  },
+  "rpc_url": "http://127.0.0.1:32399",
+  "schema": "k4v-r3-b-full-scale-local-rpc/v0.1",
+  "token_program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+  "transactions": {
+    "approve_purpose": "4GLJRZ2vRQHYdhSJfnKKpjeESjPEqLrFdt63Ej5xrQ9fjJNTEd1gX2ZEbHtoq2wyaSng1kY8tWz9otCNdZAPAUXG",
+    "create_beneficiary_destination": "5pb6SybcrsCkWiSpTY18kfvnYTMafaTAdiyydEgmnEBTPiyXHM4vGmXo3v5b268j1LBapU5tt24mHYMTL6KSXLYH",
+    "create_contractor_destination": "2cGAgtwHfCKxyHJAgJXdRJeicGqNsdgBjPADY55mXEufzUzcmVTNtoViJjaZz5tDGpi9RQRWNPUujbv5y1D3SLpm",
+    "create_founder_account": "55WF7cbP2EYdj6AXiBWm42jXEBEc5ErKxghziGctBi3PJh1V837FapYQ6QdXBCaDA6smw43c1aVkCsAMDr5R41ne",
+    "create_genesis_account": "2tPvDic75PxR4mWJP3aebF3HK3cpkEjzYoGxpCfvPBUYuMwiDiLef2xxhhAegxSxJsnkPJbinG57mRL53Jj12kBP",
+    "create_lp_account": "4j9QLsxej6XNhRr2hjsrcLoLxNUcJCuWED18DisaDrc6bdhMX7sFEuLsDmLBinZaYGKzXc3r8agLFnyAdVSRu8DP",
+    "create_mint": "4npk6TtvLZ3YgCA1k57EFJb88JvBEMkuehGBkJeQSj1SzHE6sQDMHxew6Nw7a9yWZ3ffuBRduvZqFZoyUDoJvJA9",
+    "create_treasury_account": "3XtaoxayvJ9Cw7gU1Dp2YA2R2o4dAuMRcXkd129Du78bw4gSKoSfPfUEtpSXGwwJ9cg1UHg2DMxih5Cc9FtfZWKX",
+    "deposit_founder": "5r4Dv26duSFM1yghhVxC8bh1qYMBGVG4pftvTdnNMgAbSA2AwARML1zCXQVRXR7sNybPVRR6ZQkdG8nF4MSaeAyV",
+    "deposit_treasury": "7vmQVrp7XvKKnNWhYQi5soJqg7zq23p3RazACocXhYhDANw7KA6Fb8UqzF217t6wTCmaiP4AH8r2gtPJSTHiWsu",
+    "mint_four_allocations": "34RscqiHYwq7ag2wgYt9i1uvK2zcw1UsNJ6wP6wAf733WyA9bm9JpazB8hQrioJBEhG1Uja4e7nHig4JtRqDt2Rv",
+    "open_policy": "29SSPE7khG5gWJV2xT6esNpW1NrR2iC2asgw2qoPQEy56rpgBFftqF46n5cSG214fjNWkjr8PBj9eY3si59HyB74",
+    "release_founder": "5EFaUo7yWe7W7FDyJr792cyGnNrNQbMioX1SRxW6r7W1CPQPDVEzvrenTpdPJwymaaeTFG2DAxxBb4o5wkPhVXig",
+    "release_purpose": "28a1eoyeCKVDsL54hKqiG8qPXUmhhpEFt9jGJmvT9o6H1cgDGVFybAhyrK5TvAaf1srHi6e2kTaNSAciHyLRG7Lr",
+    "report_volume": "42yn5WSFSPtv3xkYwj6YAk1eMp3U77mVtfzx5HewVeHL5eAyiPM1eRw5JrzTGekvhuV2awXNd3XkSZhKZxHpF3gH",
+    "revoke_mint_freeze": "34SE73Gpaske4VVnezvabXjpSYvtf8uYmupQK7GhawgRQ5Y9zjvNg28GM7XYZ6uboXZvrW7aLYrRXNr6t4XdddvG"
+  },
+  "valid": true
+}

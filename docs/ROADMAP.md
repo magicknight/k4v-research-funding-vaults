@@ -61,7 +61,8 @@ called immutable.
 - A public-only xv4 clean-room run reproduced every functional R3 result and
   exposed a missing equality check between the candidate's frozen SBF hash and
   the freshly compiled file. The comment-only source-span drift and runner were
-  repaired locally; exact public rerun remains the publication check.
+  repaired; a second public-only clone of published commit `173c856` passed with
+  `sbf_byte_reproducible=true` and exact expected/observed `081b6c...` hashes.
 - Claude Opus completed an `INDEPENDENT_MODEL_AI_PREAUDIT`: no critical/high or
   confirmed theft path; seven medium design/DoS/governance findings; mainnet
   verdict `NOT_READY`. Human-accountable review remains open.

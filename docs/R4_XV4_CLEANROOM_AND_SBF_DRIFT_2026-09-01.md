@@ -72,8 +72,10 @@ against that hash, and emits expected/observed hashes plus
 `sbf_byte_reproducible` in `RESULT.json`. The same binding is added to CI.
 
 A post-repair local full reproduction passed with both hashes equal to
-`081b6c...` and `sbf_byte_reproducible=true`. A new public-only xv4 clean clone
-of the repair commit remains the publication acceptance test.
+`081b6c...` and `sbf_byte_reproducible=true`. A second new public-only xv4
+clone of published repair commit `173c856` then passed the complete command
+with the same exact hashes, clean source and exit zero. Its public evidence is
+under `reviews/2026-09-01-xv4-repaired-cleanroom/`.
 
 ## Artifact hashes
 
@@ -84,6 +86,8 @@ initial built SBF                     2584dbb17dc6785344690ed168e5872041e9f5342a
 frozen and repaired SBF               081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb
 ```
 
-`TARGET_GATE: OPEN`  
-`R4A: OPERATIONAL ISOLATION FUNCTIONAL PASS / REPAIRED BYTE REPLAY LOCAL PASS`  
+`TARGET_GATE: OPEN`
+
+`R4A: OPERATIONAL ISOLATION + REPAIRED PUBLIC CLEAN-CLONE BYTE REPLAY PASS`
+
 `R4B: HUMAN-ACCOUNTABLE SECURITY REVIEW OPEN`
