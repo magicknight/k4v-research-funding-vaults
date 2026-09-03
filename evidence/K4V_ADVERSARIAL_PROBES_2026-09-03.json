@@ -1,0 +1,155 @@
+{
+  "artifact": "K4V_ADVERSARIAL_PROBES_K4V-01_TO_04",
+  "recorded_utc": "2026-09-03T12:42:44Z",
+  "status": "LOCAL LITESVM PASS / NO PROGRAM CHANGE / FOUNDER DESIGN DECISIONS OPEN / NO PUBLIC TRANSACTION",
+  "claim": "Claude's three highest-leverage medium findings are executable on the frozen B1/B2 bytes. A stranger can occupy the B2 policy/market PDAs and the B1 vault PDA; a retained freeze authority can lock deposited vault tokens with no program recovery path; a purpose-first co-tenant can starve the beneficiary across six periods. No theft, double-spend or above-schedule release path was added or found.",
+  "source": {
+    "parent_commit": "a7dbaa1b5def19348367dbe4a07764ef711c6260",
+    "programs_unchanged": true,
+    "purpose_vault_sbf_sha256": "081b6c166fa63bac07abfa026f4c16f3c1eeb2d480e09a8912c65b5b2aea8bcb",
+    "beneficiary_vault_sbf_sha256": "d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312",
+    "sbf_rebuild": false,
+    "claude_findings": ["K4V-01", "K4V-02", "K4V-03", "K4V-04"],
+    "preaudit": "reviews/2026-09-01-claude-ai-preaudit/CLAUDE_AUDIT_REPORT.md"
+  },
+  "validation_boundary": {
+    "public_solana_transactions_submitted": false,
+    "production_keys_used": false,
+    "official_mint": null,
+    "mainnet_authorized": false,
+    "architecture_changed": false,
+    "human_accountable_audit": false
+  },
+  "probes": [
+    {
+      "id": "PROBE-A",
+      "finding": "K4V-01 + K4V-02",
+      "question": "Can an unrelated key permanently occupy the canonical B2 policy/market PDAs and the B1 vault PDA derived from a published digest?",
+      "result": "CONFIRMED",
+      "tests": [
+        "probe_a_b2_policy_squatting_hijacks_authority_and_permanently_blocks_creator",
+        "probe_a_b1_dust_squatting_permanently_blocks_intended_deposit",
+        "test_probe_a_dust_squatted_vault_is_accepted_as_valid"
+      ],
+      "b2_policy_namespace": {
+        "seeds": ["purpose-policy|purpose-market", "policy_hash"],
+        "creator_in_seeds": false,
+        "attacker_open_policy": "PASS",
+        "attacker_frozen_authority": true,
+        "attacker_frozen_oracle": true,
+        "attacker_frozen_hard_ceiling": 1,
+        "intended_reopen": "FAIL already in use",
+        "intended_deposit_as_policy_authority": "FAIL WrongPolicyAuthority",
+        "attacker_can_attach_vault": true,
+        "funds_at_risk_without_collusion": false
+      },
+      "b1_vault_namespace": {
+        "seeds": ["beneficiary-vault", "beneficiary", "mint", "policy_hash"],
+        "depositor_in_seeds": false,
+        "dust_amount": 240,
+        "annual_release_bps": 500,
+        "dust_monthly_cap": 1,
+        "smallest_rejected_dust": 239,
+        "intended_deposit": "FAIL already in use",
+        "intended_tokens_unmoved": true,
+        "independent_verifier_accepts_dust_vault": true
+      },
+      "not_shown": "B2 vault attachment remains gated by policy-authority co-signature (existing test a_stranger_cannot_attach_a_vault_to_someone_elses_capacity_window)."
+    },
+    {
+      "id": "PROBE-B",
+      "finding": "K4V-03",
+      "question": "If a mint retains freeze authority, can FreezeAccount lock already-deposited B1 and B2 vaults with no program recovery?",
+      "result": "CONFIRMED",
+      "tests": [
+        "probe_b_b1_retained_freeze_authority_permanently_locks_vault",
+        "probe_b_b2_retained_freeze_authority_permanently_locks_both_vaults"
+      ],
+      "observed": {
+        "open_policy_accepts_live_freeze_authority": true,
+        "b1_deposit_accepts_live_freeze_authority": true,
+        "b2_deposit_accepts_live_freeze_authority": true,
+        "freeze_account_on_vault_token": "PASS",
+        "beneficiary_thaw": "FAIL",
+        "b1_release": "FAIL AccountFrozen / SPL 0x11",
+        "b2_release_beneficiary": "FAIL AccountFrozen / SPL 0x11",
+        "b2_release_purpose": "FAIL AccountFrozen / SPL 0x11",
+        "b1_instruction_surface": ["deposit", "release"],
+        "b2_instruction_surface": [
+          "open_policy",
+          "report_volume",
+          "propose_oracle",
+          "execute_oracle_rotation",
+          "deposit",
+          "approve",
+          "release_beneficiary",
+          "release_purpose"
+        ],
+        "program_thaw_close_migrate": false,
+        "principal_remaining_in_vault": true
+      },
+      "not_shown": "Thaw by the freeze authority would restore SPL transfers; that recovery is outside both programs. R3 fixtures revoke freeze authority off-chain, which this probe shows is a deployment assumption rather than an on-chain gate."
+    },
+    {
+      "id": "PROBE-C",
+      "finding": "K4V-04",
+      "question": "If the purpose vault transacts first, can it starve the beneficiary across multiple periods?",
+      "result": "CONFIRMED",
+      "tests": [
+        "probe_c_purpose_first_multi_period_shared_window_starvation",
+        "probe_c_devnet_parameters_shared_window_squeeze_starves_beneficiary"
+      ],
+      "parameters": {
+        "periods": 6,
+        "beneficiary_cap": 1250000,
+        "purpose_cap": 2083333,
+        "complete_starvation_hard_ceiling": 2083333,
+        "published_devnet_hard_ceiling": 2500000,
+        "devnet_squeeze_headroom": 416667
+      },
+      "complete_starvation": {
+        "hard_ceiling": 2083333,
+        "purpose_released_total": 12499998,
+        "beneficiary_released_total": 0,
+        "beneficiary_attempt_of_1": "FAIL AggregateCapacityExceeded",
+        "unused_beneficiary_capacity": "expires each period; no reservation"
+      },
+      "published_devnet_squeeze": {
+        "hard_ceiling": 2500000,
+        "purpose_first_leaves": 416667,
+        "beneficiary_full_cap": "FAIL AggregateCapacityExceeded",
+        "beneficiary_released_total": 2500002,
+        "beneficiary_entitled_if_first": 7500000,
+        "starved_base_units": 4999998
+      },
+      "claude_retest_correction": "The preaudit retest recipe asked for beneficiary.released_total == 0 under the published devnet ceiling 2_500_000. That overstates the squeeze: purpose-first leaves 416_667. Complete zeroing requires hard_ceiling <= purpose cap, which is the first Probe-C test."
+    }
+  ],
+  "tests": {
+    "rust_unit_b1": 4,
+    "litesvm_integration_b1": 7,
+    "rust_unit_b2": 16,
+    "litesvm_integration_b2": 38,
+    "workspace_rust_total": 65,
+    "python_discovered": 42,
+    "python_passed": 41,
+    "python_skipped_live_surfpool": 1,
+    "fmt": "PASS",
+    "clippy_deny_warnings": "PASS",
+    "sbf_hash_unchanged": true
+  },
+  "not_repaired": [
+    "K4V-01 creator-bound policy seeds or authority-bound digest",
+    "K4V-02 depositor-bound B1 seeds or beneficiary co-signature",
+    "K4V-03 on-chain freeze_authority/mint_authority rejection",
+    "K4V-04 per-vault reservation or explicit accepted competitive-headroom disclosure as a Founder decision",
+    "K4V-05 oracle halt/recovery",
+    "K4V-06 policy-authority transfer",
+    "K4V-07 production upgrade-authority revocation"
+  ],
+  "next": [
+    "Founder route-change transaction for K4V-01..06: repair, retain-and-disclose, or reject the custom-vault route",
+    "If repairs are accepted, preserve exact SBF binding and re-run these probes against the new bytes",
+    "Named human-accountable security review and re-test remain R4B"
+  ]
+}

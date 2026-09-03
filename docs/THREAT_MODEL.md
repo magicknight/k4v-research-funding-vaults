@@ -5,9 +5,9 @@ economic circulation than the disclosed covenant permits.
 
 | Threat | Smallest dependency | Status (covenant v0.3) | Required repair or test |
 |---|---|---|---|
-| Permissionless policy/vault namespace squatting | PDA seed graph and creation authority | AI PREAUDIT MEDIUM / EXECUTABLE PROBE OPEN | Run hostile-first creation for B1/B2; bind namespace or policy digest to the intended creator |
-| Mint freeze-authority lockup | Accepted mint state before deposit | AI PREAUDIT MEDIUM / PRODUCTION GATE OPEN | Freeze a funded test vault; decide and enforce required mint/freeze authority end states on chain |
-| Shared-window starvation | Competitive aggregate counter | AI PREAUDIT MEDIUM / DESIGN DECISION OPEN | Reverse release order across periods; add reservation/pro-rata semantics or disclose competitive headroom |
+| Permissionless policy/vault namespace squatting | PDA seed graph and creation authority | CONFIRMED ON CURRENT BYTES / FOUNDER DECISION OPEN | B2 policy/market and B1 vault PDAs were occupied first; bind namespace or digest to the intended creator, or reject the custom-vault route |
+| Mint freeze-authority lockup | Accepted mint state before deposit | CONFIRMED ON CURRENT BYTES / FOUNDER DECISION OPEN | FreezeAccount locked funded B1/B2 vault tokens; decide and enforce required mint/freeze authority end states on chain |
+| Shared-window starvation | Competitive aggregate counter | CONFIRMED ON CURRENT BYTES / FOUNDER DECISION OPEN | Purpose-first starved or squeezed the beneficiary for six periods; add reservation/pro-rata semantics or disclose competitive headroom as an accepted rule |
 | Direct release above cap | Release arithmetic | B1 PUBLIC SBF + LOCAL REAL-LOADER TRANSACTION RPC EVIDENCE | Reproduce on public devnet and in an independent environment |
 | Alternate on-chain release path | Instruction surface plus shared counter | B1 PUBLIC IDL/SBF EVIDENCE | Independently inspect deployed compiled interface |
 | OTC/grant/free transfer after release | Event classification | ESTABLISHED IN MODEL / B1 OUT OF SCOPE | Bind future purpose and integration paths to one counter |
@@ -24,7 +24,7 @@ economic circulation than the disclosed covenant permits.
 | Policy authority lost or captured | Immutable policy authority | AI PREAUDIT MEDIUM / DESIGN DECISION OPEN | Exercise compound authority/oracle loss; choose a noticed authority-transfer mechanism or a real threshold controller |
 | Rotation authority captured | Policy authority key | OPEN — BOUNDED, NOT PREVENTED | Whoever may rotate can name themselves and inflate a report; bounded by the per-vault caps, cliff, approved need and notice period, and visible for 90 days first. Repair is a multisig authority, not a contract change |
 | Hash/version mismatch | Deployment provenance | OPEN | Reproducible build and on-chain configuration digest |
-| Hidden mint or freeze power | SPL mint state | LOCALNET EVIDENCE | Repeat on public testnet and reconcile independently |
+| Hidden mint or freeze power | SPL mint state | CONFIRMED LOCALLY / NOT ENFORCED ON CHAIN | Probe-B froze deposited vault tokens; R3 revocation remains a fixture, not a program constraint |
 
 The main failure mode of the champion remains an on-chain path that bypasses
 the single release counter. B1 removes that path in the current source and the

@@ -90,6 +90,16 @@ const _: () = assert!(
 const _: () = assert!(FULL_BENEFICIARY_CAP <= FULL_MARKET_CAPACITY);
 const _: () = assert!(FULL_PURPOSE_CAP <= FULL_MARKET_CAPACITY);
 const _: () = assert!(FULL_BENEFICIARY_CAP + FULL_PURPOSE_CAP > FULL_MARKET_CAPACITY);
+/// Probe-C pins: six purpose-first periods must remain inside the deposited
+/// principal, and the published devnet ceiling must squeeze the beneficiary
+/// without zeroing it.
+const DEVNET_HARD_CEILING: u64 = 2_500_000;
+const DEVNET_SQUEEZE_HEADROOM: u64 = DEVNET_HARD_CEILING - PURPOSE_CAP;
+const _: () = assert!(6 * PURPOSE_CAP < PURPOSE_DEPOSIT);
+const _: () = assert!(DEVNET_HARD_CEILING > PURPOSE_CAP);
+const _: () = assert!(DEVNET_HARD_CEILING < BENEFICIARY_CAP + PURPOSE_CAP);
+const _: () = assert!(DEVNET_SQUEEZE_HEADROOM == 416_667);
+const _: () = assert!(DEVNET_SQUEEZE_HEADROOM < BENEFICIARY_CAP);
 
 #[derive(Clone, Copy)]
 struct FixtureAmounts {
@@ -505,6 +515,14 @@ fn first_joint_period() -> u64 {
 }
 
 fn setup_amounts_with(config: PolicyConfig, amounts: FixtureAmounts) -> Fixture {
+    setup_amounts_with_freeze(config, amounts, COption::None)
+}
+
+fn setup_amounts_with_freeze(
+    config: PolicyConfig,
+    amounts: FixtureAmounts,
+    freeze_authority: COption<Pubkey>,
+) -> Fixture {
     let mut svm = LiteSVM::new();
     svm.add_program_from_file(purpose_vault::ID, program_path())
         .unwrap();
@@ -535,7 +553,7 @@ fn setup_amounts_with(config: PolicyConfig, amounts: FixtureAmounts) -> Fixture 
             + amounts.lp_allocation,
         decimals: amounts.decimals,
         is_initialized: true,
-        freeze_authority: COption::None,
+        freeze_authority,
     };
     let mut mint_data = vec![0; Mint::LEN];
     Mint::pack(mint_value, &mut mint_data).unwrap();
@@ -2399,4 +2417,412 @@ fn a_policy_may_not_declare_half_a_silence_rule() {
     assert_failed_with(outcome, "InvalidSilenceGrace");
 
     send(open(PolicyConfig::default()), &[&authority], &mut svm).unwrap();
+}
+
+fn setup_with_freeze_authority(freeze_authority: Pubkey) -> Fixture {
+    setup_amounts_with_freeze(
+        PolicyConfig::default(),
+        SCALED_AMOUNTS,
+        COption::Some(freeze_authority),
+    )
+}
+
+fn freeze_token(svm: &mut LiteSVM, token: Pubkey, mint: Pubkey, freezer: &Keypair) {
+    let ix =
+        token_instruction::freeze_account(&TOKEN_PROGRAM_ID, &token, &mint, &freezer.pubkey(), &[])
+            .unwrap();
+    send(ix, &[freezer], svm).expect("freeze_account must succeed while freeze authority is live");
+    let data = svm.get_account(&token).unwrap().data;
+    assert_eq!(
+        SplAccount::unpack(&data).unwrap().state,
+        AccountState::Frozen
+    );
+}
+
+fn logs_show_frozen(
+    outcome: Result<
+        litesvm::types::TransactionMetadata,
+        Box<litesvm::types::FailedTransactionMetadata>,
+    >,
+) {
+    let failure = outcome.expect_err("expected the frozen vault token to reject the transfer");
+    assert!(
+        failure.meta.logs.iter().any(|line| {
+            line.contains("AccountFrozen")
+                || line.contains("Account is frozen")
+                || line.contains("0x11")
+        }),
+        "expected an SPL frozen-account rejection, got:\n{}",
+        failure.meta.logs.join("\n")
+    );
+}
+
+#[test]
+fn probe_a_b2_policy_squatting_hijacks_authority_and_permanently_blocks_creator() {
+    // K4V-01: policy and market PDAs are [seed, policy_hash] only. A published
+    // digest can be opened by a stranger, who then freezes authority, oracle
+    // and ceiling. The intended operator cannot reopen or attach a vault.
+    let mut svm = LiteSVM::new();
+    svm.add_program_from_file(purpose_vault::ID, program_path())
+        .unwrap();
+
+    let attacker = Keypair::new();
+    let intended_authority = Keypair::new();
+    let hostile_oracle = Keypair::new();
+    let intended_oracle = Keypair::new();
+    let depositor = Keypair::new();
+    let beneficiary = Keypair::new();
+    for key in [
+        &attacker,
+        &intended_authority,
+        &hostile_oracle,
+        &intended_oracle,
+        &depositor,
+        &beneficiary,
+    ] {
+        svm.airdrop(&key.pubkey(), 10_000_000_000).unwrap();
+    }
+
+    let mint = Pubkey::new_unique();
+    let mut mint_data = vec![0; Mint::LEN];
+    Mint::pack(
+        Mint {
+            mint_authority: COption::None,
+            supply: BENEFICIARY_DEPOSIT,
+            decimals: 9,
+            is_initialized: true,
+            freeze_authority: COption::None,
+        },
+        &mut mint_data,
+    )
+    .unwrap();
+    svm.set_account(
+        mint,
+        Account {
+            lamports: 10_000_000,
+            data: mint_data,
+            owner: TOKEN_PROGRAM_ID,
+            executable: false,
+            rent_epoch: 0,
+        },
+    )
+    .unwrap();
+    let depositor_token = Pubkey::new_unique();
+    svm.set_account(
+        depositor_token,
+        token_account(mint, depositor.pubkey(), BENEFICIARY_DEPOSIT),
+    )
+    .unwrap();
+
+    let hostile = PolicyConfig {
+        hard_ceiling: 1,
+        ..PolicyConfig::default()
+    };
+    send(
+        open_policy_instruction(
+            attacker.pubkey(),
+            hostile_oracle.pubkey(),
+            mint,
+            1,
+            MAX_AGE_SECONDS,
+            hostile,
+        ),
+        &[&attacker],
+        &mut svm,
+    )
+    .expect("a stranger may open the published digest first");
+
+    let policy =
+        PolicyWindow::try_deserialize(&mut svm.get_account(&policy_pda()).unwrap().data.as_slice())
+            .unwrap();
+    let market =
+        MarketInput::try_deserialize(&mut svm.get_account(&market_pda()).unwrap().data.as_slice())
+            .unwrap();
+    assert_eq!(policy.authority, attacker.pubkey());
+    assert_eq!(policy.policy_hash, POLICY_HASH);
+    assert_eq!(policy.hard_ceiling, 1);
+    assert_eq!(market.oracle, hostile_oracle.pubkey());
+    assert_eq!(market.market_capacity_bps, 1);
+
+    let intended_open = send(
+        open_policy_instruction(
+            intended_authority.pubkey(),
+            intended_oracle.pubkey(),
+            mint,
+            MARKET_BPS,
+            MAX_AGE_SECONDS,
+            PolicyConfig::default(),
+        ),
+        &[&intended_authority],
+        &mut svm,
+    )
+    .expect_err("the canonical policy PDA cannot be reopened");
+    assert!(
+        intended_open
+            .meta
+            .logs
+            .iter()
+            .any(|line| line.contains("already in use")),
+        "expected already-in-use, got:\n{}",
+        intended_open.meta.logs.join("\n")
+    );
+
+    let (deposit_ix, vault, vault_token) = deposit_instruction(
+        depositor.pubkey(),
+        intended_authority.pubkey(),
+        beneficiary.pubkey(),
+        mint,
+        depositor_token,
+        DepositArgs {
+            kind: VaultKind::Beneficiary,
+            amount: BENEFICIARY_DEPOSIT,
+            annual_release_bps: ANNUAL_BPS,
+            cliff_seconds: MIN_CLIFF_SECONDS,
+        },
+    );
+    assert_failed_with(
+        send(deposit_ix, &[&depositor, &intended_authority], &mut svm),
+        "WrongPolicyAuthority",
+    );
+    assert!(svm.get_account(&vault).is_none());
+    assert!(svm.get_account(&vault_token).is_none());
+    assert_eq!(
+        PolicyWindow::try_deserialize(&mut svm.get_account(&policy_pda()).unwrap().data.as_slice())
+            .unwrap()
+            .vault_count,
+        0
+    );
+
+    // Capture is complete: the squatter can attach a vault, the publisher cannot.
+    let (attacker_deposit, captured_vault, _) = deposit_instruction(
+        depositor.pubkey(),
+        attacker.pubkey(),
+        beneficiary.pubkey(),
+        mint,
+        depositor_token,
+        DepositArgs {
+            kind: VaultKind::Beneficiary,
+            amount: BENEFICIARY_DEPOSIT,
+            annual_release_bps: ANNUAL_BPS,
+            cliff_seconds: MIN_CLIFF_SECONDS,
+        },
+    );
+    send(attacker_deposit, &[&depositor, &attacker], &mut svm).unwrap();
+    assert!(svm.get_account(&captured_vault).is_some());
+}
+
+#[test]
+fn probe_b_b2_retained_freeze_authority_permanently_locks_both_vaults() {
+    // K4V-03: open_policy and deposit accept a mint that still has a freeze
+    // authority. After FreezeAccount, both release paths fail and B2 has no
+    // thaw, close or migrate instruction.
+    let freezer = Keypair::new();
+    let mut fixture = setup_with_freeze_authority(freezer.pubkey());
+    fixture
+        .svm
+        .airdrop(&freezer.pubkey(), 10_000_000_000)
+        .unwrap();
+
+    let period = first_joint_period();
+    let destination = fixture.contractor_token;
+    let cliff_end = read_vault(&fixture, fixture.beneficiary_vault).cliff_end_ts;
+    approve_and_advance(cliff_end, period, PURPOSE_CAP, destination, &mut fixture);
+    refresh_market(&mut fixture);
+
+    freeze_token(
+        &mut fixture.svm,
+        fixture.beneficiary_vault_token,
+        fixture.mint,
+        &freezer,
+    );
+    freeze_token(
+        &mut fixture.svm,
+        fixture.purpose_vault_token,
+        fixture.mint,
+        &freezer,
+    );
+
+    let thaw_by_beneficiary = token_instruction::thaw_account(
+        &TOKEN_PROGRAM_ID,
+        &fixture.beneficiary_vault_token,
+        &fixture.mint,
+        &fixture.beneficiary.pubkey(),
+        &[],
+    )
+    .unwrap();
+    assert!(
+        send(
+            thaw_by_beneficiary,
+            &[&fixture.beneficiary.insecure_clone()],
+            &mut fixture.svm,
+        )
+        .is_err(),
+        "only the freeze authority can thaw; the vault signer cannot"
+    );
+
+    logs_show_frozen(send(
+        release_beneficiary_instruction(&fixture, BENEFICIARY_CAP),
+        &[&fixture.beneficiary.insecure_clone()],
+        &mut fixture.svm,
+    ));
+    logs_show_frozen(send(
+        release_purpose_instruction(&fixture, destination, period, PURPOSE_CAP),
+        &[&fixture.approver.insecure_clone()],
+        &mut fixture.svm,
+    ));
+
+    assert_eq!(token_balance(&fixture.svm, fixture.beneficiary_token), 0);
+    assert_eq!(token_balance(&fixture.svm, destination), 0);
+    assert_eq!(
+        token_balance(&fixture.svm, fixture.beneficiary_vault_token),
+        BENEFICIARY_DEPOSIT
+    );
+    assert_eq!(
+        token_balance(&fixture.svm, fixture.purpose_vault_token),
+        PURPOSE_DEPOSIT
+    );
+}
+
+fn preapprove_purpose_periods(fixture: &mut Fixture, start_period: u64, count: u64) {
+    let destination = fixture.contractor_token;
+    let approver = fixture.approver.insecure_clone();
+    // Write at the start of the previous period so each approval has a full
+    // 30-day notice by the time its named period opens.
+    set_time(
+        period_start(fixture, start_period) - PERIOD_SECONDS,
+        fixture,
+    );
+    for period in start_period..start_period + count {
+        send(
+            approve_instruction(
+                approver.pubkey(),
+                fixture.mint,
+                fixture.purpose_vault,
+                destination,
+                period,
+                PURPOSE_CAP,
+            ),
+            &[&approver],
+            &mut fixture.svm,
+        )
+        .expect("a future-period approval must be recorded");
+    }
+}
+
+#[test]
+fn probe_c_purpose_first_multi_period_shared_window_starvation() {
+    // K4V-04 complete starvation: when hard_ceiling equals the purpose cap,
+    // a purpose-first co-tenant consumes the entire shared window every
+    // period. Unused beneficiary capacity expires; there is no reservation.
+    let mut fixture = setup_with(PolicyConfig {
+        hard_ceiling: PURPOSE_CAP,
+        ..PolicyConfig::default()
+    });
+    let start_period = first_joint_period();
+    let destination = fixture.contractor_token;
+    preapprove_purpose_periods(&mut fixture, start_period, 6);
+
+    for period in start_period..start_period + 6 {
+        set_time(period_start(&fixture, period), &mut fixture);
+        refresh_market(&mut fixture);
+
+        send(
+            release_purpose_instruction(&fixture, destination, period, PURPOSE_CAP),
+            &[&fixture.approver.insecure_clone()],
+            &mut fixture.svm,
+        )
+        .expect("purpose-first must consume the whole ceiling");
+        assert_eq!(read_policy(&fixture).released_this_period, PURPOSE_CAP);
+
+        assert_failed_with(
+            send(
+                release_beneficiary_instruction(&fixture, 1),
+                &[&fixture.beneficiary.insecure_clone()],
+                &mut fixture.svm,
+            ),
+            "AggregateCapacityExceeded",
+        );
+        assert_failed_with(
+            send(
+                release_beneficiary_instruction(&fixture, BENEFICIARY_CAP),
+                &[&fixture.beneficiary.insecure_clone()],
+                &mut fixture.svm,
+            ),
+            "AggregateCapacityExceeded",
+        );
+    }
+
+    assert_eq!(
+        read_vault(&fixture, fixture.beneficiary_vault).released_total,
+        0
+    );
+    assert_eq!(token_balance(&fixture.svm, fixture.beneficiary_token), 0);
+    assert_eq!(
+        read_vault(&fixture, fixture.purpose_vault).released_total,
+        6 * PURPOSE_CAP
+    );
+    assert_eq!(token_balance(&fixture.svm, destination), 6 * PURPOSE_CAP);
+}
+
+#[test]
+fn probe_c_devnet_parameters_shared_window_squeeze_starves_beneficiary() {
+    // Published devnet numbers do not zero the beneficiary. Purpose-first
+    // leaves DEVNET_SQUEEZE_HEADROOM of BENEFICIARY_CAP each period, so six
+    // months transfer 2_500_002 instead of 7_500_000. Complete starvation is
+    // the previous test, where hard_ceiling equals the purpose cap.
+    let mut fixture = setup_with(PolicyConfig {
+        hard_ceiling: DEVNET_HARD_CEILING,
+        ..PolicyConfig::default()
+    });
+    let start_period = first_joint_period();
+    let destination = fixture.contractor_token;
+    preapprove_purpose_periods(&mut fixture, start_period, 6);
+
+    for period in start_period..start_period + 6 {
+        set_time(period_start(&fixture, period), &mut fixture);
+        refresh_market(&mut fixture);
+
+        send(
+            release_purpose_instruction(&fixture, destination, period, PURPOSE_CAP),
+            &[&fixture.approver.insecure_clone()],
+            &mut fixture.svm,
+        )
+        .unwrap();
+
+        assert_failed_with(
+            send(
+                release_beneficiary_instruction(&fixture, BENEFICIARY_CAP),
+                &[&fixture.beneficiary.insecure_clone()],
+                &mut fixture.svm,
+            ),
+            "AggregateCapacityExceeded",
+        );
+        assert_failed_with(
+            send(
+                release_beneficiary_instruction(&fixture, DEVNET_SQUEEZE_HEADROOM + 1),
+                &[&fixture.beneficiary.insecure_clone()],
+                &mut fixture.svm,
+            ),
+            "AggregateCapacityExceeded",
+        );
+        send(
+            release_beneficiary_instruction(&fixture, DEVNET_SQUEEZE_HEADROOM),
+            &[&fixture.beneficiary.insecure_clone()],
+            &mut fixture.svm,
+        )
+        .unwrap();
+    }
+
+    assert_eq!(
+        read_vault(&fixture, fixture.beneficiary_vault).released_total,
+        6 * DEVNET_SQUEEZE_HEADROOM
+    );
+    assert_eq!(
+        token_balance(&fixture.svm, fixture.beneficiary_token),
+        6 * DEVNET_SQUEEZE_HEADROOM
+    );
+    assert_eq!(
+        read_vault(&fixture, fixture.purpose_vault).released_total,
+        6 * PURPOSE_CAP
+    );
 }

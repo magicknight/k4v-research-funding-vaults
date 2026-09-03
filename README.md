@@ -19,12 +19,13 @@ issuer/legal readiness, LP behavior or mainnet authorization.
 
 ## What is established
 
-- The compiled B1 program passes five LiteSVM integration tests covering
+- The compiled B1 program passes seven LiteSVM integration tests covering
   deposit custody, cliff rejection, exact-cap/cap-plus-one behavior, genuine
-  no-carry behavior, and beneficiary-owned destinations.
+  no-carry behavior, beneficiary-owned destinations, permissionless dust
+  squatting of the vault PDA, and freeze-authority lockup of a funded vault.
 - Rust unit tests cover the exact two-floor rate formula, period boundaries,
   and a cross-language PDA vector.
-- The Python layer passes 30 deterministic tests; an additional opt-in live
+- The Python layer passes 41 deterministic tests; an additional opt-in live
   Surfpool test exercises the actual JSON-RPC boundary.
 - An opt-in loopback-only Surfpool probe simulates and sends signed setup,
   deposit, and capped-release transactions with in-memory signers, observes
@@ -68,14 +69,16 @@ issuer/legal readiness, LP behavior or mainnet authorization.
   with the aggregate rule B1 structurally cannot express. One `PolicyWindow` is
   debited by every vault bound to a policy, so two vaults that are each inside
   their own monthly cap are still refused when they jointly exceed the
-  market-capacity ceiling. Thirty-four LiteSVM tests against the compiled SBF
+  market-capacity ceiling. Thirty-eight LiteSVM tests against the compiled SBF
   cover the approved need, the 30-day notice, approver recusal, oracle
   staleness, zero eligible volume, non-carrying capacity in both counters, an
-  attempt to attach a foreign vault to someone else's capacity window, and the
-  ceiling, rotation and floor below. Sixteen Rust unit tests and ten Python
-  tests pin the same integers on both sides of the language boundary. The local
-  implementation is the exact artifact later deployed and driven on devnet;
-  see [PURPOSE_VAULT_B2.md](spec/PURPOSE_VAULT_B2.md).
+  attempt to attach a foreign vault to someone else's capacity window, the
+  ceiling, rotation and floor below, plus the 2026-09-03 probes for policy-hash
+  squatting, freeze-authority lockup and purpose-first shared-window
+  starvation. Sixteen Rust unit tests and ten Python tests pin the same
+  integers on both sides of the language boundary. The local implementation is
+  the exact artifact later deployed and driven on devnet; see
+  [PURPOSE_VAULT_B2.md](spec/PURPOSE_VAULT_B2.md).
 - **R3 passes as local full-scale integration.** Signed System/SPL transactions
   create one 9-decimal mint with `1e18` raw supply and four independent
   allocations of `3e17`, `5e17`, `1.2e17` and `8e16`; both mint authorities are
@@ -87,6 +90,16 @@ issuer/legal readiness, LP behavior or mainnet authorization.
   evidence, not independent review or production authorization; see
   [FULL_SCALE_ONE_MINT_R3.md](spec/FULL_SCALE_ONE_MINT_R3.md) and
   `evidence/R3_FULL_SCALE_LOCAL_VALIDATION_2026-08-28.json`.
+- **K4V-01..04 are confirmed on the current bytes and are not repaired.** A
+  stranger can open a published B2 `policy_hash` and freeze a hostile
+  authority/oracle/ceiling; a stranger can occupy a B1 vault PDA with 240
+  base units; a retained freeze authority can `FreezeAccount` funded B1 and
+  B2 vault tokens, after which no program instruction recovers; a
+  purpose-first co-tenant can zero the beneficiary for six periods when
+  `hard_ceiling` equals the purpose cap, and under the published devnet
+  ceiling leaves `416,667` of `1,250,000`. See
+  `evidence/K4V_ADVERSARIAL_PROBES_2026-09-03.json`. These are Founder design
+  decisions, not silent patches. The SBF hashes are unchanged.
 - **A compromised oracle cannot lift a release past the frozen schedule.** An
   inflated volume report widens the shared window until the aggregate rule stops
   binding, and that is all it can do: the per-vault caps, the cliff, the
@@ -420,9 +433,9 @@ tools only and must never receive production keys. See
 
 ## Frontier map
 
-- **Champion:** turn the passing R3 integration into a one-command clean-room
-  bundle, obtain an unrelated transcript, and procure an independent security
-  preflight.
+- **Champion:** decide K4V-01..06 from the confirmed probes, repair accepted
+  descendants without dropping the frozen SBF gate, then procure a named
+  human-accountable security review and re-test.
 - **Independent alternative:** freeze the current B1/B2 receipt and verifier
   interface as a narrower public-good package without claiming production
   oracle, governance or independent-review coverage.

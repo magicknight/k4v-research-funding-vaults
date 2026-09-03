@@ -232,6 +232,13 @@ That is the conservative direction of failure. The covenant permits an
 emergency power to pause but never to accelerate, and a recovery path that
 could restore releases would be an acceleration path wearing a different name.
 
+A live mint freeze authority can produce the same terminal state without
+losing the oracle. `open_policy` and `deposit` do not require
+`freeze_authority == None`. The 2026-09-03 probes froze both vault token
+accounts after deposit; both release paths then failed, and no B2 instruction
+thaws, closes or migrates. Whether that mint end-state must be enforced on
+chain is a Founder decision, not a property of the current bytes.
+
 ## Conflict of interest
 
 The covenant requires the founder to recuse when they are the payee. B2
@@ -296,6 +303,17 @@ a working answer.
   from it, is decided off chain. B2 receives one integer and does not know how
   it was assembled. Denominating that integer in base units removes the price
   from the aggregation but not the judgement.
+- `policy` and `market` PDAs are `[seed, policy_hash]` only. A published digest
+  can be opened by a stranger, who then freezes authority, oracle and ceiling.
+  `deposit` still requires the stored policy authority, so this is namespace
+  capture rather than theft of an already-funded vault. Binding the creator
+  into the namespace is a Founder decision.
+- The shared window is competitive. There is no per-vault reservation.
+  Purpose-first consumption can zero the beneficiary for every period when
+  `hard_ceiling <= purpose monthly_cap`, and under the published devnet
+  ceiling `2,500,000` it leaves `416,667` of the beneficiary's `1,250,000`.
+  Unused capacity expires. Whether that is accepted headroom or a defect to
+  repair is a Founder decision.
 - The approval authority in tests is a single key. Production requires a
   multisig, and no treasury signers exist yet. B2 builds the mechanism, not the
   governance.

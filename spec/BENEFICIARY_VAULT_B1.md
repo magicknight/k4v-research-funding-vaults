@@ -49,6 +49,12 @@ vault address to an externally published policy artifact. B1 checks the hash
 shape and freezes it; it does not decide whether the referenced prose is true
 or legally effective.
 
+The state PDA omits the depositor, and `deposit` is permissionless. Anyone who
+knows `(beneficiary, mint, policy_hash)` can occupy that address with dust —
+240 base units at 500 bps is enough for `monthly_cap = 1`. The independent
+verifier currently reports such a vault as `valid`. Binding the depositor or
+requiring the beneficiary to co-sign is a Founder decision.
+
 ## Instruction surface
 
 ### `deposit(amount, annual_release_bps, cliff_seconds, policy_hash)`
