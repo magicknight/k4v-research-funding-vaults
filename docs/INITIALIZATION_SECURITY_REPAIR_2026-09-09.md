@@ -1,6 +1,9 @@
 # Initialization security repair — 2026-09-09
 
-Status: IMPLEMENTED / VALIDATION_IN_PROGRESS / NOT_PUBLICLY_DEPLOYED.
+Status: IMPLEMENTED / LOCAL_VERIFICATION_PASS / NOT_PUBLICLY_DEPLOYED.
+
+Local evidence: [66 Rust/SBF tests, Python and client checks](../evidence/INITIALIZATION_REPAIR_LOCAL_VALIDATION_2026-09-09.json).
+The exact-head CI and merge result are recorded on [PR #15](https://github.com/magicknight/k4v-research-funding-vaults/pull/15); merge requires all seven jobs to pass.
 
 The Founder, currently the sole project owner, explicitly authorized website
 merge/deployment and vulnerability repair on 2026-09-09. That authorization

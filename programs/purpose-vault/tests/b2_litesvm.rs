@@ -1686,9 +1686,9 @@ fn a_stranger_cannot_attach_a_vault_to_someone_elses_capacity_window() {
         )
         .unwrap();
 
-    let (instruction, vault, vault_token) = deposit_instruction(
+    let (mut instruction, vault, vault_token) = deposit_instruction(
         stranger.pubkey(),
-        stranger.pubkey(),
+        fixture.policy_authority.pubkey(),
         stranger.pubkey(),
         fixture.mint,
         stranger_source,
@@ -1699,6 +1699,8 @@ fn a_stranger_cannot_attach_a_vault_to_someone_elses_capacity_window() {
             cliff_seconds: 0,
         },
     );
+    // Keep the victim policy and derived vault, while signing only as the stranger.
+    instruction.accounts[1].pubkey = stranger.pubkey();
     let outcome = send(instruction, &[&stranger], &mut fixture.svm);
     assert_failed_with(outcome, "WrongPolicyAuthority");
     assert!(fixture.svm.get_account(&vault).is_none());
