@@ -1,0 +1,68 @@
+{
+  "schema": "K4V-LAUNCH-V3-TEST-ONLY-v1",
+  "date": "2026-09-09",
+  "status": "TEST_ONLY",
+  "profile": "TEST_ONLY_RESERVED_CAPACITY_ANNUAL_INPUT_1",
+  "program_id": "AhTz3JFbaEvk1PMxEsmG89YiTZQJ4ALKoFc8vyr1Cf8m",
+  "program_id_kind": "deterministic_local_fixture_no_deployment_keypair",
+  "production_admission_approved": false,
+  "production_allocation_adopted": false,
+  "production_IRB_sources_verified": false,
+  "production_calendar_selected": false,
+  "public_chain_deployed": false,
+  "cliff_seconds": 15552000,
+  "period_seconds": 2592000,
+  "annual_epoch_count": 2,
+  "annual_epoch_bounds": "explicit_contiguous_period_ranges_TEST_ONLY",
+  "annual_rate_divisor": 12,
+  "annual_release_bps_ceiling": 500,
+  "profiles": {
+    "default": "OPEN_POLICY_REJECTED",
+    "test-profile": "RESERVED_QUOTAS_AND_FROZEN_ANNUAL_INPUTS"
+  },
+  "toolchain": {
+    "rust": "1.89.0",
+    "solana_cli": "3.1.10",
+    "sbf_tools": "v1.52",
+    "anchor": "1.1.2"
+  },
+  "artifacts": [
+    {
+      "path": "target/v3-disabled/launch_vault_v3.so",
+      "bytes": 355032,
+      "sha256": "db44b938c3dbc54a03ac77c1edaa51b96e48048b987e63d3c62cf215eb3e02af"
+    },
+    {
+      "path": "target/v3-test/launch_vault_v3.so",
+      "bytes": 366896,
+      "sha256": "14259f78d6b721a3e2c411ab6eb338229cbb03fedf383826804cef400846d902"
+    },
+    {
+      "path": "idl/launch_vault_v3.json",
+      "bytes": 16591,
+      "sha256": "797cf74417ab2483068b0302b4af51751e24f844766f34572176362cbd8e7c27"
+    },
+    {
+      "path": "spec/LAUNCH_V3_IDENTITY_VECTOR_v1.json",
+      "bytes": 2166,
+      "sha256": "1f51932705ce0d58c9c8e3272b5800482e08dbe5346b85ab2fed956a7d9bfc31"
+    },
+    {
+      "path": "examples/launch_v3_raw_snapshot.json",
+      "bytes": 5995,
+      "sha256": "d6b3f865e6aaa8cc609bcb9b7ec1ad046212f430eb868875f4f9a035d7d6425b"
+    }
+  ],
+  "open": [
+    "production_allocation_adoption",
+    "actual_IRB_sources_and_retrieval",
+    "year_start_basis_derivation",
+    "production_calendar_and_nonaligned_boundaries",
+    "later_year_update_authorization_and_notice",
+    "oracle_recovery",
+    "controller_recovery",
+    "production_upgrade_control",
+    "real_loader_and_authenticated_RPC_verifier",
+    "human_accountable_security_review"
+  ]
+}
