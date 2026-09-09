@@ -1,0 +1,98 @@
+{
+  "schema": "K4V-E08-LOCAL-VALIDATION-v1",
+  "date": "2026-09-09",
+  "base_commit": "bea6f054b092c833f1b6669a751dca0cbc6f251d",
+  "status": "PASS_LOCAL_TEST_ONLY",
+  "new_rpc_tests": 28,
+  "combined_v5_python_tests": 43,
+  "scoped_rust_checks": 58,
+  "v5_js_checks": 4,
+  "full_reproduction": "PASS_WITH_PREBUILT_PIN_VERIFIED_E07_SBF",
+  "local_native_rehearsal_freshly_executed": true,
+  "fresh_raw_rehearsal_independently_verified": true,
+  "loopback_http_checkpoints": 11,
+  "loopback_http_read_only_requests": 55,
+  "exported_accounts_per_checkpoint": [
+    17,
+    21,
+    21,
+    21,
+    21,
+    21,
+    21,
+    23,
+    24,
+    24,
+    24
+  ],
+  "final_accounts_raw_bytes_and_lamports_match_signed_fixture": true,
+  "transport_scope": "REAL_LOOPBACK_HTTP_OF_RECORDED_LOCAL_RUNTIME_BYTES_NOT_VALIDATOR_RPC",
+  "e07_source_abi_identity_rehearsal_and_program_pins_preserved": true,
+  "public_rpc_requests": 0,
+  "public_chain_transactions": 0,
+  "outreach_messages_sent": 0,
+  "website_changed": false,
+  "live_v5_public_deployment_verified": false,
+  "human_accountable_audit": false,
+  "production_rights_adopted": false,
+  "production_ready": false,
+  "known_next_issue": "Exact-clock proposal submission reliability: E-09",
+  "files": {
+    "src/launch_v5_rpc_exporter.py": {
+      "sha256": "9b715b77043ca0362ff92e7b5206d995ed6825fc68c279e93e4aedb4fa3a03b6",
+      "bytes": 13902
+    },
+    "tools/e08_recorded_rpc.py": {
+      "sha256": "398fd16530c09a699e5488001a2593a99a321cf829855856db56791072b52afa",
+      "bytes": 5467
+    },
+    "tools/verify_e08_review_scope.py": {
+      "sha256": "4de24fcf492245513cd97095c03751a78815de2b251d0010e3f4b512265bf2a4",
+      "bytes": 1028
+    },
+    "tools/run_e08_local_reproduction.sh": {
+      "sha256": "8a2def910601a4c79069fa60475b8850df6893eae05c6d7b90e0dce043962be9",
+      "bytes": 624
+    },
+    "tests/test_launch_v5_rpc_exporter.py": {
+      "sha256": "adc503ace0c8bec532ffc5ba9a69a32e00e695e3c2d2613876dbe608dfac56fa",
+      "bytes": 19675
+    },
+    "examples/e08_LOCAL_REPLAY_ONLY_manifest.json": {
+      "sha256": "bd4d1794e23152e36017e97f83c453b0adfc4a8b47eb9bc9e93c5b22f4049c96",
+      "bytes": 1121
+    },
+    "docs/E08_V5_READ_ONLY_AND_REVIEW.md": {
+      "sha256": "52a91bc4bf14411955844b86485bd3e72a9bc699dece6810dc38429d8fa32160",
+      "bytes": 8746
+    },
+    "reviews/e08/REVIEW_REPORT_TEMPLATE.md": {
+      "sha256": "fc244d250983d3e312c41bff121a09704ec2e621935b82244895a50a5097eada",
+      "bytes": 2584
+    },
+    ".github/workflows/launch-v5-rpc.yml": {
+      "sha256": "60495651c57b315537e4deee9be9e7d98bdc9e25083b8e88cb77287ce3d2ee29",
+      "bytes": 482
+    },
+    "src/beneficiary_vault_verifier.py": {
+      "sha256": "fcb41f89810d33bea4bfed6845bfbecc255acbf072ba660fbec4b93a27a71ada",
+      "bytes": 11567
+    },
+    "src/e05_verifier.py": {
+      "sha256": "2d8a50a70bf19c5a66cf68e369c77c0a9fa690329e4ae9a2212fecd10fd1b16a",
+      "bytes": 12559
+    },
+    "src/launch_v4_verifier.py": {
+      "sha256": "bf2ebed13fab158460a5d66186d696190b71d0a5dac59a707f625be1a77056e0",
+      "bytes": 20791
+    },
+    "spec/E08_REVIEW_SCOPE_v1.json": {
+      "sha256": "2f1c3567e282ef0b0fe0ed20751d9cda1465a335e7fa2d7ebfeb0060b0f9ead0",
+      "bytes": 8725
+    },
+    "evidence/E08_LOOPBACK_REPLAY_2026-09-09.json": {
+      "sha256": "635361595095bea5fb45aae93fc0777a72edd404b3976192f160fb58d00f6b1d",
+      "bytes": 11913
+    }
+  }
+}

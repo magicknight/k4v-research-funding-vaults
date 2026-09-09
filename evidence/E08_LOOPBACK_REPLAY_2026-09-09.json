@@ -1,0 +1,444 @@
+{
+  "schema": "K4V-E08-LOOPBACK-REPLAY-v1",
+  "valid": true,
+  "scope": "LOCAL_HTTP_REPLAY_OF_SIGNED_E07_FIXTURES",
+  "checkpoints": 11,
+  "rpc_requests": 55,
+  "results": [
+    {
+      "label": "partial_before",
+      "accounts": 17,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "epoch": "0",
+            "sequence": "0",
+            "paused": false
+          },
+          {
+            "current": "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "epoch": "0",
+            "sequence": "0",
+            "paused": false
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564"
+          ]
+        ],
+        "proposals_verified": "0",
+        "key_indexes_verified": "1",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "900000000000000",
+        "150000000000000"
+      ]
+    },
+    {
+      "label": "recovery_pending",
+      "accounts": 21,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "epoch": "0",
+            "sequence": "1",
+            "paused": true
+          },
+          {
+            "current": "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "epoch": "0",
+            "sequence": "1",
+            "paused": true
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564"
+          ]
+        ],
+        "proposals_verified": "2",
+        "key_indexes_verified": "3",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "0",
+        "0"
+      ]
+    },
+    {
+      "label": "notice_minus_one",
+      "accounts": 21,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "epoch": "0",
+            "sequence": "1",
+            "paused": true
+          },
+          {
+            "current": "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "epoch": "0",
+            "sequence": "1",
+            "paused": true
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564"
+          ]
+        ],
+        "proposals_verified": "2",
+        "key_indexes_verified": "3",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "0",
+        "0"
+      ]
+    },
+    {
+      "label": "before_execute",
+      "accounts": 21,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "epoch": "0",
+            "sequence": "1",
+            "paused": true
+          },
+          {
+            "current": "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "epoch": "0",
+            "sequence": "1",
+            "paused": true
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564"
+          ]
+        ],
+        "proposals_verified": "2",
+        "key_indexes_verified": "3",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "0",
+        "0"
+      ]
+    },
+    {
+      "label": "after_founder",
+      "accounts": 21,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6",
+            "epoch": "1",
+            "sequence": "1",
+            "paused": false
+          },
+          {
+            "current": "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "epoch": "0",
+            "sequence": "1",
+            "paused": true
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564"
+          ]
+        ],
+        "proposals_verified": "2",
+        "key_indexes_verified": "3",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "1000000000000000",
+        "0"
+      ]
+    },
+    {
+      "label": "after_treasury",
+      "accounts": 21,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6",
+            "epoch": "1",
+            "sequence": "1",
+            "paused": false
+          },
+          {
+            "current": "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC",
+            "epoch": "1",
+            "sequence": "1",
+            "paused": false
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC"
+          ]
+        ],
+        "proposals_verified": "2",
+        "key_indexes_verified": "3",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "1000000000000000",
+        "300000000000000"
+      ]
+    },
+    {
+      "label": "continued_period_9",
+      "accounts": 21,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6",
+            "epoch": "1",
+            "sequence": "1",
+            "paused": false
+          },
+          {
+            "current": "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC",
+            "epoch": "1",
+            "sequence": "1",
+            "paused": false
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC"
+          ]
+        ],
+        "proposals_verified": "2",
+        "key_indexes_verified": "3",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "900000000000000",
+        "150000000000000"
+      ]
+    },
+    {
+      "label": "normal_cancelled",
+      "accounts": 23,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6",
+            "epoch": "1",
+            "sequence": "2",
+            "paused": false
+          },
+          {
+            "current": "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC",
+            "epoch": "1",
+            "sequence": "1",
+            "paused": false
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC"
+          ]
+        ],
+        "proposals_verified": "3",
+        "key_indexes_verified": "4",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "900000000000000",
+        "150000000000000"
+      ]
+    },
+    {
+      "label": "normal_pending_expiry",
+      "accounts": 24,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6",
+            "epoch": "1",
+            "sequence": "3",
+            "paused": true
+          },
+          {
+            "current": "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC",
+            "epoch": "1",
+            "sequence": "1",
+            "paused": false
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC"
+          ]
+        ],
+        "proposals_verified": "4",
+        "key_indexes_verified": "4",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "0",
+        "150000000000000"
+      ]
+    },
+    {
+      "label": "expired",
+      "accounts": 24,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6",
+            "epoch": "1",
+            "sequence": "3",
+            "paused": false
+          },
+          {
+            "current": "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC",
+            "epoch": "1",
+            "sequence": "1",
+            "paused": false
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC"
+          ]
+        ],
+        "proposals_verified": "4",
+        "key_indexes_verified": "4",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "0",
+        "0"
+      ]
+    },
+    {
+      "label": "continued_year_two",
+      "accounts": 24,
+      "requests": 5,
+      "raw_bytes_match_signed_fixture": true,
+      "withdrawal": {
+        "roles": [
+          {
+            "current": "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6",
+            "epoch": "1",
+            "sequence": "3",
+            "paused": false
+          },
+          {
+            "current": "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC",
+            "epoch": "1",
+            "sequence": "1",
+            "paused": false
+          }
+        ],
+        "history": [
+          [
+            "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+            "5bmTgP2SdtGgctUPak8Yq8hRLwEaQmtTXd1LcoV5JdQ6"
+          ],
+          [
+            "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+            "EqYKETHkpALdFZD7Pz8K8FfeFGUmzjFpo5zpNjF4JqUC"
+          ]
+        ],
+        "proposals_verified": "4",
+        "key_indexes_verified": "4",
+        "approvals_verified": "3",
+        "related_party_human_identity_verified": false
+      },
+      "ceilings": [
+        "900000000000000",
+        "150000000000000"
+      ]
+    }
+  ],
+  "public_rpc_requests": 0,
+  "public_chain_transactions": 0,
+  "live_public_deployment_verified": false,
+  "independent_human_audit": false
+}
