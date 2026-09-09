@@ -6,11 +6,18 @@ only a disclosed possible case study.
 
 ## Frontier state
 
-E-03 now has a [reserved-capacity/annual-input local candidate](LAUNCH_V3_RESERVED_CAPACITY_CANDIDATE.md)
-and an independent verifier for its declared raw-account graph. Same-period
-treasury-first starvation is rejected in v3; production adoption, live annual
-inputs, E-04 recovery/upgrade controls and E-05 real-loader/RPC integration with
-accountable review remain open. Earlier v2 receipts describe that older profile.
+E-04 now has a [key-recovery and external upgrade-delay local candidate](LAUNCH_V4_RECOVERY_AND_UPGRADE_CANDIDATE.md).
+Normal/backup key changes preserve accounting, epochs reject old reports, and
+an immutable external gate enforces exact-buffer 90-day upgrades through actual
+local loader transactions. These are TEST_ONLY choices, not production rights.
+Controller recovery does not recover lost beneficiary withdrawal keys; the
+upgrade committee itself has no route after losing two keys. E-05 independent
+v4 governance/loader RPC verification and accountable review are next.
+
+Earlier E-03: the [reserved-capacity/annual-input candidate](LAUNCH_V3_RESERVED_CAPACITY_CANDIDATE.md)
+has an independent verifier for its declared raw-account graph. Its source and
+artifact bindings remain frozen. Production allocation adoption and live annual
+inputs remain open. Earlier receipts describe their own historical profiles.
 
 Earlier E-01/E-02 tranche: [Launch v2 T0/180-day candidate](LAUNCH_V2_T0_180D_CANDIDATE.md)
 adds an isolated local lifecycle, two role-bound pools and safe cancelled-policy

@@ -1,0 +1,93 @@
+{
+  "schema": "K4V-E04-TEST-ONLY-v1",
+  "date": "2026-09-09",
+  "status": "TEST_ONLY",
+  "vault_program_id": "5h5iUez8fpHThaQhDdyUSQab9ngRmG2zfMBNx5bGnB9Q",
+  "gate_program_id": "5JVsAM5AnTBdeHsGjC78hcrrv9KfLKVgCNN4RzBiWjmA",
+  "program_id_kind": "explicit_public_test_seed_keypairs_for_local_loader_reproduction",
+  "production_admission_approved": false,
+  "public_chain_deployed": false,
+  "official_mint": null,
+  "profiles": {
+    "default": "INITIALIZE_POLICY_AND_GATE_REJECTED",
+    "test-profile": "E04_FIXED_RECOVERY_AND_EXTERNAL_DELAY_TEST_ONLY"
+  },
+  "cliff_seconds": 15552000,
+  "period_seconds": 2592000,
+  "key_change_notice_seconds": 7776000,
+  "upgrade_notice_seconds": 7776000,
+  "recovery_threshold": 2,
+  "recovery_member_count": 3,
+  "upgrade_threshold": 2,
+  "upgrade_member_count": 3,
+  "gate_itself_required_immutable": true,
+  "target_upgrade_authority": "external_gate_PDA_with_no_transfer_endpoint",
+  "controller_recovery_changes_beneficiary_keys": false,
+  "emergency_bypass": false,
+  "report_sequence_resets_on_rotation": false,
+  "toolchain": {
+    "rust": "1.89.0",
+    "solana_cli": "3.1.10",
+    "sbf_tools": "v1.52",
+    "anchor": "1.1.2",
+    "loader_interface": "6.1.1"
+  },
+  "artifacts": [
+    {
+      "path": "target/v4-disabled/launch_vault_v4.so",
+      "bytes": 408568,
+      "sha256": "54accf5620943fdd75cff13679d9e2e5a83fc37093e9c898e2e09d3fe44d5b9c"
+    },
+    {
+      "path": "target/v4-test/launch_vault_v4.so",
+      "bytes": 423448,
+      "sha256": "f1f7929478f4d8d51ab46398f79a352c99699c38afb905d3d4589d0522355d43"
+    },
+    {
+      "path": "target/gate-disabled/upgrade_gate_v1.so",
+      "bytes": 269608,
+      "sha256": "64fac18aa585abb1019362315c7ecbbead8b11abe1752f4ead66389c246e8eca"
+    },
+    {
+      "path": "target/gate-test/upgrade_gate_v1.so",
+      "bytes": 276136,
+      "sha256": "76c094b8ecac318fca485a4e70fb1c6d3a8754c7938123e5432314b6d07aed30"
+    },
+    {
+      "path": "idl/launch_vault_v4.json",
+      "bytes": 21409,
+      "sha256": "d4d6c8be54177b1cd9bd3ea526bc21e0d7937fc02c12a3fe6bc7231ec91cd6b3"
+    },
+    {
+      "path": "idl/upgrade_gate_v1.json",
+      "bytes": 7139,
+      "sha256": "e2abe9768014e000c9da89841e28b09799fb7137193c96328559bfc7e5db20e0"
+    },
+    {
+      "path": "spec/LAUNCH_V4_IDENTITY_VECTOR_v1.json",
+      "bytes": 2657,
+      "sha256": "21b95153ba72a2826a9a122648ce12d4776b74e64bab0c5b4f5e3983e9b3777a"
+    },
+    {
+      "path": "examples/launch_v4_raw_snapshot.json",
+      "bytes": 6413,
+      "sha256": "7d6b59177f0f17ec4a57b5b0178e18d3093b51b3c73ae2e9c16e9db4a05f0bfb"
+    },
+    {
+      "path": "evidence/UPGRADE_GATE_LOCAL_REAL_LOADER_2026-09-09.json",
+      "bytes": 2026,
+      "sha256": "f935eb29642434881c44ce2392099c55a11fc33b480589aa263e1b7035d2ba05"
+    }
+  ],
+  "open": [
+    "production_recovery_and_upgrade_adoption",
+    "actual_recovery_committee_custody_and_independence",
+    "beneficiary_withdrawal_key_custody_and_recovery",
+    "upgrade_committee_losing_two_keys",
+    "actual_IRB_sources_basis_calendar_and_later_year_governance",
+    "independent_v4_governance_and_loader_RPC_verifier",
+    "whole_system_upgrade_semantic_compatibility_review",
+    "human_accountable_security_review",
+    "final_production_config_and_exact_T0"
+  ]
+}
