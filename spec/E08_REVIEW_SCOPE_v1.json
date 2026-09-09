@@ -1,0 +1,232 @@
+{
+  "schema": "K4V-E08-REVIEW-SCOPE-v1",
+  "date": "2026-09-09",
+  "status": "AUTHOR_RUN_ENGINEERING_ACCEPTANCE_HUMAN_REVIEW_OPEN",
+  "e07_candidate_commit": "bea6f054b092c833f1b6669a751dca0cbc6f251d",
+  "e07_candidate_tree": "fa81b78e8a7fcd0ca982d05cbd59206b05304638",
+  "e08_exact_commit_and_tree": "REVIEWER_RECORDS_ACTUAL_CHECKOUT_IN_REPORT",
+  "program_source_unchanged": true,
+  "preserved_e07_files": {
+    "programs/launch-vault-v5/Cargo.toml": {
+      "sha256": "3d85f9c4315be9232c6178f3fbbde92d4be9f4c7c095febb66303b0cf364fd89",
+      "bytes": 1271
+    },
+    "programs/launch-vault-v5/src/capacity.rs": {
+      "sha256": "101c95d32ff1a41a43b2e32ffe0d952272859886fbe1ad6a4eb2b73defa3190f",
+      "bytes": 7460
+    },
+    "programs/launch-vault-v5/src/contexts.rs": {
+      "sha256": "f87dc799ae8334e4149cd5295c199337d46131329479067be21c73c3318f1cd8",
+      "bytes": 11109
+    },
+    "programs/launch-vault-v5/src/governance.rs": {
+      "sha256": "0272a71820d3d1aa7f022c9262e03598c96d519ebdbbedea40d997174abf3e86",
+      "bytes": 4362
+    },
+    "programs/launch-vault-v5/src/lib.rs": {
+      "sha256": "a34438507f57422912609364100160a75170cb923c55020335bf69d1eec924bc",
+      "bytes": 18369
+    },
+    "programs/launch-vault-v5/src/state.rs": {
+      "sha256": "757abbc0a70ce4a4e69588886e30935b76e72c3a23e38e346caaa41beb1805d3",
+      "bytes": 10122
+    },
+    "programs/launch-vault-v5/src/withdrawal.rs": {
+      "sha256": "5517141fc8537499576b6f57f677ea7c9ef3c69e1d8b33e64cbecf92af6b06d2",
+      "bytes": 6027
+    },
+    "programs/launch-vault-v5/tests/abi.rs": {
+      "sha256": "052afe75a7b81d50d1c2ee376315e6c9d0fdb0aca90e51439456f02f0399520c",
+      "bytes": 6794
+    },
+    "programs/launch-vault-v5/tests/launch_litesvm.rs": {
+      "sha256": "a392adac0c5a51d4150ec3bfcbc5f5238791461e873d57748f81194ccade2c67",
+      "bytes": 61594
+    },
+    "programs/launch-vault-v5/tests/support/e07.rs": {
+      "sha256": "db0a82dedd69e82e2ce7c5e0c8b6e8861d5f92a0ecd478651ddee7180401ef1f",
+      "bytes": 15220
+    },
+    "programs/launch-vault-v5/tests/support/withdrawal_tests.rs": {
+      "sha256": "4e5906cfe0a863300ca51c334132efb1129a0f00d515eccad6178c7f320406b5",
+      "bytes": 14193
+    },
+    "Cargo.lock": {
+      "sha256": "6afb68575a0366d534a1fcf2bf8935854911ebb884485193924f4b6dd0045f8b",
+      "bytes": 149849
+    },
+    "idl/launch_vault_v5.json": {
+      "sha256": "88271dfbc15d2e4f47908f46cf3be1577b9ec16b2608b0ee6068120e7d6db808",
+      "bytes": 29780
+    },
+    "probes/launch_v5_identity.mjs": {
+      "sha256": "cf86a2a42da4132c18e6aa961d3da25c743e514a14b2b37b4f8aa1d9407c9870",
+      "bytes": 3285
+    },
+    "probes/launch_v5_identity.test.mjs": {
+      "sha256": "24acf060ef74584804e2a9e0c91532bae2eaabf12b2bd1f6fe1cee00d57f3f8b",
+      "bytes": 3239
+    },
+    "spec/LAUNCH_V5_IDENTITY_VECTOR_v1.json": {
+      "sha256": "42fe922a2e9f45bc781158c89167a006fe550614fedd4bfce4e8b2c4115a5866",
+      "bytes": 3560
+    },
+    "spec/LAUNCH_V5_TEST_ONLY_CANDIDATE_v1.json": {
+      "sha256": "8511d84a9f99f8fd4d882fa1dad8ae282cc11fbf8b46745f6f13b8b90bedaf0f",
+      "bytes": 4631
+    },
+    "src/launch_v5_verifier.py": {
+      "sha256": "8cfcc2bae3c8061df06a825faa4824bb5359a450dff3ca0cc1122e4b4926ea1f",
+      "bytes": 28537
+    },
+    "src/e07_verifier.py": {
+      "sha256": "d50ebf7d91740b1ebbc69273611097d7186a41d15ac66cf56d03f58a0cb7d266",
+      "bytes": 6010
+    },
+    "tests/test_launch_v5_verifier.py": {
+      "sha256": "8545c5be0b228dd561f3159c99723687ca835d0dc04369fa4adc50f57f9cf600",
+      "bytes": 8990
+    },
+    "examples/e07_rehearsal_bundle.json": {
+      "sha256": "5bad925de9c78ae0c9093da4693930141a76de7a2c0b5bf4776dd27694753baf",
+      "bytes": 281205
+    },
+    "tools/build_launch_v5_idl.py": {
+      "sha256": "5a4e1f515d8e5c8733ff38a60f77e93467e8c83f74ee8d64bb9fd5fa6bc9a14b",
+      "bytes": 2613
+    },
+    "tools/pack_e07_rehearsal.py": {
+      "sha256": "b15457b6b261980c3a66a90579a6445e7a304e550afc38ede4ca9c3aae9c2fb8",
+      "bytes": 1024
+    },
+    "tools/verify_e07_artifacts.py": {
+      "sha256": "f32c353ee1da6da5a9af11d439821f5d8840fc81bf9beddd8a0516a2f9e28573",
+      "bytes": 870
+    },
+    "tools/run_e07_local_reproduction.sh": {
+      "sha256": "b09ea8fc6c05467069b06e008522e7cfb586e0e1b1a982bf66f7f0aaefbb774b",
+      "bytes": 2006
+    },
+    ".github/workflows/launch-v5.yml": {
+      "sha256": "cedf45b8b6062a6eb2fc5e15d1f0267129720c1c213cb02f10a9affe24e32aaf",
+      "bytes": 781
+    },
+    "docs/LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md": {
+      "sha256": "b29e2e73eb09c6ba58852db1fe3c6b1f15513f9a6473ce3d67867d878e0a1b71",
+      "bytes": 12372
+    }
+  },
+  "e08_review_inputs": {
+    "src/launch_v5_rpc_exporter.py": {
+      "sha256": "9b715b77043ca0362ff92e7b5206d995ed6825fc68c279e93e4aedb4fa3a03b6",
+      "bytes": 13902
+    },
+    "tools/e08_recorded_rpc.py": {
+      "sha256": "398fd16530c09a699e5488001a2593a99a321cf829855856db56791072b52afa",
+      "bytes": 5467
+    },
+    "tools/verify_e08_review_scope.py": {
+      "sha256": "4de24fcf492245513cd97095c03751a78815de2b251d0010e3f4b512265bf2a4",
+      "bytes": 1028
+    },
+    "tools/run_e08_local_reproduction.sh": {
+      "sha256": "8a2def910601a4c79069fa60475b8850df6893eae05c6d7b90e0dce043962be9",
+      "bytes": 624
+    },
+    "tests/test_launch_v5_rpc_exporter.py": {
+      "sha256": "adc503ace0c8bec532ffc5ba9a69a32e00e695e3c2d2613876dbe608dfac56fa",
+      "bytes": 19675
+    },
+    "examples/e08_LOCAL_REPLAY_ONLY_manifest.json": {
+      "sha256": "bd4d1794e23152e36017e97f83c453b0adfc4a8b47eb9bc9e93c5b22f4049c96",
+      "bytes": 1121
+    },
+    "docs/E08_V5_READ_ONLY_AND_REVIEW.md": {
+      "sha256": "52a91bc4bf14411955844b86485bd3e72a9bc699dece6810dc38429d8fa32160",
+      "bytes": 8746
+    },
+    "reviews/e08/REVIEW_REPORT_TEMPLATE.md": {
+      "sha256": "fc244d250983d3e312c41bff121a09704ec2e621935b82244895a50a5097eada",
+      "bytes": 2584
+    },
+    ".github/workflows/launch-v5-rpc.yml": {
+      "sha256": "60495651c57b315537e4deee9be9e7d98bdc9e25083b8e88cb77287ce3d2ee29",
+      "bytes": 482
+    },
+    "src/beneficiary_vault_verifier.py": {
+      "sha256": "fcb41f89810d33bea4bfed6845bfbecc255acbf072ba660fbec4b93a27a71ada",
+      "bytes": 11567
+    },
+    "src/e05_verifier.py": {
+      "sha256": "2d8a50a70bf19c5a66cf68e369c77c0a9fa690329e4ae9a2212fecd10fd1b16a",
+      "bytes": 12559
+    },
+    "src/launch_v4_verifier.py": {
+      "sha256": "bf2ebed13fab158460a5d66186d696190b71d0a5dac59a707f625be1a77056e0",
+      "bytes": 20791
+    }
+  },
+  "sbf_artifacts": [
+    {
+      "path": "target/v5-disabled/launch_vault_v5.so",
+      "sha256": "8c13d6304001820add80fa3059ec39b8baa4a98b0479e0db72dd9ebc6ec143cc",
+      "bytes": 509536
+    },
+    {
+      "path": "target/v5-test/launch_vault_v5.so",
+      "sha256": "1dca41034f873882c41cc3eaaecc5b0124ae497f3ae41263a50ffccf9d339f14",
+      "bytes": 528160
+    }
+  ],
+  "export_profile": {
+    "state": "ACTIVE_DUAL_POOL",
+    "depositor_count": 1,
+    "treasury_destinations": 1,
+    "founder_destinations_max": 8,
+    "retained_complete_token_graph_required": true,
+    "all_generic_and_role_proposals_required": true,
+    "all_approvals_including_future_required": true,
+    "approval_periods_provided_by_reviewer": true,
+    "all_needed_key_indexes_derived": true,
+    "final_response_max_accounts_including_keys_and_clock": 100,
+    "partial_export_or_chunking": false,
+    "account_read_passes": 3,
+    "genesis_reads": 2,
+    "commitment": "finalized",
+    "clock_slot_equals_context": true,
+    "discovery_state_changes": "FAIL_RESTART_REQUIRED",
+    "exact_initial_identity_required": true,
+    "exact_immutable_test_sbf_required": true
+  },
+  "acceptance": {
+    "new_rpc_tests": 28,
+    "existing_raw_v5_tests": 15,
+    "loopback_http_checkpoints": 11,
+    "loopback_http_requests": 55,
+    "all_exported_account_bytes_match_signed_fixture": true,
+    "real_validator_rpc_or_public_network_verified": false,
+    "transaction_history_or_signatures_authenticated": false,
+    "human_review": false,
+    "production_adoption": false
+  },
+  "reviewer": {
+    "name": null,
+    "organization": null,
+    "reviewed_commit": null,
+    "reviewed_tree": null,
+    "report": null,
+    "acceptance": null
+  },
+  "known_gaps": [
+    "exact_clock_proposal_submission_reliability",
+    "larger_than_100_consistent_export",
+    "other_lifecycle_or_external_token_graph_profiles",
+    "RPC_server_trust_and_no_transaction_authentication",
+    "human_independence_and_oracle_truth",
+    "production_rights_and_real_annual_inputs",
+    "external_accountable_review"
+  ],
+  "next": "E09_TEST_ONLY_submission_time_design_and_local_delayed_submission_validation",
+  "public_chain_transactions": 0,
+  "outreach_messages_sent": 0
+}

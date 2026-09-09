@@ -3,6 +3,13 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
+**Latest verification handoff:** [E-08 v5 read-only export and review](docs/E08_V5_READ_ONLY_AND_REVIEW.md)
+binds an explicit network and initial policy identity, derives complete proposal
+and key-index history, and verifies one final response containing every account.
+Twenty-eight new RPC tests and eleven loopback HTTP checkpoints pass. The exact
+E-07 SBF candidate is preserved. Public-v5 observation, reliable submission-time
+handling and named human review remain open.
+
 **Latest engineering candidate:** [E-07 v5 beneficiary withdrawal recovery](docs/LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md)
 enforces the E-06 role-authority model in isolated SBF. Signed local transactions
 recover both beneficiary keys, preserve approvals/custody, and continue releases

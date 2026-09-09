@@ -1,0 +1,26 @@
+{
+  "schema": "K4V-V5-RPC-REVIEW-MANIFEST-v1",
+  "expected": {
+    "genesis_hash": "11111111111111111111111111111111",
+    "program_id": "EUhWSZAfU8hDki7AXskYrwh8ErwXN8iqicaHTP7yQfYS",
+    "policy": "7X2koHcxskrgkErVKTZJwnyJ9F2VQXhKt8MCNMa7QqNb",
+    "identity_sha256": "fc9964d0881c221a0e408ea5173973ed66b2d9a1c5d29867fe2f54fd6c43fd28",
+    "spec_sha256": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+    "mint": "AqxwNwMnUTZ9VZaeu2LYW3vUfVASKizEzU54zfAfagqP",
+    "creator": "CzfisRhfM57GJqPUDf4bFgG6Y9Njdnnga6rYrDiXJZ6i",
+    "founder": "FTFg66p2SqCYNy8CkvYHZpHJH4wkrtWg59dksm9Wo1Gb",
+    "treasury": "AR8u66ZnQ3TepFvFtVCkE6RxkAiMsbdGmgEeWnkMC564",
+    "initial_oracle": "7nQx29DyuPKwK79uiM7ajgAZTRRW9HPrtVoMzmNcRogA"
+  },
+  "external_accounts": {
+    "founder_destination_0": "5QxST2SW4Fs9oKrHY7ZSDY3kR6XbuDsmNw3BseeGeF6A",
+    "founder_destination_1": "AZ5oo6G4LdRT2FcFeGF9PbQkwCPXKZNjFE1EXQRpfi7i",
+    "source": "AX8x88aWxF42WQzTLKpFLFXerECJ5VqPnqvsDyBQwnqK",
+    "treasury_destination": "2LvqqJubxpisNwMNAH5VYjgqTLnQFimt2j4z7bPANqqC"
+  },
+  "approval_periods": [
+    6,
+    9,
+    13
+  ]
+}

@@ -9,8 +9,11 @@ only a disclosed possible case study.
 E-07 now has an [isolated v5 withdrawal-recovery SBF candidate](LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md):
 58 scoped Rust checks, 15 new Python checks and 11 independently decoded signed
 local-rehearsal checkpoints. Stable identity, custody, consumed budgets and
-annual accounting survive both beneficiary recoveries. E-08 next adds read-only
-v5 account export/RPC boundary checks and updates the human-review handoff.
+annual accounting survive both beneficiary recoveries. [E-08](E08_V5_READ_ONLY_AND_REVIEW.md)
+now provides complete-history read-only v5 export with one final account response,
+28 new RPC tests, 11 loopback HTTP checkpoints and an exact-candidate human-review
+handoff. E-09 next addresses the exact-clock proposal API's submission-time
+reliability through bounded design and local delayed-submission tests.
 Production rights, actual public-v5 observation and v4 migration remain open.
 
 E-06 remains the frozen [authority design/model](E06_WITHDRAWAL_KEY_RECOVERY_DESIGN.md)
