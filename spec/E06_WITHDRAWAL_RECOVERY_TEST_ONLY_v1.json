@@ -1,0 +1,101 @@
+{
+  "schema": "K4V-E06-WITHDRAWAL-RECOVERY-TEST-ONLY-v1",
+  "date": "2026-09-09",
+  "status": "DESIGN_AND_EXECUTABLE_AUTHORITY_MODEL",
+  "base_commit": "e1546cee0d9997c53a1b6b70f495784b31ccdda6",
+  "production_adopted": false,
+  "on_chain_implementation": false,
+  "v4_withdrawal_recovery_supported": false,
+  "model": {
+    "roles": [
+      "founder",
+      "treasury"
+    ],
+    "registration": "both_initial_role_keys_sign_full_policy_commitment",
+    "recovery_quorum": 2,
+    "registered_keys_per_role": 3,
+    "successor_acceptance": true,
+    "notice_seconds": 7776000,
+    "execution_window_seconds": 2592000,
+    "pause": "affected_role_until_execute_cancel_or_expire",
+    "normal_cancel": "current_key_OR_successor_OR_role_quorum",
+    "recovery_cancel": "successor_OR_role_quorum",
+    "execution": "permissionless_at_notice_before_expiry",
+    "expiry": "permissionless_at_or_after_notice_plus_execution_window",
+    "reproposal": "fresh_nonce_and_full_notice",
+    "committee_rotation": false,
+    "recovery_of_recovery": false,
+    "controller_implicit_beneficiary_rights": false,
+    "treasury_approval": "preserve_exact_recipient_need_consumed_created_at_author_epoch",
+    "known_key_recipient_exclusion": "permanent_history_of_both_beneficiaries_guardians_and_pending_successors",
+    "unknown_alias_detection": false,
+    "financial_kernel_implemented_in_model": false,
+    "shared_operator_allowed_in_symbolic_model": true,
+    "shared_operator_account_identity_proven": false
+  },
+  "source_bindings": {
+    "src/withdrawal_recovery_model.py": {
+      "sha256": "a9dee7fe3ea773dc2b548da2af8751c2c6a72cfcedb33ddf9491bffb31dc040c",
+      "bytes": 8253
+    },
+    "tests/test_withdrawal_recovery_model.py": {
+      "sha256": "50ff8681f07869e78e2ea04f7346220201b73c52963fdbb56596ff7599be8135",
+      "bytes": 15145
+    },
+    "docs/E06_WITHDRAWAL_KEY_RECOVERY_DESIGN.md": {
+      "sha256": "29b36fd0e2d51ec22cba87a8d6d70ad174ec78fae17b68f3486f02ad1802f21e",
+      "bytes": 11874
+    }
+  },
+  "unchanged_program_sources": {
+    "programs/launch-vault-v4/src/capacity.rs": "39c9f83c788743f20a74df0a3b5539d05224b852e52abbc5fccd8234bf6f5411",
+    "programs/launch-vault-v4/src/contexts.rs": "02577776d794e5d14f63a97381fb3be1880a97cabe84cfcffc62cef841cf9826",
+    "programs/launch-vault-v4/src/governance.rs": "dbee95c065baed789fe3231a9cc238615028596d6b014025826b0e8e7c4a9ea1",
+    "programs/launch-vault-v4/src/lib.rs": "5bd2a08fcee7eed46bed6ae43f077a0faf3f522e2703aa13ed3be263963ac890",
+    "programs/launch-vault-v4/src/state.rs": "2b11ba6340afb5e5483e83c92c343030a248e5c62aaa181a3d48098f8a74ff57",
+    "programs/upgrade-gate-v1/src/contexts.rs": "dd0e8e7d17b0bc8eba9c6653782bb37dbe1e49952d0bead864afa77c3368e3e9",
+    "programs/upgrade-gate-v1/src/lib.rs": "e06cc08f495ab5d781d0891ad96a42fbe2bedddbb42b1e24e86262b7eac8ea41"
+  },
+  "unchanged_artifact_pins": [
+    {
+      "path": "target/v4-disabled/launch_vault_v4.so",
+      "bytes": 408568,
+      "sha256": "54accf5620943fdd75cff13679d9e2e5a83fc37093e9c898e2e09d3fe44d5b9c"
+    },
+    {
+      "path": "target/v4-test/launch_vault_v4.so",
+      "bytes": 423448,
+      "sha256": "f1f7929478f4d8d51ab46398f79a352c99699c38afb905d3d4589d0522355d43"
+    },
+    {
+      "path": "target/gate-disabled/upgrade_gate_v1.so",
+      "bytes": 269608,
+      "sha256": "64fac18aa585abb1019362315c7ecbbead8b11abe1752f4ead66389c246e8eca"
+    },
+    {
+      "path": "target/gate-test/upgrade_gate_v1.so",
+      "bytes": 276136,
+      "sha256": "76c094b8ecac318fca485a4e70fb1c6d3a8754c7938123e5432314b6d07aed30"
+    }
+  ],
+  "financial_witness": {
+    "source": "examples/e05_rehearsal_bundle.json",
+    "sha256": "04c4e142627f8f6669367584172451805128f5b88de576b98c9e98ac89c5f1b1",
+    "bytes": 593637,
+    "checkpoint": "annual_boundary",
+    "verified_by": "src/e05_verifier.py",
+    "treatment": "opaque byte-preserved witness; not E06 financial execution"
+  },
+  "not_claimed": [
+    "real_signature_verification",
+    "SBF_withdrawal_recovery",
+    "v4_account_migration",
+    "fund_transfer_or_financial_math_in_new_model",
+    "independent_human_audit",
+    "production_rights",
+    "independent_humans_behind_keys",
+    "related_party_identity_detection",
+    "official_mint_or_public_deployment"
+  ],
+  "next": "E-07 isolated default-disabled TEST_ONLY program, ABI, signed SBF financial integration and independent raw verification"
+}

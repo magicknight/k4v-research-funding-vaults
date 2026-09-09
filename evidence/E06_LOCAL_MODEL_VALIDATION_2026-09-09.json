@@ -1,0 +1,40 @@
+{
+  "schema": "K4V-E06-LOCAL-MODEL-VALIDATION-v1",
+  "date": "2026-09-09",
+  "status": "PASS_AUTHORITY_MODEL_ONLY",
+  "base_commit": "e1546cee0d9997c53a1b6b70f495784b31ccdda6",
+  "new_authority_tests": 22,
+  "exhaustive_signer_subsets": 128,
+  "accepted_signer_subsets": 32,
+  "full_python_passed": 97,
+  "full_python_opt_in_skipped": 1,
+  "local_SBF_tests_run_this_tranche": 0,
+  "program_sources_changed": false,
+  "program_artifact_pins_changed": false,
+  "opaque_e05_financial_witness_preserved": true,
+  "model_transfers_executed": 0,
+  "public_chain_transactions": 0,
+  "messages_sent": 0,
+  "website_changed": false,
+  "independent_human_acceptance": false,
+  "production_ready": false,
+  "v4_withdrawal_key_gap": "OPEN_UNTIL_NEW_SBF_IMPLEMENTATION_AND_VERIFICATION",
+  "files": {
+    "src/withdrawal_recovery_model.py": {
+      "sha256": "a9dee7fe3ea773dc2b548da2af8751c2c6a72cfcedb33ddf9491bffb31dc040c",
+      "bytes": 8253
+    },
+    "tests/test_withdrawal_recovery_model.py": {
+      "sha256": "50ff8681f07869e78e2ea04f7346220201b73c52963fdbb56596ff7599be8135",
+      "bytes": 15145
+    },
+    "docs/E06_WITHDRAWAL_KEY_RECOVERY_DESIGN.md": {
+      "sha256": "29b36fd0e2d51ec22cba87a8d6d70ad174ec78fae17b68f3486f02ad1802f21e",
+      "bytes": 11874
+    },
+    "spec/E06_WITHDRAWAL_RECOVERY_TEST_ONLY_v1.json": {
+      "sha256": "c060f89d53081c37edd71e63884a53c51d9601b97e57dc6cc4a304da7b6ccbdc",
+      "bytes": 4395
+    }
+  }
+}
