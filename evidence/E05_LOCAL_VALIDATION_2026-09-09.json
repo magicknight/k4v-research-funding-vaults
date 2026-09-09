@@ -1,0 +1,99 @@
+{
+  "schema": "K4V-E05-LOCAL-VALIDATION-v1",
+  "date": "2026-09-09",
+  "base_commit": "33b3c153b2e6bead55be94c8d719e394d9c0b31f",
+  "status": "PASS_LOCAL_ENGINEERING",
+  "new_rust_rehearsal": 1,
+  "v4_rust_checks": 45,
+  "gate_rust_checks": 7,
+  "scoped_rust_total": 52,
+  "new_python_checks": 26,
+  "full_python_passed": 75,
+  "full_python_opt_in_skipped": 1,
+  "full_javascript_checks": 11,
+  "clippy_warnings_denied": "PASS",
+  "compiler_generated_idls_checked": 2,
+  "e04_artifacts_preserved": true,
+  "fresh_rehearsal_independently_verified": true,
+  "frozen_rehearsal_checkpoints": 12,
+  "frozen_rehearsal_transactions_sent": 1290,
+  "frozen_rehearsal_transactions_successful": 1278,
+  "program_injection_used_in_rehearsal": false,
+  "mint_or_token_account_injection_used_in_rehearsal": false,
+  "runtime_assumptions": [
+    "LiteSVM native loader",
+    "controlled Clock and slots",
+    "SOL airdrops for local fees"
+  ],
+  "rpc_transport_tests": "MOCKED_NO_PUBLIC_CLUSTER",
+  "public_chain_transactions": 0,
+  "messages_sent": 0,
+  "human_accountable_audit": false,
+  "production_ready": false,
+  "files": {
+    "src/launch_v4_verifier.py": {
+      "sha256": "bf2ebed13fab158460a5d66186d696190b71d0a5dac59a707f625be1a77056e0",
+      "bytes": 20791
+    },
+    "src/e05_verifier.py": {
+      "sha256": "2d8a50a70bf19c5a66cf68e369c77c0a9fa690329e4ae9a2212fecd10fd1b16a",
+      "bytes": 12559
+    },
+    "src/launch_v4_rpc_exporter.py": {
+      "sha256": "53ab051727935023b5a2f5ba4f69ba4c6a3e54f9b506ff481b6d249fb9a312fc",
+      "bytes": 6001
+    },
+    "tests/test_launch_v4_verifier.py": {
+      "sha256": "c2c07eb985ce94320e05aa5f28c1fde113326d9bb2ee90d8b2a6c001df9cf9b0",
+      "bytes": 10031
+    },
+    "tests/test_launch_v4_rpc_exporter.py": {
+      "sha256": "0f299a3697023e1319f916e3905e0cf291ec1937cf19f2af8ca7d08a6889c2c0",
+      "bytes": 6017
+    },
+    "programs/launch-vault-v4/tests/support/e05.rs": {
+      "sha256": "1f550060ee69600d72e64cfb7a1bc404153ebd778098f160f2251f8e553adfc4",
+      "bytes": 16674
+    },
+    "programs/launch-vault-v4/tests/launch_litesvm.rs": {
+      "sha256": "410912d6da8d48deef1311d087f4dea1ee09387fc98b9a319ce60430cdda2af8",
+      "bytes": 57644
+    },
+    "tools/pack_e05_rehearsal.py": {
+      "sha256": "9472ca2fb5655aa23eb51181ea4b0195154a4694341a82f97415034c669fb511",
+      "bytes": 1562
+    },
+    "tools/run_e05_local_reproduction.sh": {
+      "sha256": "455cc9a6e990f640f80c9d32072e1e23ed4f8fa5fbfd792554ca73f1c718911b",
+      "bytes": 2570
+    },
+    "examples/e05_rehearsal_bundle.json": {
+      "sha256": "04c4e142627f8f6669367584172451805128f5b88de576b98c9e98ac89c5f1b1",
+      "bytes": 593637
+    },
+    "spec/E05_REVIEW_SCOPE_v1.json": {
+      "sha256": "f30a081fc16820ee5c2ed8bb36d60ba1a346fd844b376fe9c34f90bcb7ddc995",
+      "bytes": 3686
+    },
+    "docs/E05_INDEPENDENT_VERIFICATION_AND_REVIEW.md": {
+      "sha256": "2ce7d553cded884b7a225bd0eac2f17fed9194857c66d41891d8797ea4396db0",
+      "bytes": 10162
+    },
+    "reviews/e05/REVIEW_REPORT_TEMPLATE.md": {
+      "sha256": "18228dee8dba508f130a674106ed43801b2473a76514c21ce9004a4b9b7fce11",
+      "bytes": 1913
+    },
+    "Cargo.lock": {
+      "sha256": "e28aebecf44263c673c29e03ccad74c6b99f7d41ac672ad1997ba840509ad72e",
+      "bytes": 149365
+    },
+    "programs/launch-vault-v4/Cargo.toml": {
+      "sha256": "3f41d883683d9ac766de284b18c23b56c7e1730fcf4d31cf418ddb9c5aa3c08f",
+      "bytes": 1271
+    },
+    ".github/workflows/launch-v4.yml": {
+      "sha256": "ae35ebdd426cd63d20f4494026744bf05c33ed988f6ff96b47c6cd5736309bae",
+      "bytes": 774
+    }
+  }
+}

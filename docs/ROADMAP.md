@@ -6,13 +6,18 @@ only a disclosed possible case study.
 
 ## Frontier state
 
-E-04 now has a [key-recovery and external upgrade-delay local candidate](LAUNCH_V4_RECOVERY_AND_UPGRADE_CANDIDATE.md).
-Normal/backup key changes preserve accounting, epochs reject old reports, and
-an immutable external gate enforces exact-buffer 90-day upgrades through actual
-local loader transactions. These are TEST_ONLY choices, not production rights.
-Controller recovery does not recover lost beneficiary withdrawal keys; the
-upgrade committee itself has no route after losing two keys. E-05 independent
-v4 governance/loader RPC verification and accountable review are next.
+E-05 has an [independent raw-account verifier, single-bank RPC exporter and
+combined local rehearsal](E05_INDEPENDENT_VERIFICATION_AND_REVIEW.md). Twelve
+checkpoints join funded custody, recovery, an actual changed-ELF loader upgrade,
+continued withdrawals and the annual boundary. All E-04 program bytes remain
+frozen. Engineering acceptance is author-run; external human acceptance and a
+live v4 RPC deployment remain open.
+
+The E-04 TEST_ONLY recovery/gate choices are not production rights. The next
+technical gap is beneficiary withdrawal-key custody and recovery; controller
+recovery does not restore those keys. The upgrade committee also has no extra
+route after losing two keys. Production choices and accountable review are
+separate unfinished work.
 
 Earlier E-03: the [reserved-capacity/annual-input candidate](LAUNCH_V3_RESERVED_CAPACITY_CANDIDATE.md)
 has an independent verifier for its declared raw-account graph. Its source and

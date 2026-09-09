@@ -3,12 +3,17 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
-**Latest local candidate:** [Launch v4 and the external upgrade gate](docs/LAUNCH_V4_RECOVERY_AND_UPGRADE_CANDIDATE.md)
-add accepted key changes, fixed 2-of-3 lost-key recovery, report epochs and a
-90-day upgrade delay enforced through real loader CPI. The gate must itself be
-immutable before it can control a target. These are TEST_ONLY profiles; default
-artifacts refuse admission. Production rights and the full v4 RPC verifier
-remain open. Controller recovery does not restore lost withdrawal keys.
+**Latest engineering acceptance:** [E-05 verification and review package](docs/E05_INDEPENDENT_VERIFICATION_AND_REVIEW.md)
+independently decodes v4 custody, complete recovery history and actual loader
+state. A 12-checkpoint local rehearsal combines signed funding, key recovery,
+a changed-ELF upgrade and continued withdrawals. A read-only single-bank RPC
+exporter is tested against local-runtime response fixtures; live v4 RPC and
+human-accountable review remain open. No public v4 deployment is claimed.
+
+The [E-04 v4 and immutable external gate](docs/LAUNCH_V4_RECOVERY_AND_UPGRADE_CANDIDATE.md)
+retain their exact frozen code bytes. Both remain TEST_ONLY candidates;
+production rights are open and controller recovery does not restore lost
+beneficiary withdrawal keys.
 
 **Earlier reserved-capacity candidate:** [Launch v3](docs/LAUNCH_V3_RESERVED_CAPACITY_CANDIDATE.md)
 adds per-pool reserved capacity, frozen annual-input intervals and an independent
@@ -23,7 +28,7 @@ the default build cannot create policies. Shared-capacity reservation, annual
 IRB, recovery and production upgrade controls remain open. Historical B1/B2
 devnet evidence below does not establish a deployed v2 or a 180-day upgrade.
 
-The strongest current capability is the completed local R3 integration: one
+The earlier completed local R3 integration remains a separate capability: one
 transaction-created 1-billion-token mint carries exact 30/50/12/8 allocations,
 the full aligned 80% enters B2, a real Squads 2-of-3 replaces a member and then
 releases under the unchanged stored authority, and a read-only RPC verifier
