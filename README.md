@@ -3,6 +3,13 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
+**2026-09-09 new candidate:** [Launch v2](docs/LAUNCH_V2_T0_180D_CANDIDATE.md)
+implements a separate common-T0 / 180-day lifecycle with consented deposits,
+prelaunch cancellation and original-depositor refunds. It is **local TEST_ONLY**;
+the default build cannot create policies. Shared-capacity reservation, annual
+IRB, recovery and production upgrade controls remain open. Historical B1/B2
+devnet evidence below does not establish a deployed v2 or a 180-day upgrade.
+
 The strongest current capability is the completed local R3 integration: one
 transaction-created 1-billion-token mint carries exact 30/50/12/8 allocations,
 the full aligned 80% enters B2, a real Squads 2-of-3 replaces a member and then

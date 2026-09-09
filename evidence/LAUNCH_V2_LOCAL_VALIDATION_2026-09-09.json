@@ -1,0 +1,129 @@
+{
+  "schema": "K4V-LAUNCH-V2-LOCAL-VALIDATION-v1",
+  "date": "2026-09-09",
+  "repository": "magicknight/k4v-research-funding-vaults",
+  "base_commit": "0ce3d068284019b489dd3db894b7e5a9a563d6f7",
+  "scope": "E01_lifecycle_ABI_and_E02_common_T0_180_day_local_candidate",
+  "candidate": {
+    "path": "spec/LAUNCH_V2_TEST_ONLY_CANDIDATE_v1.json",
+    "bytes": 1610,
+    "sha256": "b1d15b9e1fbbc110d8e12607c6296de8bf160657a766f376469f6e37fce8dc0d"
+  },
+  "new_program_checks": {
+    "program_id_test": 1,
+    "abi_and_math_tests": 3,
+    "litesvm_tests": 18,
+    "javascript_identity_tests": 3,
+    "compiler_generated_idl_check": "PASS",
+    "clippy_test_profile": "PASS"
+  },
+  "litesvm_test_names": [
+    "default_artifact_cannot_admit_policy",
+    "identity_prevents_foreign_creator_and_changed_t0_squatting",
+    "consent_required_and_solo_owner_can_fill_all_roles",
+    "deposits_require_revoked_authorities_exact_amount_and_designated_role",
+    "both_exact_pools_required_duplicate_pool_rejected_and_deposit_time_does_not_retime",
+    "t0_rejects_late_deposit_late_arm_and_cancel",
+    "unarmed_expiry_unlocks_only_original_depositors_refund_and_retains_tombstone",
+    "armed_cancellation_needs_all_roles_and_refunds_principal_and_late_dust",
+    "exact_t0_blocks_both_pools_and_treasury_can_use_mature_prelaunch_notice_at_t0_plus_one",
+    "founder_180_day_minus_one_exact_and_plus_one_are_enforced_on_real_tokens",
+    "skipped_periods_do_not_accumulate_and_cliff_is_not_full_unlock",
+    "report_signer_sequence_freshness_and_clock_rollback_fail_closed",
+    "capacity_decrease_and_increase_preserve_used_counters",
+    "treasury_notice_boundary_recipient_owner_and_consumption_are_enforced",
+    "treasury_cannot_approve_self_current_period_or_replace_a_budget",
+    "shared_capacity_is_conserved_in_both_orders_but_starvation_remains_open",
+    "failed_token_cpi_rolls_back_policy_vault_and_treasury_approval",
+    "active_refund_wrong_founder_destination_and_role_swap_are_rejected"
+  ],
+  "fixture": {
+    "mint_accounts": "LiteSVM state fixtures",
+    "raw_supply": "1000000000000000000",
+    "decimals": 9,
+    "founder_principal": "300000000000000000",
+    "treasury_principal": "500000000000000000",
+    "token_transfers": "signed SPL Token transactions and SBF CPI",
+    "program_install": "LiteSVM add_program_from_file, not real-loader deployment",
+    "clock": "controlled local Clock for time boundary tests",
+    "monetary_inputs": "TEST_ONLY, not production configuration"
+  },
+  "key_results": [
+    "default SBF rejects new policy creation",
+    "T0 fixed across staggered deposits; two exact role-bound pools required",
+    "creator and role consent prevent foreign policy occupation",
+    "classic mint and freeze authorities must both be revoked for deposit",
+    "exact T0 rejects both releases; founder cliff enforced at 180 days",
+    "pre-T0 consented cancellation and permissionless unarmed expiry allow original-depositor refunds",
+    "cancelled policy and vault tombstones cannot reactivate; dust refunds retain original owner",
+    "missed periods do not accumulate releases",
+    "report replay, stale reports, future observations and clock rollback rejected",
+    "treasury notice, approved period, recipient address and owner checked",
+    "SPL transfer failure rolls back policy, vault and approval data",
+    "both execution orders conserve shared capacity; treasury-first starvation remains explicitly reproducible"
+  ],
+  "historical_artifacts_unchanged": [
+    {
+      "path": "target/deploy/beneficiary_vault.so",
+      "bytes": 228184,
+      "sha256": "98629d79fc3c9e3755b5e1c298305bcde61748731c42155e93fc73ab5b49cd98"
+    },
+    {
+      "path": "target/deploy/purpose_vault.so",
+      "bytes": 372984,
+      "sha256": "7af9d476f4185f87da46b06259092a6a43d66ef819f562a77b01df47577ad9ef"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "programs/launch-vault-v2/Cargo.toml",
+      "bytes": 1144,
+      "sha256": "4d89ea4f5b964076a47f91bff60d70fbdb78bf7c6d6f799a55b321ccdb234036"
+    },
+    {
+      "path": "programs/launch-vault-v2/src/contexts.rs",
+      "bytes": 5401,
+      "sha256": "69c68f64409ee7583ce5b26cab9cff947802ca3f834ea496027d14a92e2ed0e4"
+    },
+    {
+      "path": "programs/launch-vault-v2/src/lib.rs",
+      "bytes": 14366,
+      "sha256": "99a9cb99e12749aeaa29f52348a2e3f24a0137a6fa7c40674e2479007b3e83cd"
+    },
+    {
+      "path": "programs/launch-vault-v2/src/state.rs",
+      "bytes": 4876,
+      "sha256": "55140669f38934c526b5f3b825e30e6bfa4d8f17a42d5fa755aeb69597672e15"
+    },
+    {
+      "path": "programs/launch-vault-v2/tests/abi.rs",
+      "bytes": 4660,
+      "sha256": "c00ee70ed6c8a54f57bd749eb8248c8e05b4a9f4f07a2cf863c91e360b5a38b5"
+    },
+    {
+      "path": "programs/launch-vault-v2/tests/launch_litesvm.rs",
+      "bytes": 28513,
+      "sha256": "ff3fcd85f5dd8875d84a30b355de436bebe105327554dc7ec91027bf27463743"
+    }
+  ],
+  "limitations": [
+    "reserved_F_T_capacity_allocation",
+    "annual_IRB_inputs_and_year_rules",
+    "oracle_recovery",
+    "controller_recovery",
+    "production_upgrade_control",
+    "final_production_config_and_exact_T0",
+    "real_loader_and_independent_RPC_verifier",
+    "human_accountable_security_review"
+  ],
+  "public_chain_transactions": 0,
+  "official_mint": null,
+  "independent_human_review": false,
+  "regression_checks": {
+    "workspace_rust_tests_passed": 70,
+    "historical_B1_B2_tests_passed": 66,
+    "workspace_clippy": "PASS",
+    "historical_SBF_pins": "EXACT_MATCH",
+    "unique_Rust_SBF_tests_including_explicit_test_profile": 88
+  }
+}

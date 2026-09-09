@@ -6,6 +6,13 @@ only a disclosed possible case study.
 
 ## Frontier state
 
+2026-09-09 engineering tranche: [Launch v2 T0/180-day candidate](LAUNCH_V2_T0_180D_CANDIDATE.md)
+adds an isolated local lifecycle, two role-bound pools and safe cancelled-policy
+refunds. Next are reserved shared capacity/annual IRB (E-03), recovery and
+upgrade control (E-04), then an exact full integration and external review
+package (E-05). The fixture retains the known first-come starvation witness;
+it is not a production repair of K4V-04..07 or a devnet upgrade.
+
 `TARGET`:
 
 > A reusable, independently reproducible Solana capability for purpose-bound
