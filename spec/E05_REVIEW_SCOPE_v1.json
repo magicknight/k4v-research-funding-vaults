@@ -1,0 +1,95 @@
+{
+  "schema": "K4V-E05-REVIEW-SCOPE-v1",
+  "date": "2026-09-09",
+  "status": "AUTHOR_RUN_ENGINEERING_ACCEPTANCE_EXTERNAL_REVIEW_OPEN",
+  "base_commit": "33b3c153b2e6bead55be94c8d719e394d9c0b31f",
+  "e04_candidate_sha256": "c95c0d4dfa3ddf007eaf1ede68cf81a7d8f36f06b2cbf16591597fc56b44a848",
+  "program_source_unchanged": true,
+  "program_source_sha256": {
+    "programs/launch-vault-v4/src/capacity.rs": "39c9f83c788743f20a74df0a3b5539d05224b852e52abbc5fccd8234bf6f5411",
+    "programs/launch-vault-v4/src/contexts.rs": "02577776d794e5d14f63a97381fb3be1880a97cabe84cfcffc62cef841cf9826",
+    "programs/launch-vault-v4/src/governance.rs": "dbee95c065baed789fe3231a9cc238615028596d6b014025826b0e8e7c4a9ea1",
+    "programs/launch-vault-v4/src/lib.rs": "5bd2a08fcee7eed46bed6ae43f077a0faf3f522e2703aa13ed3be263963ac890",
+    "programs/launch-vault-v4/src/state.rs": "2b11ba6340afb5e5483e83c92c343030a248e5c62aaa181a3d48098f8a74ff57",
+    "programs/upgrade-gate-v1/src/contexts.rs": "dd0e8e7d17b0bc8eba9c6653782bb37dbe1e49952d0bead864afa77c3368e3e9",
+    "programs/upgrade-gate-v1/src/lib.rs": "e06cc08f495ab5d781d0891ad96a42fbe2bedddbb42b1e24e86262b7eac8ea41"
+  },
+  "artifact_pins": [
+    {
+      "path": "target/v4-disabled/launch_vault_v4.so",
+      "bytes": 408568,
+      "sha256": "54accf5620943fdd75cff13679d9e2e5a83fc37093e9c898e2e09d3fe44d5b9c"
+    },
+    {
+      "path": "target/v4-test/launch_vault_v4.so",
+      "bytes": 423448,
+      "sha256": "f1f7929478f4d8d51ab46398f79a352c99699c38afb905d3d4589d0522355d43"
+    },
+    {
+      "path": "target/gate-disabled/upgrade_gate_v1.so",
+      "bytes": 269608,
+      "sha256": "64fac18aa585abb1019362315c7ecbbead8b11abe1752f4ead66389c246e8eca"
+    },
+    {
+      "path": "target/gate-test/upgrade_gate_v1.so",
+      "bytes": 276136,
+      "sha256": "76c094b8ecac318fca485a4e70fb1c6d3a8754c7938123e5432314b6d07aed30"
+    }
+  ],
+  "supported": {
+    "policy_state": "ACTIVE_DUAL_POOL",
+    "one_depositor": true,
+    "token_accounts": 5,
+    "complete_change_history_required": true,
+    "maximum_change_proposals": 256,
+    "loader": "classic_upgradeable_loader",
+    "target_profiles": [
+      "vault-test",
+      "vault-default"
+    ],
+    "gate_profile": "gate-test_and_loader_authority_None",
+    "rpc_account_request": "one_getMultipleAccounts_with_Clock",
+    "rpc_commitment": "finalized",
+    "expected_genesis_required": true,
+    "clock_slot_must_match_context": true
+  },
+  "acceptance": {
+    "raw_state_decoder": true,
+    "loader_pinned_bytes_decoder": true,
+    "read_only_rpc_exporter_implemented": true,
+    "rpc_boundary_tests": "MOCKED_TRANSPORT_WITH_LOCAL_RUNTIME_BYTES",
+    "combined_local_signed_transactions": true,
+    "rehearsal_checkpoints": 12,
+    "external_review_package_prepared": true,
+    "live_v4_rpc_observation": false,
+    "transaction_history_authentication": false,
+    "unrelated_human_review": false,
+    "production_adoption": false
+  },
+  "reviewer": {
+    "name": null,
+    "organization": null,
+    "reviewed_commit": null,
+    "reviewed_tree": null,
+    "report": null,
+    "acceptance": null
+  },
+  "not_claimed": [
+    "official_token_or_mint",
+    "public_v4_deployment",
+    "independent_human_audit",
+    "arbitrary_future_upgrade_compatibility",
+    "beneficiary_withdrawal_key_recovery",
+    "real_IRB_or_production_calendar",
+    "human_independence_of_multiple_keys",
+    "LP_sales_or_12_8_downstream_allocations"
+  ],
+  "next": [
+    "TEST_ONLY_beneficiary_withdrawal_key_custody_recovery_design",
+    "external_accountable_review",
+    "owner_production_rights_and_actual_inputs",
+    "real_demand_feedback"
+  ],
+  "public_chain_transactions": 0,
+  "outreach_messages_sent": 0
+}

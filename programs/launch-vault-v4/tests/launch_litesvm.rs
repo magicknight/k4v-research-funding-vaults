@@ -18,6 +18,9 @@ use spl_token_interface::{
 };
 use std::path::PathBuf;
 
+#[path = "support/e05.rs"]
+mod e05;
+
 const START: i64 = 1_700_000_000;
 const UNIT: u64 = 1_000_000_000;
 const SUPPLY: u64 = 1_000_000_000 * UNIT;
@@ -71,15 +74,25 @@ struct Fixture {
     config: LaunchConfig,
     hash: [u8; 32],
     last_signers: Vec<Pubkey>,
+    native_loader: bool,
+    last_signature: String,
+    sent: u64,
+    accepted: u64,
 }
 
 impl Fixture {
     fn new(disabled: bool, solo: bool) -> Self {
+        Self::new_mode(disabled, solo, false)
+    }
+
+    fn new_mode(disabled: bool, solo: bool, native_loader: bool) -> Self {
         let mut svm = LiteSVM::new();
         let directory = if disabled { "v4-disabled" } else { "v4-test" };
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join(format!("../../target/{directory}/launch_vault_v4.so"));
-        svm.add_program_from_file(ID, path).unwrap();
+        if !native_loader {
+            svm.add_program_from_file(ID, path).unwrap();
+        }
         let creator = Keypair::new();
         let same_or_new = || {
             if solo {
@@ -103,7 +116,8 @@ impl Fixture {
         for k in &recovery {
             svm.airdrop(&k.pubkey(), 10_000_000_000).unwrap();
         }
-        let mint = Pubkey::new_unique();
+        let mint_key = Keypair::new();
+        let mint = mint_key.pubkey();
         let mut mint_data = vec![0; Mint::LEN];
         Mint::pack(
             Mint {
@@ -116,27 +130,34 @@ impl Fixture {
             &mut mint_data,
         )
         .unwrap();
-        svm.set_account(
-            mint,
-            Account {
-                data: mint_data,
-                lamports: 10_000_000,
-                owner: TOKEN_ID,
-                executable: false,
-                rent_epoch: 0,
-            },
-        )
-        .unwrap();
-        let source = Pubkey::new_unique();
-        let founder_out = Pubkey::new_unique();
-        let recipient = Pubkey::new_unique();
-        for (key, owner, amount) in [
-            (source, depositor.pubkey(), SUPPLY),
-            (founder_out, founder.pubkey(), 0),
-            (recipient, outsider.pubkey(), 0),
-        ] {
-            svm.set_account(key, token_account(mint, owner, amount))
-                .unwrap();
+        if !native_loader {
+            svm.set_account(
+                mint,
+                Account {
+                    data: mint_data,
+                    lamports: 10_000_000,
+                    owner: TOKEN_ID,
+                    executable: false,
+                    rent_epoch: 0,
+                },
+            )
+            .unwrap();
+        }
+        let source_key = Keypair::new();
+        let founder_key = Keypair::new();
+        let recipient_key = Keypair::new();
+        let source = source_key.pubkey();
+        let founder_out = founder_key.pubkey();
+        let recipient = recipient_key.pubkey();
+        if !native_loader {
+            for (key, owner, amount) in [
+                (source, depositor.pubkey(), SUPPLY),
+                (founder_out, founder.pubkey(), 0),
+                (recipient, outsider.pubkey(), 0),
+            ] {
+                svm.set_account(key, token_account(mint, owner, amount))
+                    .unwrap();
+            }
         }
         let config = LaunchConfig {
             t0: START + 2 * PERIOD,
@@ -195,8 +216,15 @@ impl Fixture {
             config,
             hash,
             last_signers: vec![],
+            native_loader,
+            last_signature: String::new(),
+            sent: 0,
+            accepted: 0,
         };
         f.time(START);
+        if native_loader {
+            e05::prepare(&mut f, &mint_key, &source_key, &founder_key, &recipient_key);
+        }
         f
     }
 
@@ -205,6 +233,25 @@ impl Fixture {
     }
 
     fn run_many(&mut self, instructions: Vec<Instruction>, payer: Pubkey) -> Outcome {
+        self.run_extra(instructions, payer, &[])
+    }
+
+    fn run_extra(
+        &mut self,
+        mut instructions: Vec<Instruction>,
+        payer: Pubkey,
+        extra: &[&Keypair],
+    ) -> Outcome {
+        if self.native_loader {
+            let slot = self.svm.get_sysvar::<Clock>().slot;
+            self.svm.warp_to_slot(slot + 1);
+            instructions.insert(
+                0,
+                solana_compute_budget_interface::ComputeBudgetInstruction::set_compute_unit_limit(
+                    1_400_000,
+                ),
+            );
+        }
         self.svm.expire_blockhash();
         let mut signers: Vec<&Keypair> = vec![];
         for k in [
@@ -217,7 +264,10 @@ impl Fixture {
             &self.recovery[0],
             &self.recovery[1],
             &self.recovery[2],
-        ] {
+        ]
+        .into_iter()
+        .chain(extra.iter().copied())
+        {
             if (k.pubkey() == payer
                 || instructions.iter().any(|ix| {
                     ix.accounts
@@ -230,14 +280,19 @@ impl Fixture {
             }
         }
         self.last_signers = signers.iter().map(|k| k.pubkey()).collect();
-        self.svm
-            .send_transaction(Transaction::new_signed_with_payer(
-                &instructions,
-                Some(&payer),
-                &signers,
-                self.svm.latest_blockhash(),
-            ))
-            .map_err(Box::new)
+        let transaction = Transaction::new_signed_with_payer(
+            &instructions,
+            Some(&payer),
+            &signers,
+            self.svm.latest_blockhash(),
+        );
+        self.last_signature = transaction.signatures[0].to_string();
+        self.sent += 1;
+        let result = self.svm.send_transaction(transaction).map_err(Box::new);
+        if result.is_ok() {
+            self.accepted += 1;
+        }
+        result
     }
 
     fn rebind(&mut self) {
@@ -495,6 +550,12 @@ impl Fixture {
         let before: Vec<_> = instruction
             .accounts
             .iter()
+            // Native-loader fixture advances the bank slot before submission.
+            // Clock is read-only to the transaction and changes outside it.
+            .filter(|a| {
+                !(self.native_loader
+                    && a.pubkey == <Clock as anchor_lang::solana_program::sysvar::SysvarId>::id())
+            })
             .map(|a| (a.pubkey, self.svm.get_account(&a.pubkey).map(|v| v.data)))
             .collect();
         rejected(self.run(instruction), error);

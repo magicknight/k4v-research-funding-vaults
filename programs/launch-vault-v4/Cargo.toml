@@ -27,6 +27,8 @@ anchor-spl = "=1.1.2"
 solana-sha256-hasher = "=3.1.0"
 
 [dev-dependencies]
+solana-compute-budget-interface = "=3.1.0"
+solana-loader-v3-interface = { version = "=6.1.1", features = ["bincode"] }
 hex = "0.4"
 litesvm = "0.10.0"
 serde_json = "1.0"
