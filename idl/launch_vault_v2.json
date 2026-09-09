@@ -1,0 +1,758 @@
+{
+  "address": "FuAkHvCjsjLjMPusJzPWue2jbWNFdZX5dc4y78hojeaN",
+  "metadata": {
+    "name": "launch_vault_v2",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "TEST_ONLY T0 and 180-day launch vault candidate; production admission disabled"
+  },
+  "instructions": [
+    {
+      "name": "activate",
+      "discriminator": [
+        194,
+        203,
+        35,
+        100,
+        151,
+        55,
+        170,
+        82
+      ],
+      "accounts": [
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "approve_treasury",
+      "discriminator": [
+        244,
+        12,
+        206,
+        10,
+        148,
+        217,
+        208,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "approval",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "period",
+          "type": "u64"
+        },
+        {
+          "name": "need",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "arm",
+      "discriminator": [
+        230,
+        51,
+        249,
+        116,
+        166,
+        65,
+        21,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel",
+      "discriminator": [
+        232,
+        219,
+        223,
+        41,
+        219,
+        236,
+        220,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "signer": true
+        },
+        {
+          "name": "founder",
+          "signer": true
+        },
+        {
+          "name": "treasury",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "deposit",
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "signer": true
+        },
+        {
+          "name": "depositor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "source",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vault_token",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "role",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "expire_unarmed",
+      "discriminator": [
+        66,
+        47,
+        191,
+        149,
+        67,
+        84,
+        3,
+        247
+      ],
+      "accounts": [
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "open_policy",
+      "discriminator": [
+        30,
+        48,
+        161,
+        67,
+        189,
+        208,
+        101,
+        181
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "founder",
+          "signer": true
+        },
+        {
+          "name": "treasury",
+          "signer": true
+        },
+        {
+          "name": "oracle"
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "config",
+          "type": {
+            "defined": {
+              "name": "LaunchConfig"
+            }
+          }
+        },
+        {
+          "name": "spec_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "identity",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "refund",
+      "discriminator": [
+        2,
+        96,
+        183,
+        251,
+        63,
+        208,
+        46,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "depositor",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "vault"
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault_token",
+          "writable": true
+        },
+        {
+          "name": "destination",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "release",
+      "discriminator": [
+        253,
+        249,
+        15,
+        206,
+        28,
+        127,
+        193,
+        241
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault_token",
+          "writable": true
+        },
+        {
+          "name": "destination",
+          "writable": true
+        },
+        {
+          "name": "approval",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "report_capacity",
+      "discriminator": [
+        248,
+        242,
+        164,
+        67,
+        169,
+        225,
+        4,
+        165
+      ],
+      "accounts": [
+        {
+          "name": "oracle",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "capacity",
+          "type": "u64"
+        },
+        {
+          "name": "observed_at",
+          "type": "i64"
+        },
+        {
+          "name": "sequence",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "LaunchPolicyV2",
+      "discriminator": [
+        78,
+        4,
+        205,
+        58,
+        47,
+        19,
+        15,
+        80
+      ]
+    },
+    {
+      "name": "LaunchVaultV2",
+      "discriminator": [
+        29,
+        134,
+        112,
+        148,
+        192,
+        218,
+        81,
+        110
+      ]
+    },
+    {
+      "name": "TreasuryApprovalV2",
+      "discriminator": [
+        114,
+        243,
+        236,
+        43,
+        125,
+        220,
+        201,
+        164
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "LaunchConfig",
+      "docs": [
+        "All amounts are mint base units. Caps are TEST_ONLY fixtures, not annual IRB."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "t0",
+            "type": "i64"
+          },
+          {
+            "name": "founder_amount",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_amount",
+            "type": "u64"
+          },
+          {
+            "name": "founder_period_cap",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_period_cap",
+            "type": "u64"
+          },
+          {
+            "name": "shared_hard_cap",
+            "type": "u64"
+          },
+          {
+            "name": "max_report_age",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LaunchPolicyV2",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "founder",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "oracle",
+            "type": "pubkey"
+          },
+          {
+            "name": "identity",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "spec_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "config",
+            "type": {
+              "defined": {
+                "name": "LaunchConfig"
+              }
+            }
+          },
+          {
+            "name": "state",
+            "type": "u8"
+          },
+          {
+            "name": "funded_mask",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "last_action_at",
+            "type": "i64"
+          },
+          {
+            "name": "period",
+            "type": "u64"
+          },
+          {
+            "name": "shared_used",
+            "type": "u64"
+          },
+          {
+            "name": "report_period",
+            "type": "u64"
+          },
+          {
+            "name": "report_capacity",
+            "type": "u64"
+          },
+          {
+            "name": "report_at",
+            "type": "i64"
+          },
+          {
+            "name": "report_sequence",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LaunchVaultV2",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "policy",
+            "type": "pubkey"
+          },
+          {
+            "name": "depositor",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "principal",
+            "type": "u64"
+          },
+          {
+            "name": "released_total",
+            "type": "u64"
+          },
+          {
+            "name": "period",
+            "type": "u64"
+          },
+          {
+            "name": "period_used",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TreasuryApprovalV2",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "policy",
+            "type": "pubkey"
+          },
+          {
+            "name": "period",
+            "type": "u64"
+          },
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "recipient_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "need",
+            "type": "u64"
+          },
+          {
+            "name": "consumed",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ExperimentalProfileDisabled",
+      "msg": "This build cannot admit launch policies; no production profile is approved"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidConfig",
+      "msg": "Invalid immutable configuration or role"
+    },
+    {
+      "code": 6002,
+      "name": "IdentityMismatch",
+      "msg": "Policy identity does not bind these actors, mint and exact configuration"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidState",
+      "msg": "Operation is unavailable in this lifecycle state"
+    },
+    {
+      "code": 6004,
+      "name": "T0Boundary",
+      "msg": "T0 boundary has not been satisfied"
+    },
+    {
+      "code": 6005,
+      "name": "PoolsNotFunded",
+      "msg": "Both designated pools must be funded exactly once"
+    },
+    {
+      "code": 6006,
+      "name": "Unauthorized",
+      "msg": "Unauthorized actor, account or destination"
+    },
+    {
+      "code": 6007,
+      "name": "MintAuthorityLive",
+      "msg": "Mint and freeze authorities must both be revoked"
+    },
+    {
+      "code": 6008,
+      "name": "WrongPrincipal",
+      "msg": "Deposit must equal the configured principal"
+    },
+    {
+      "code": 6009,
+      "name": "ClockRollback",
+      "msg": "Clock or period moved backwards"
+    },
+    {
+      "code": 6010,
+      "name": "CliffActive",
+      "msg": "Founder 180-day cliff remains active"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidReport",
+      "msg": "Capacity report is missing, stale, replayed or invalid"
+    },
+    {
+      "code": 6012,
+      "name": "CapacityExceeded",
+      "msg": "Amount exceeds principal, period cap or shared capacity"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidApproval",
+      "msg": "Treasury approval, recipient, period or notice is invalid"
+    },
+    {
+      "code": 6014,
+      "name": "Overflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6015,
+      "name": "ZeroAmount",
+      "msg": "Amount must be nonzero"
+    }
+  ]
+}

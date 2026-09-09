@@ -1,0 +1,53 @@
+{
+  "schema": "K4V-LAUNCH-V2-TEST-ONLY-v1",
+  "status": "TEST_ONLY",
+  "date": "2026-09-09",
+  "program_id": "FuAkHvCjsjLjMPusJzPWue2jbWNFdZX5dc4y78hojeaN",
+  "program_id_kind": "deterministic_local_fixture_no_deployment_keypair",
+  "production_admission_approved": false,
+  "public_chain_deployed": false,
+  "cliff_seconds": 15552000,
+  "period_seconds": 2592000,
+  "profiles": {
+    "default": "OPEN_POLICY_REJECTED",
+    "test-profile": "TEST_ONLY_LEGACY_SHARED_CAPS_1"
+  },
+  "toolchain": {
+    "rust": "1.89.0",
+    "solana_cli": "3.1.10",
+    "sbf_tools": "v1.52",
+    "anchor": "1.1.2"
+  },
+  "artifacts": [
+    {
+      "path": "target/v2-disabled/launch_vault_v2.so",
+      "bytes": 334304,
+      "sha256": "578a7946b09c793cdeba156b1ae426a085000c2be09657fab53f6eed9e38fed0"
+    },
+    {
+      "path": "target/v2-test/launch_vault_v2.so",
+      "bytes": 339240,
+      "sha256": "f7c4c11dd82fbc1b937d259c0b7f17b7adb06c816d855d161289c9ce68988241"
+    },
+    {
+      "path": "idl/launch_vault_v2.json",
+      "bytes": 14052,
+      "sha256": "269520d2de2628d41e728e6be5362725be5101968bf79f5a0f6a4c96644aa6d6"
+    },
+    {
+      "path": "spec/LAUNCH_V2_IDENTITY_VECTOR_v1.json",
+      "bytes": 1165,
+      "sha256": "7bc1cc048018c2a34e28c52a84ff73e71e7bd76d6d0425047fa2815ac747f725"
+    }
+  ],
+  "open": [
+    "reserved_F_T_capacity_allocation",
+    "annual_IRB_inputs_and_year_rules",
+    "oracle_recovery",
+    "controller_recovery",
+    "production_upgrade_control",
+    "final_production_config_and_exact_T0",
+    "real_loader_and_independent_RPC_verifier",
+    "human_accountable_security_review"
+  ]
+}

@@ -2084,6 +2084,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57d8d8ce877200136358e0bbff3a77965875db3af755a11e1fa6b1b3e2df13ea"
 
 [[package]]
+name = "launch-vault-v2"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "hex",
+ "litesvm",
+ "serde_json",
+ "solana-account",
+ "solana-clock",
+ "solana-instruction",
+ "solana-keypair",
+ "solana-program-option",
+ "solana-program-pack",
+ "solana-pubkey 3.0.0",
+ "solana-sha256-hasher",
+ "solana-signer",
+ "solana-system-interface 2.0.0",
+ "solana-transaction",
+ "spl-token-interface",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
