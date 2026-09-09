@@ -44,7 +44,7 @@ jobs:
         run: NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy -- --locked
       - name: Verify the frozen R3 B2 SBF binding
         run: |
-          expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v1.json)"
+          expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v2.json)"
           printf '%s  %s\n' "$expected_sbf" target/deploy/purpose_vault.so | sha256sum -c -
       - name: Check formatting
         run: cargo fmt --all -- --check
@@ -65,7 +65,7 @@ jobs:
         run: NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy -- --locked
       - name: Verify the frozen R3 B2 SBF binding
         run: |
-          expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v1.json)"
+          expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v2.json)"
           printf '%s  %s\n' "$expected_sbf" target/deploy/purpose_vault.so | sha256sum -c -
       - name: Fail if the SBF build reports a stack-frame overflow
         run: |
@@ -105,7 +105,7 @@ jobs:
         run: NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path programs/purpose-vault/Cargo.toml --sbf-out-dir target/deploy -- --locked
       - name: Verify the frozen R3 B2 SBF binding
         run: |
-          expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v1.json)"
+          expected_sbf="$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v2.json)"
           printf '%s  %s\n' "$expected_sbf" target/deploy/purpose_vault.so | sha256sum -c -
       - name: Start an offline surfnet
         run: |
@@ -117,7 +117,7 @@ jobs:
         env:
           K4V_SURFPOOL_RPC: http://127.0.0.1:19399
           K4V_LOCAL_TRANSACTION_SEND_CONFIRMED: "1"
-          K4V_R3_CANDIDATE_CONFIG: spec/R3_TEST_ONLY_CANDIDATE_v1.json
+          K4V_R3_CANDIDATE_CONFIG: spec/R3_TEST_ONLY_CANDIDATE_v2.json
         run: |
           set -euo pipefail
           probe_output="$(NO_DNA=1 cargo run --locked --package purpose-vault --example r3_full_scale_rpc_probe)"
@@ -127,7 +127,7 @@ jobs:
           test "$(printf '%s' "$result_json" | jq -er '.valid')" = true
           test "$(printf '%s' "$result_json" | jq -er '.mainnet_authorized')" = false
           test "$(printf '%s' "$result_json" | jq -er '.candidate_config.open_parameter_count')" = 26
-          test "$(printf '%s' "$result_json" | jq -er '.program.sbf_sha256')" = "$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v1.json)"
+          test "$(printf '%s' "$result_json" | jq -er '.program.sbf_sha256')" = "$(jq -er '.test_vector.purpose_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v2.json)"
           test "$(printf '%s' "$result_json" | jq -er '.mint.supply')" = 1000000000000000000
           test "$(printf '%s' "$result_json" | jq -r '.mint.mint_authority == null')" = true
           test "$(printf '%s' "$result_json" | jq -r '.mint.freeze_authority == null')" = true
@@ -244,10 +244,10 @@ jobs:
           test -n "$result_json"
           test "$(printf '%s' "$result_json" | jq -er '.cluster')" = local-surfpool
           test "$(printf '%s' "$result_json" | jq -er '.program_install')" = upgradeable-loader-v3-deploy-with-max-data-len
-          test "$(printf '%s' "$result_json" | jq -er '.sbf_sha256')" = d6a38fe400766267f0435ba776bae871d8db8ecac032cfc7c5771f9e1dad0312
+          test "$(printf '%s' "$result_json" | jq -er '.sbf_sha256')" = "$(jq -er '.test_vector.beneficiary_vault_sbf_sha256' spec/R3_TEST_ONLY_CANDIDATE_v2.json)"
           test "$(printf '%s' "$result_json" | jq -er '.sbf_bytes_exact')" = true
           test "$(printf '%s' "$result_json" | jq -er '.private_keys_serialized')" = false
-          test "$(printf '%s' "$result_json" | jq -er '.loader_transactions.write_count')" = 252
+          test "$(printf '%s' "$result_json" | jq -er '.loader_transactions.write_count')" = "$(( ($(jq -er '.test_vector.beneficiary_vault_sbf_bytes' spec/R3_TEST_ONLY_CANDIDATE_v2.json) + 899) / 900 ))"
           test "$(printf '%s' "$result_json" | jq -er '.pre_cliff_simulation')" = EXPECTED_REJECTION_CLIFF_ACTIVE
           test "$(printf '%s' "$result_json" | jq -er '.released_total')" = 4166666
           test "$(printf '%s' "$result_json" | jq -er '.vault_token_balance')" = 995833334

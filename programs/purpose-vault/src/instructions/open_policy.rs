@@ -7,8 +7,26 @@ use crate::state::{MarketInput, PolicyWindow};
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 
+/// Domain-separated identity of one creator's policy for one mint. Publishing
+/// this digest does not let another signer occupy the policy or market PDA.
+/// Clients must publish both this digest and the underlying specification hash.
+pub fn bound_policy_hash(
+    authority: &Pubkey,
+    mint: &Pubkey,
+    policy_spec_hash: &[u8; 32],
+) -> [u8; 32] {
+    solana_sha256_hasher::hashv(&[
+        b"k4v-policy-authority-v1",
+        crate::ID.as_ref(),
+        authority.as_ref(),
+        mint.as_ref(),
+        policy_spec_hash,
+    ])
+    .to_bytes()
+}
+
 #[derive(Accounts)]
-#[instruction(policy_hash: [u8; 32])]
+#[instruction(policy_spec_hash: [u8; 32])]
 pub struct OpenPolicy<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -20,7 +38,7 @@ pub struct OpenPolicy<'info> {
         init,
         payer = authority,
         space = 8 + PolicyWindow::INIT_SPACE,
-        seeds = [POLICY_SEED, policy_hash.as_ref()],
+        seeds = [POLICY_SEED, bound_policy_hash(&authority.key(), &mint.key(), &policy_spec_hash).as_ref()],
         bump,
     )]
     pub policy: Account<'info, PolicyWindow>,
@@ -28,7 +46,7 @@ pub struct OpenPolicy<'info> {
         init,
         payer = authority,
         space = 8 + MarketInput::INIT_SPACE,
-        seeds = [MARKET_SEED, policy_hash.as_ref()],
+        seeds = [MARKET_SEED, bound_policy_hash(&authority.key(), &mint.key(), &policy_spec_hash).as_ref()],
         bump,
     )]
     pub market: Account<'info, MarketInput>,
@@ -37,14 +55,19 @@ pub struct OpenPolicy<'info> {
 
 pub fn open_policy_handler(
     ctx: Context<OpenPolicy>,
-    policy_hash: [u8; 32],
+    policy_spec_hash: [u8; 32],
     market_capacity_bps: u16,
     max_age_seconds: i64,
     hard_ceiling: u64,
     silence_floor: u64,
     silence_grace_seconds: i64,
 ) -> Result<()> {
-    require!(policy_hash != [0; 32], CovenantError::ZeroPolicyHash);
+    require!(policy_spec_hash != [0; 32], CovenantError::ZeroPolicyHash);
+    let policy_hash = bound_policy_hash(
+        &ctx.accounts.authority.key(),
+        &ctx.accounts.mint.key(),
+        &policy_spec_hash,
+    );
     // Zero would freeze the policy the moment it opened, with no instruction to
     // undo it. A deployment that wants no ceiling passes u64::MAX and says so.
     require!(hard_ceiling > 0, CovenantError::ZeroHardCeiling);
@@ -126,4 +149,32 @@ pub struct PolicyOpened {
     pub hard_ceiling: u64,
     pub silence_floor: u64,
     pub silence_grace_seconds: i64,
+}
+
+#[cfg(test)]
+mod identity_tests {
+    use super::*;
+    #[test]
+    fn policy_identity_matches_cross_language_vector_and_separates_inputs() {
+        let vector: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../spec/POLICY_IDENTITY_VECTOR_v1.json"
+        ))
+        .unwrap();
+        let creator = Pubkey::new_from_array([1; 32]);
+        let mint = Pubkey::new_from_array([2; 32]);
+        let hash = bound_policy_hash(&creator, &mint, &[3; 32]);
+        assert_eq!(
+            hex::encode(hash),
+            vector["bound_hash_hex"].as_str().unwrap()
+        );
+        assert_ne!(
+            hash,
+            bound_policy_hash(&Pubkey::new_from_array([4; 32]), &mint, &[3; 32])
+        );
+        assert_ne!(
+            hash,
+            bound_policy_hash(&creator, &Pubkey::new_from_array([4; 32]), &[3; 32])
+        );
+        assert_ne!(hash, bound_policy_hash(&creator, &mint, &[4; 32]));
+    }
 }

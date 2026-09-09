@@ -49,17 +49,21 @@ vault address to an externally published policy artifact. B1 checks the hash
 shape and freezes it; it does not decide whether the referenced prose is true
 or legally effective.
 
-The state PDA omits the depositor, and `deposit` is permissionless. Anyone who
-knows `(beneficiary, mint, policy_hash)` can occupy that address with dust —
-240 base units at 500 bps is enough for `monthly_cap = 1`. The independent
-verifier currently reports such a vault as `valid`. Binding the depositor or
-requiring the beneficiary to co-sign is a Founder decision.
+The state PDA omits the depositor, but current `deposit` requires the
+beneficiary's signature. A stranger cannot occupy `(beneficiary, mint,
+policy_hash)` with dust without that consent. The depositor and beneficiary may
+be one key. Historical September 3 probes demonstrated the unsigned attack on
+the old program; [the September 9 repair](../docs/INITIALIZATION_SECURITY_REPAIR_2026-09-09.md)
+changes initialization only. A structural verifier cannot infer consent or the
+expected principal from arbitrary old account bytes; pin the new SBF and the
+intended amount when verifying a new deployment.
 
 ## Instruction surface
 
 ### `deposit(amount, annual_release_bps, cliff_seconds, policy_hash)`
 
-- creates both PDAs exactly once;
+- requires depositor and beneficiary signatures and creates both PDAs exactly once;
+- rejects retained mint or freeze authority before any tokens can enter the vault;
 - rejects zero amount, zero policy hash, a rate above 500 bps, or a cliff below
   730 days;
 - computes and freezes the monthly cap;

@@ -15,9 +15,9 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, TransferChecked};
 pub struct Deposit<'info> {
     #[account(mut)]
     pub depositor: Signer<'info>,
-    /// CHECK: The beneficiary need not sign the one-time deposit. Its key is
-    /// frozen in the state PDA and enforced as signer on every release.
-    pub beneficiary: UncheckedAccount<'info>,
+    /// Consent is required before this one-time namespace can be occupied.
+    /// The depositor and beneficiary may be the same signer.
+    pub beneficiary: Signer<'info>,
     pub mint: Account<'info, Mint>,
     #[account(
         mut,
@@ -53,6 +53,14 @@ pub fn deposit_handler(
     cliff_seconds: i64,
     policy_hash: [u8; 32],
 ) -> Result<()> {
+    require!(
+        ctx.accounts.mint.mint_authority.is_none(),
+        VaultError::MintAuthorityRetained
+    );
+    require!(
+        ctx.accounts.mint.freeze_authority.is_none(),
+        VaultError::FreezeAuthorityRetained
+    );
     require!(amount > 0, VaultError::ZeroAmount);
     require!(
         (1..=MAX_ANNUAL_RELEASE_BPS).contains(&annual_release_bps),

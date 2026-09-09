@@ -1,5 +1,12 @@
 # Security findings triage — 2026-09-01
 
+> **2026-09-09 implementation update:** K4V-01/02/03 have a new repair candidate;
+> see [initialization repair](INITIALIZATION_SECURITY_REPAIR_2026-09-09.md).
+> “Current bytes” below describes the September 3 probe baseline, not the new
+> candidate. K4V-04..07 remain open. The Founder has now authorized repository
+> repair and merge; the earlier “decision open” wording is historical for 01–03.
+
+
 > Source review: `reviews/2026-09-01-claude-ai-preaudit/`
 >
 > State: `AI PREAUDIT RECEIVED / K4V-01..04 PROBES CONFIRMED 2026-09-03 / FOUNDER DECISIONS OPEN / HUMAN ACCOUNTABILITY OPEN / MAINNET NOT READY`

@@ -90,16 +90,15 @@ issuer/legal readiness, LP behavior or mainnet authorization.
   evidence, not independent review or production authorization; see
   [FULL_SCALE_ONE_MINT_R3.md](spec/FULL_SCALE_ONE_MINT_R3.md) and
   `evidence/R3_FULL_SCALE_LOCAL_VALIDATION_2026-08-28.json`.
-- **K4V-01..04 are confirmed on the current bytes and are not repaired.** A
-  stranger can open a published B2 `policy_hash` and freeze a hostile
-  authority/oracle/ceiling; a stranger can occupy a B1 vault PDA with 240
-  base units; a retained freeze authority can `FreezeAccount` funded B1 and
-  B2 vault tokens, after which no program instruction recovers; a
-  purpose-first co-tenant can zero the beneficiary for six periods when
-  `hard_ceiling` equals the purpose cap, and under the published devnet
-  ceiling leaves `416,667` of `1,250,000`. See
-  `evidence/K4V_ADVERSARIAL_PROBES_2026-09-03.json`. These are Founder design
-  decisions, not silent patches. The SBF hashes are unchanged.
+- **K4V-01/02/03 initialization repairs are implemented in the new candidate.**
+  B2 derives policy identity from the program, signing creator, mint and
+  specification hash; B1 requires beneficiary consent before initializing;
+  both programs reject deposits until mint and freeze authorities are revoked.
+  The attack regressions now require rejection and subsequent honest success.
+  K4V-04 shared-capacity starvation and K4V-05..07 recovery/controller questions
+  remain open. See [the repair record](docs/INITIALIZATION_SECURITY_REPAIR_2026-09-09.md)
+  for verification and compatibility boundaries. The old devnet deployment and
+  signed historical receipts are unchanged; they do not attest to this candidate.
 - **A compromised oracle cannot lift a release past the frozen schedule.** An
   inflated volume report widens the shared window until the aggregate rule stops
   binding, and that is all it can do: the per-vault caps, the cliff, the
@@ -366,7 +365,7 @@ NO_DNA=1 surfpool start --ci --offline --no-deploy --daemon \
   --port 19399 --ws-port 19400
 K4V_SURFPOOL_RPC=http://127.0.0.1:19399 \
 K4V_LOCAL_TRANSACTION_SEND_CONFIRMED=1 \
-K4V_R3_CANDIDATE_CONFIG=spec/R3_TEST_ONLY_CANDIDATE_v1.json \
+K4V_R3_CANDIDATE_CONFIG=spec/R3_TEST_ONLY_CANDIDATE_v2.json \
 NO_DNA=1 cargo run --locked --package purpose-vault \
   --example r3_full_scale_rpc_probe
 ~~~
@@ -379,7 +378,7 @@ npm ci
 NO_DNA=1 surfpool start --ci --network devnet --no-deploy --daemon \
   --port 19199 --ws-port 19200
 K4V_SURFPOOL_RPC=http://127.0.0.1:19199 \
-K4V_R3_CANDIDATE_CONFIG=spec/R3_TEST_ONLY_CANDIDATE_v1.json \
+K4V_R3_CANDIDATE_CONFIG=spec/R3_TEST_ONLY_CANDIDATE_v2.json \
 K4V_R3_SQUADS_RECEIPT_OUT=/tmp/r3-squads.json \
 NO_DNA=1 node probes/r3_full_scale_squads_probe.mjs
 K4V_SURFPOOL_RPC=http://127.0.0.1:19199 \

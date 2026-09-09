@@ -52,7 +52,7 @@ const ELIGIBLE_VOLUME: u64 = 120_000_000_000_000_000;
 const MARKET_CAPACITY: u64 = 3_000_000_000_000_000;
 const MAX_AGE_SECONDS: i64 = 3 * 24 * 60 * 60;
 const MIN_CLIFF_SECONDS: i64 = 730 * 24 * 60 * 60;
-const POLICY_HASH: [u8; 32] = [0x73; 32];
+const POLICY_SPEC_HASH: [u8; 32] = [0x73; 32];
 const LOCAL_LAMPORTS: u64 = 20_000_000_000;
 
 const _: () = assert!(FOUNDER + TREASURY + GENESIS + LP == TOTAL_SUPPLY);
@@ -249,19 +249,24 @@ fn raw_anchor<T: AccountDeserialize>(
     Ok(T::try_deserialize(&mut account.data.as_slice())?)
 }
 
-fn policy_pda() -> Pubkey {
-    Pubkey::find_program_address(&[POLICY_SEED, POLICY_HASH.as_ref()], &purpose_vault::ID).0
+fn policy_pda(policy_hash: [u8; 32]) -> Pubkey {
+    Pubkey::find_program_address(&[POLICY_SEED, policy_hash.as_ref()], &purpose_vault::ID).0
 }
 
-fn market_pda() -> Pubkey {
-    Pubkey::find_program_address(&[MARKET_SEED, POLICY_HASH.as_ref()], &purpose_vault::ID).0
+fn market_pda(policy_hash: [u8; 32]) -> Pubkey {
+    Pubkey::find_program_address(&[MARKET_SEED, policy_hash.as_ref()], &purpose_vault::ID).0
 }
 
-fn vault_pda(kind: VaultKind, authority: Pubkey, mint: Pubkey) -> (Pubkey, Pubkey) {
+fn vault_pda(
+    kind: VaultKind,
+    authority: Pubkey,
+    mint: Pubkey,
+    policy_hash: [u8; 32],
+) -> (Pubkey, Pubkey) {
     let vault = Pubkey::find_program_address(
         &[
             VAULT_SEED,
-            POLICY_HASH.as_ref(),
+            policy_hash.as_ref(),
             &[kind.seed_byte()],
             authority.as_ref(),
             mint.as_ref(),
@@ -492,8 +497,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some("the total supply of this token is fixed"),
     )?;
 
-    let policy = policy_pda();
-    let market = market_pda();
+    let policy_hash = purpose_vault::instructions::open_policy::bound_policy_hash(
+        &policy_authority.pubkey(),
+        &mint.pubkey(),
+        &POLICY_SPEC_HASH,
+    );
+    let policy = policy_pda(policy_hash);
+    let market = market_pda(policy_hash);
     let open_policy = Instruction {
         program_id: purpose_vault::ID,
         accounts: accounts::OpenPolicy {
@@ -506,7 +516,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         .to_account_metas(None),
         data: instruction::OpenPolicy {
-            policy_hash: POLICY_HASH,
+            policy_spec_hash: POLICY_SPEC_HASH,
             market_capacity_bps: MARKET_BPS,
             max_age_seconds: MAX_AGE_SECONDS,
             hard_ceiling: u64::MAX,
@@ -521,8 +531,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         send_local(&rpc, &tx, "OPEN_POLICY")?.into(),
     );
 
-    let (beneficiary_vault, beneficiary_vault_token) =
-        vault_pda(VaultKind::Beneficiary, beneficiary.pubkey(), mint.pubkey());
+    let (beneficiary_vault, beneficiary_vault_token) = vault_pda(
+        VaultKind::Beneficiary,
+        beneficiary.pubkey(),
+        mint.pubkey(),
+        policy_hash,
+    );
     let founder_deposit = Instruction {
         program_id: purpose_vault::ID,
         accounts: accounts::Deposit {
@@ -557,8 +571,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         send_local(&rpc, &tx, "DEPOSIT_FOUNDER")?.into(),
     );
 
-    let (purpose_vault, purpose_vault_token) =
-        vault_pda(VaultKind::Purpose, approver.pubkey(), mint.pubkey());
+    let (purpose_vault, purpose_vault_token) = vault_pda(
+        VaultKind::Purpose,
+        approver.pubkey(),
+        mint.pubkey(),
+        policy_hash,
+    );
     let treasury_deposit = Instruction {
         program_id: purpose_vault::ID,
         accounts: accounts::Deposit {

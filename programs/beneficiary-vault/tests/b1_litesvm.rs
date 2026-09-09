@@ -73,11 +73,19 @@ fn send(
     instruction: Instruction,
     payer: &Keypair,
 ) -> Result<litesvm::types::TransactionMetadata, Box<litesvm::types::FailedTransactionMetadata>> {
+    send_with_signers(svm, instruction, &[payer])
+}
+
+fn send_with_signers(
+    svm: &mut LiteSVM,
+    instruction: Instruction,
+    signers: &[&Keypair],
+) -> Result<litesvm::types::TransactionMetadata, Box<litesvm::types::FailedTransactionMetadata>> {
     svm.expire_blockhash();
     svm.send_transaction(Transaction::new_signed_with_payer(
         &[instruction],
-        Some(&payer.pubkey()),
-        &[payer],
+        Some(&signers[0].pubkey()),
+        signers,
         svm.latest_blockhash(),
     ))
     .map_err(Box::new)
@@ -170,7 +178,7 @@ fn setup() -> Fixture {
     svm.airdrop(&beneficiary.pubkey(), 10_000_000_000).unwrap();
 
     let mint_value = Mint {
-        mint_authority: COption::Some(depositor.pubkey()),
+        mint_authority: COption::None,
         supply: DEPOSIT,
         decimals: 9,
         is_initialized: true,
@@ -212,7 +220,7 @@ fn setup() -> Fixture {
             policy_hash: POLICY_HASH,
         },
     );
-    send(&mut svm, deposit_instruction, &depositor).unwrap();
+    send_with_signers(&mut svm, deposit_instruction, &[&depositor, &beneficiary]).unwrap();
 
     Fixture {
         svm,
@@ -356,7 +364,12 @@ fn deposit_rejects_a_cliff_shorter_than_the_frozen_minimum() {
         },
     );
 
-    let failure = send(&mut fixture.svm, instruction, &fixture.depositor).unwrap_err();
+    let failure = send_with_signers(
+        &mut fixture.svm,
+        instruction,
+        &[&fixture.depositor, &fixture.beneficiary],
+    )
+    .unwrap_err();
     assert!(failure
         .meta
         .logs
@@ -399,164 +412,64 @@ fn inject_mint(
     .unwrap();
 }
 
-fn assert_already_in_use(failure: &litesvm::types::FailedTransactionMetadata) {
+fn assert_rejected(failure: &litesvm::types::FailedTransactionMetadata, needle: &str) {
     assert!(
-        failure
-            .meta
-            .logs
-            .iter()
-            .any(|line| line.contains("already in use")),
-        "expected already-in-use, got:\n{}",
-        failure.meta.logs.join("\n")
-    );
-}
-
-fn assert_frozen_rejection(failure: &litesvm::types::FailedTransactionMetadata) {
-    assert!(
-        failure.meta.logs.iter().any(|line| {
-            line.contains("AccountFrozen")
-                || line.contains("Account is frozen")
-                || line.contains("0x11")
-        }),
-        "expected an SPL frozen-account rejection, got:\n{}",
-        failure.meta.logs.join("\n")
+        failure.meta.logs.iter().any(|line| line.contains(needle)),
+        "expected {needle}: {:?}",
+        failure.meta.logs
     );
 }
 
 #[test]
-fn probe_a_b1_dust_squatting_permanently_blocks_intended_deposit() {
-    // K4V-02: vault PDA is [beneficiary, mint, policy_hash] with no depositor
-    // seed. 240 base units at 500 bps is the smallest deposit that still
-    // yields monthly_cap = 1, so a stranger can occupy the canonical address
-    // for rent plus dust.
-    const DUST_AMOUNT: u64 = 240;
-    const INTENDED_AMOUNT: u64 = DEPOSIT;
-    const _: () = assert!((DUST_AMOUNT * 500 / 10_000) / 12 == 1);
-    const _: () = assert!((239u64 * 500 / 10_000) / 12 == 0);
-
+fn probe_a_b1_unsigned_dust_squat_is_rejected_then_authorized_deposit_succeeds() {
     let mut svm = LiteSVM::new();
     svm.add_program_from_file(beneficiary_vault::ID, program_path())
         .unwrap();
-
     let attacker = Keypair::new();
-    let intended_depositor = Keypair::new();
+    let depositor = Keypair::new();
     let beneficiary = Keypair::new();
+    for key in [&attacker, &depositor, &beneficiary] {
+        svm.airdrop(&key.pubkey(), 10_000_000_000).unwrap();
+    }
     let mint = Pubkey::new_unique();
-    svm.airdrop(&attacker.pubkey(), 10_000_000_000).unwrap();
-    svm.airdrop(&intended_depositor.pubkey(), 10_000_000_000)
-        .unwrap();
-    svm.airdrop(&beneficiary.pubkey(), 10_000_000_000).unwrap();
-    inject_mint(
-        &mut svm,
-        mint,
-        COption::Some(intended_depositor.pubkey()),
-        COption::None,
-        DUST_AMOUNT + INTENDED_AMOUNT,
-    );
-
+    inject_mint(&mut svm, mint, COption::None, COption::None, DEPOSIT + 240);
     let attacker_token = Pubkey::new_unique();
-    let intended_depositor_token = Pubkey::new_unique();
-    svm.set_account(
-        attacker_token,
-        token_account(mint, attacker.pubkey(), DUST_AMOUNT),
-    )
-    .unwrap();
-    svm.set_account(
-        intended_depositor_token,
-        token_account(mint, intended_depositor.pubkey(), INTENDED_AMOUNT),
-    )
-    .unwrap();
-
-    let squatted_policy_hash = [0x77; 32];
-    let (attacker_ix, vault_state, vault_token) = deposit_instruction(
+    let source = Pubkey::new_unique();
+    svm.set_account(attacker_token, token_account(mint, attacker.pubkey(), 240))
+        .unwrap();
+    svm.set_account(source, token_account(mint, depositor.pubkey(), DEPOSIT))
+        .unwrap();
+    let (mut attack, state, token) = deposit_instruction(
         attacker.pubkey(),
         beneficiary.pubkey(),
         mint,
         attacker_token,
         DepositArgs {
-            amount: DUST_AMOUNT,
+            amount: 240,
             annual_release_bps: ANNUAL_BPS,
             cliff_seconds: MIN_CLIFF_SECONDS,
-            policy_hash: squatted_policy_hash,
+            policy_hash: POLICY_HASH,
         },
     );
-    send(&mut svm, attacker_ix, &attacker).unwrap();
-
-    let state = BeneficiaryVault::try_deserialize(
-        &mut svm.get_account(&vault_state).unwrap().data.as_slice(),
-    )
-    .unwrap();
-    assert_eq!(state.depositor, attacker.pubkey());
-    assert_eq!(state.beneficiary, beneficiary.pubkey());
-    assert_eq!(state.deposited_amount, DUST_AMOUNT);
-    assert_eq!(state.monthly_cap, 1);
-    assert_eq!(token_balance(&svm, vault_token), DUST_AMOUNT);
-
-    let (intended_ix, intended_state, intended_token) = deposit_instruction(
-        intended_depositor.pubkey(),
-        beneficiary.pubkey(),
-        mint,
-        intended_depositor_token,
-        DepositArgs {
-            amount: INTENDED_AMOUNT,
-            annual_release_bps: ANNUAL_BPS,
-            cliff_seconds: MIN_CLIFF_SECONDS,
-            policy_hash: squatted_policy_hash,
-        },
+    // Construct the actual unauthorized transaction, without a forged signature.
+    attack
+        .accounts
+        .iter_mut()
+        .find(|a| a.pubkey == beneficiary.pubkey())
+        .unwrap()
+        .is_signer = false;
+    assert_rejected(
+        &send(&mut svm, attack, &attacker).unwrap_err(),
+        "AccountNotSigner",
     );
-    assert_eq!(intended_state, vault_state);
-    assert_eq!(intended_token, vault_token);
-    let failure = send(&mut svm, intended_ix, &intended_depositor)
-        .expect_err("the occupied PDA must reject the intended deposit");
-    assert_already_in_use(&failure);
-    assert_eq!(
-        token_balance(&svm, intended_depositor_token),
-        INTENDED_AMOUNT
-    );
-    assert_eq!(token_balance(&svm, vault_token), DUST_AMOUNT);
-}
-
-#[test]
-fn probe_b_b1_retained_freeze_authority_permanently_locks_vault() {
-    // K4V-03: B1 deposit does not require freeze_authority == None. After
-    // FreezeAccount the only remaining instruction, release, fails, and the
-    // beneficiary cannot thaw.
-    let mut svm = LiteSVM::new();
-    svm.add_program_from_file(beneficiary_vault::ID, program_path())
-        .unwrap();
-
-    let depositor = Keypair::new();
-    let beneficiary = Keypair::new();
-    let freezer = Keypair::new();
-    let mint = Pubkey::new_unique();
-    let depositor_token = Pubkey::new_unique();
-    let beneficiary_token = Pubkey::new_unique();
-    svm.airdrop(&depositor.pubkey(), 10_000_000_000).unwrap();
-    svm.airdrop(&beneficiary.pubkey(), 10_000_000_000).unwrap();
-    svm.airdrop(&freezer.pubkey(), 10_000_000_000).unwrap();
-    inject_mint(
-        &mut svm,
-        mint,
-        COption::Some(depositor.pubkey()),
-        COption::Some(freezer.pubkey()),
-        DEPOSIT,
-    );
-    svm.set_account(
-        depositor_token,
-        token_account(mint, depositor.pubkey(), DEPOSIT),
-    )
-    .unwrap();
-    svm.set_account(
-        beneficiary_token,
-        token_account(mint, beneficiary.pubkey(), 0),
-    )
-    .unwrap();
-
-    let (deposit_ix, vault_state, vault_token) = deposit_instruction(
+    assert!(svm.get_account(&state).is_none());
+    assert!(svm.get_account(&token).is_none());
+    assert_eq!(token_balance(&svm, attacker_token), 240);
+    let (honest, honest_state, honest_token) = deposit_instruction(
         depositor.pubkey(),
         beneficiary.pubkey(),
         mint,
-        depositor_token,
+        source,
         DepositArgs {
             amount: DEPOSIT,
             annual_release_bps: ANNUAL_BPS,
@@ -564,62 +477,113 @@ fn probe_b_b1_retained_freeze_authority_permanently_locks_vault() {
             policy_hash: POLICY_HASH,
         },
     );
-    send(&mut svm, deposit_ix, &depositor).unwrap();
-    assert_eq!(token_balance(&svm, vault_token), DEPOSIT);
+    assert_eq!((state, token), (honest_state, honest_token));
+    send_with_signers(&mut svm, honest, &[&depositor, &beneficiary]).unwrap();
+    assert_eq!(token_balance(&svm, token), DEPOSIT);
+    assert_eq!(token_balance(&svm, source), 0);
+}
 
-    let state = BeneficiaryVault::try_deserialize(
-        &mut svm.get_account(&vault_state).unwrap().data.as_slice(),
-    )
-    .unwrap();
-    let mut clock = svm.get_sysvar::<Clock>();
-    clock.unix_timestamp = state.cliff_end_ts;
-    svm.set_sysvar(&clock);
-
-    let freeze_ix = spl_token_interface::instruction::freeze_account(
-        &TOKEN_PROGRAM_ID,
-        &vault_token,
-        &mint,
-        &freezer.pubkey(),
-        &[],
-    )
-    .unwrap();
-    send(&mut svm, freeze_ix, &freezer).unwrap();
-    assert_eq!(
-        SplAccount::unpack(&svm.get_account(&vault_token).unwrap().data)
-            .unwrap()
-            .state,
-        AccountState::Frozen
-    );
-
-    let thaw_ix = spl_token_interface::instruction::thaw_account(
-        &TOKEN_PROGRAM_ID,
-        &vault_token,
-        &mint,
-        &beneficiary.pubkey(),
-        &[],
-    )
-    .unwrap();
-    send(&mut svm, thaw_ix, &beneficiary).expect_err("the beneficiary is not the freeze authority");
-
-    let release_ix = Instruction {
-        program_id: beneficiary_vault::ID,
-        accounts: accounts::Release {
-            beneficiary: beneficiary.pubkey(),
+#[test]
+fn probe_b_b1_authority_matrix_rejects_before_locking_and_revocation_allows_deposit() {
+    use spl_token_interface::instruction::{self as spl, AuthorityType};
+    for (mint_live, freeze_live) in [(false, false), (true, false), (false, true), (true, true)] {
+        let mut svm = LiteSVM::new();
+        svm.add_program_from_file(beneficiary_vault::ID, program_path())
+            .unwrap();
+        // A sole owner can be both depositor and beneficiary with one signature.
+        let owner = Keypair::new();
+        svm.airdrop(&owner.pubkey(), 10_000_000_000).unwrap();
+        let mint = Pubkey::new_unique();
+        let source = Pubkey::new_unique();
+        inject_mint(
+            &mut svm,
             mint,
-            vault_state,
-            vault_token,
-            beneficiary_token,
-            token_program: TOKEN_PROGRAM_ID,
+            if mint_live {
+                COption::Some(owner.pubkey())
+            } else {
+                COption::None
+            },
+            if freeze_live {
+                COption::Some(owner.pubkey())
+            } else {
+                COption::None
+            },
+            DEPOSIT,
+        );
+        svm.set_account(source, token_account(mint, owner.pubkey(), DEPOSIT))
+            .unwrap();
+        let (ix, state, token) = deposit_instruction(
+            owner.pubkey(),
+            owner.pubkey(),
+            mint,
+            source,
+            DepositArgs {
+                amount: DEPOSIT,
+                annual_release_bps: ANNUAL_BPS,
+                cliff_seconds: MIN_CLIFF_SECONDS,
+                policy_hash: POLICY_HASH,
+            },
+        );
+        if mint_live || freeze_live {
+            let failure = send(&mut svm, ix.clone(), &owner).unwrap_err();
+            assert_rejected(
+                &failure,
+                if mint_live {
+                    "MintAuthorityRetained"
+                } else {
+                    "FreezeAuthorityRetained"
+                },
+            );
+            assert!(svm.get_account(&state).is_none());
+            assert!(svm.get_account(&token).is_none());
+            assert_eq!(token_balance(&svm, source), DEPOSIT);
+            for (live, kind) in [
+                (mint_live, AuthorityType::MintTokens),
+                (freeze_live, AuthorityType::FreezeAccount),
+            ] {
+                if live {
+                    send(
+                        &mut svm,
+                        spl::set_authority(
+                            &TOKEN_PROGRAM_ID,
+                            &mint,
+                            None,
+                            kind,
+                            &owner.pubkey(),
+                            &[],
+                        )
+                        .unwrap(),
+                        &owner,
+                    )
+                    .unwrap();
+                }
+            }
         }
-        .to_account_metas(None),
-        data: instruction::Release {
-            amount: MONTHLY_CAP,
+        send(&mut svm, ix, &owner).unwrap();
+        assert_eq!(token_balance(&svm, token), DEPOSIT);
+        // Real SPL rejects a later freeze or reactivation of either revoked authority.
+        assert!(send(
+            &mut svm,
+            spl::freeze_account(&TOKEN_PROGRAM_ID, &token, &mint, &owner.pubkey(), &[]).unwrap(),
+            &owner
+        )
+        .is_err());
+        for kind in [AuthorityType::MintTokens, AuthorityType::FreezeAccount] {
+            assert!(send(
+                &mut svm,
+                spl::set_authority(
+                    &TOKEN_PROGRAM_ID,
+                    &mint,
+                    Some(&owner.pubkey()),
+                    kind,
+                    &owner.pubkey(),
+                    &[]
+                )
+                .unwrap(),
+                &owner
+            )
+            .is_err());
         }
-        .data(),
-    };
-    let release_err =
-        send(&mut svm, release_ix, &beneficiary).expect_err("a frozen vault token cannot release");
-    assert_frozen_rejection(&release_err);
-    assert_eq!(token_balance(&svm, beneficiary_token), 0);
-    assert_eq!(token_balance(&svm, vault_token), DEPOSIT);
+        assert_eq!(token_balance(&svm, token), DEPOSIT);
+    }
 }

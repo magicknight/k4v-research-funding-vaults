@@ -103,9 +103,13 @@ token    = PDA("purpose-token",    vault)
 approval = PDA("purpose-approval", vault, period_index_le)
 ~~~
 
-`policy_hash` is a non-zero 32-byte digest binding the deployment to an
-externally published policy artifact. B2 checks its shape and freezes it; it
-does not decide whether the referenced prose is true or legally effective.
+`open_policy` accepts a nonzero `policy_spec_hash`. It derives `policy_hash`
+as SHA-256 of `"k4v-policy-authority-v1" || program_id || signing_creator ||
+mint || policy_spec_hash`, using raw 32-byte keys. Account layouts and downstream
+seeds stay unchanged; the digest now separates creator/mint namespaces. The
+specification hash still refers to external prose whose truth is not decided
+by the program. Existing clients must update their derivation; supplying the
+old unbound digest/account pair fails the new seed constraint.
 
 ## The market input is an oracle, and it fails closed
 
@@ -232,12 +236,12 @@ That is the conservative direction of failure. The covenant permits an
 emergency power to pause but never to accelerate, and a recovery path that
 could restore releases would be an acceleration path wearing a different name.
 
-A live mint freeze authority can produce the same terminal state without
-losing the oracle. `open_policy` and `deposit` do not require
-`freeze_authority == None`. The 2026-09-03 probes froze both vault token
-accounts after deposit; both release paths then failed, and no B2 instruction
-thaws, closes or migrates. Whether that mint end-state must be enforced on
-chain is a Founder decision, not a property of the current bytes.
+The current `deposit` rejects both a retained mint authority and a retained
+freeze authority before transferring any tokens. `open_policy` may precede
+revocation because it locks no tokens. The old September 3 probes demonstrated
+freezing after deposit on old bytes; the new rejection matrix covers both vault
+kinds and all four authority combinations. This admission gate does not thaw
+old frozen vaults or repair lost oracle keys.
 
 ## Conflict of interest
 
@@ -303,11 +307,9 @@ a working answer.
   from it, is decided off chain. B2 receives one integer and does not know how
   it was assembled. Denominating that integer in base units removes the price
   from the aggregation but not the judgement.
-- `policy` and `market` PDAs are `[seed, policy_hash]` only. A published digest
-  can be opened by a stranger, who then freezes authority, oracle and ceiling.
-  `deposit` still requires the stored policy authority, so this is namespace
-  capture rather than theft of an already-funded vault. Binding the creator
-  into the namespace is a Founder decision.
+- Creator/mint namespace capture is addressed by the bound policy digest in
+  the September 9 candidate. Historical devnet accounts and receipts keep their
+  original unbound identities; no public upgrade or migration was performed.
 - The shared window is competitive. There is no per-vault reservation.
   Purpose-first consumption can zero the beneficiary for every period when
   `hard_ceiling <= purpose monthly_cap`, and under the published devnet
