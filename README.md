@@ -3,12 +3,14 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
-**Latest design:** [E-06 withdrawal-key recovery](docs/E06_WITHDRAWAL_KEY_RECOVERY_DESIGN.md)
-adds a role-specific TEST_ONLY authority model and adversarial tests for lost
-Founder/Treasury keys. This is a design/model tranche, not an SBF repair;
-E-07 will implement the isolated candidate and financial integration.
+**Latest engineering candidate:** [E-07 v5 beneficiary withdrawal recovery](docs/LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md)
+enforces the E-06 role-authority model in isolated SBF. Signed local transactions
+recover both beneficiary keys, preserve approvals/custody, and continue releases
+into the next annual interval. Eleven raw checkpoints independently verify,
+including actual immutable local loader bytes. No v4 migration or public v5
+deployment is claimed; production rights and human review remain open.
 
-**Latest engineering acceptance:** [E-05 verification and review package](docs/E05_INDEPENDENT_VERIFICATION_AND_REVIEW.md)
+**Earlier verification acceptance:** [E-05 verification and review package](docs/E05_INDEPENDENT_VERIFICATION_AND_REVIEW.md)
 independently decodes v4 custody, complete recovery history and actual loader
 state. A 12-checkpoint local rehearsal combines signed funding, key recovery,
 a changed-ELF upgrade and continued withdrawals. A read-only single-bank RPC

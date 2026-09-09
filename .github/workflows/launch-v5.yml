@@ -1,0 +1,26 @@
+name: launch-v5-withdrawal-recovery-test-only
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  launch-v5-withdrawal-recovery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: Install Solana CLI 3.1.10
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Reproduce E-07 exact builds and signed local recovery with independent raw verification
+        run: bash tools/run_e07_local_reproduction.sh

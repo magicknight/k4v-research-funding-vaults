@@ -1,0 +1,1550 @@
+{
+  "address": "EUhWSZAfU8hDki7AXskYrwh8ErwXN8iqicaHTP7yQfYS",
+  "metadata": {
+    "name": "launch_vault_v5",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "TEST_ONLY reserved capacity and annual-budget candidate; production admission disabled"
+  },
+  "instructions": [
+    {
+      "name": "activate",
+      "discriminator": [
+        194,
+        203,
+        35,
+        100,
+        151,
+        55,
+        170,
+        82
+      ],
+      "accounts": [
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "approve_treasury",
+      "discriminator": [
+        244,
+        12,
+        206,
+        10,
+        148,
+        217,
+        208,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "approval",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        },
+        {
+          "name": "recipient_record",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "period",
+          "type": "u64"
+        },
+        {
+          "name": "need",
+          "type": "u64"
+        },
+        {
+          "name": "authority_epoch",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "arm",
+      "discriminator": [
+        230,
+        51,
+        249,
+        116,
+        166,
+        65,
+        21,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel",
+      "discriminator": [
+        232,
+        219,
+        223,
+        41,
+        219,
+        236,
+        220,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "signer": true
+        },
+        {
+          "name": "founder",
+          "signer": true
+        },
+        {
+          "name": "treasury",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_change",
+      "discriminator": [
+        100,
+        30,
+        4,
+        148,
+        3,
+        244,
+        243,
+        168
+      ],
+      "accounts": [
+        {
+          "name": "initiator",
+          "signer": true
+        },
+        {
+          "name": "cosigner",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_withdrawal",
+      "discriminator": [
+        183,
+        104,
+        181,
+        250,
+        28,
+        128,
+        210,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "initiator",
+          "signer": true
+        },
+        {
+          "name": "cosigner",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        },
+        {
+          "name": "successor_record",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "deposit",
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "signer": true
+        },
+        {
+          "name": "depositor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "source",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "vault_token",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "role",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "execute_change",
+      "discriminator": [
+        104,
+        53,
+        136,
+        238,
+        82,
+        222,
+        200,
+        42
+      ],
+      "accounts": [
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "execute_withdrawal",
+      "discriminator": [
+        113,
+        121,
+        203,
+        232,
+        137,
+        139,
+        248,
+        249
+      ],
+      "accounts": [
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        },
+        {
+          "name": "successor_record",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "expire_unarmed",
+      "discriminator": [
+        66,
+        47,
+        191,
+        149,
+        67,
+        84,
+        3,
+        247
+      ],
+      "accounts": [
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "expire_withdrawal",
+      "discriminator": [
+        237,
+        177,
+        14,
+        65,
+        81,
+        129,
+        85,
+        92
+      ],
+      "accounts": [
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        },
+        {
+          "name": "successor_record",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "open_policy",
+      "discriminator": [
+        30,
+        48,
+        161,
+        67,
+        189,
+        208,
+        101,
+        181
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "founder",
+          "signer": true
+        },
+        {
+          "name": "treasury",
+          "signer": true
+        },
+        {
+          "name": "oracle"
+        },
+        {
+          "name": "recovery_one",
+          "signer": true
+        },
+        {
+          "name": "recovery_two",
+          "signer": true
+        },
+        {
+          "name": "recovery_three",
+          "signer": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "config",
+          "type": {
+            "defined": {
+              "name": "LaunchConfig"
+            }
+          }
+        },
+        {
+          "name": "spec_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "identity",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "prepare_withdrawal_key",
+      "discriminator": [
+        178,
+        52,
+        18,
+        81,
+        186,
+        42,
+        166,
+        26
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "policy"
+        },
+        {
+          "name": "record",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "subject",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "propose_change",
+      "discriminator": [
+        167,
+        211,
+        18,
+        222,
+        93,
+        215,
+        74,
+        159
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "initiator",
+          "signer": true
+        },
+        {
+          "name": "cosigner",
+          "signer": true
+        },
+        {
+          "name": "successor",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "kind",
+          "type": "u8"
+        },
+        {
+          "name": "recovery",
+          "type": "bool"
+        },
+        {
+          "name": "nonce",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "propose_withdrawal",
+      "discriminator": [
+        24,
+        15,
+        80,
+        161,
+        146,
+        233,
+        1,
+        25
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "initiator",
+          "signer": true
+        },
+        {
+          "name": "cosigner",
+          "signer": true
+        },
+        {
+          "name": "successor",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        },
+        {
+          "name": "successor_record",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "role",
+          "type": "u8"
+        },
+        {
+          "name": "recovery",
+          "type": "bool"
+        },
+        {
+          "name": "nonce",
+          "type": "u64"
+        },
+        {
+          "name": "epoch",
+          "type": "u64"
+        },
+        {
+          "name": "created_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "refund",
+      "discriminator": [
+        2,
+        96,
+        183,
+        251,
+        63,
+        208,
+        46,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "depositor",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "vault"
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault_token",
+          "writable": true
+        },
+        {
+          "name": "destination",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "release",
+      "discriminator": [
+        253,
+        249,
+        15,
+        206,
+        28,
+        127,
+        193,
+        241
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "vault_token",
+          "writable": true
+        },
+        {
+          "name": "destination",
+          "writable": true
+        },
+        {
+          "name": "approval",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "recipient_record",
+          "optional": true
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "authority_epoch",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "report_capacity",
+      "discriminator": [
+        248,
+        242,
+        164,
+        67,
+        169,
+        225,
+        4,
+        165
+      ],
+      "accounts": [
+        {
+          "name": "oracle",
+          "signer": true
+        },
+        {
+          "name": "policy",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "capacity",
+          "type": "u64"
+        },
+        {
+          "name": "observed_at",
+          "type": "i64"
+        },
+        {
+          "name": "sequence",
+          "type": "u64"
+        },
+        {
+          "name": "epoch",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ChangeProposalV5",
+      "discriminator": [
+        92,
+        233,
+        148,
+        90,
+        101,
+        167,
+        105,
+        31
+      ]
+    },
+    {
+      "name": "LaunchPolicyV5",
+      "discriminator": [
+        114,
+        171,
+        229,
+        82,
+        34,
+        5,
+        212,
+        100
+      ]
+    },
+    {
+      "name": "LaunchVaultV5",
+      "discriminator": [
+        161,
+        194,
+        219,
+        107,
+        184,
+        55,
+        124,
+        126
+      ]
+    },
+    {
+      "name": "TreasuryApprovalV5",
+      "discriminator": [
+        150,
+        211,
+        52,
+        200,
+        62,
+        100,
+        162,
+        61
+      ]
+    },
+    {
+      "name": "WithdrawalKeyV5",
+      "discriminator": [
+        209,
+        223,
+        169,
+        33,
+        81,
+        128,
+        26,
+        246
+      ]
+    },
+    {
+      "name": "WithdrawalProposalV5",
+      "discriminator": [
+        113,
+        236,
+        74,
+        153,
+        23,
+        82,
+        170,
+        107
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "AnnualRule",
+      "docs": [
+        "Two frozen input epochs exercise the annual interface. They are not a",
+        "production calendar, live IRB source, or authority to extend the horizon."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "start_period",
+            "type": "u64"
+          },
+          {
+            "name": "end_period",
+            "type": "u64"
+          },
+          {
+            "name": "founder_basis",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_basis",
+            "type": "u64"
+          },
+          {
+            "name": "shared_cap",
+            "type": "u64"
+          },
+          {
+            "name": "release_bps",
+            "type": "u16"
+          },
+          {
+            "name": "source_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ChangeProposalV5",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "policy",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "recovery",
+            "type": "bool"
+          },
+          {
+            "name": "successor",
+            "type": "pubkey"
+          },
+          {
+            "name": "controller_epoch",
+            "type": "u64"
+          },
+          {
+            "name": "oracle_epoch",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "execute_after",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LaunchConfig",
+      "docs": [
+        "All amounts are mint base units. Caps are TEST_ONLY fixtures, not annual IRB."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "t0",
+            "type": "i64"
+          },
+          {
+            "name": "founder_amount",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_amount",
+            "type": "u64"
+          },
+          {
+            "name": "founder_period_cap",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_period_cap",
+            "type": "u64"
+          },
+          {
+            "name": "shared_hard_cap",
+            "type": "u64"
+          },
+          {
+            "name": "max_report_age",
+            "type": "i64"
+          },
+          {
+            "name": "annual_rules",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "AnnualRule"
+                  }
+                },
+                2
+              ]
+            }
+          },
+          {
+            "name": "recovery_keys",
+            "type": {
+              "array": [
+                "pubkey",
+                3
+              ]
+            }
+          },
+          {
+            "name": "founder_recovery_keys",
+            "type": {
+              "array": [
+                "pubkey",
+                3
+              ]
+            }
+          },
+          {
+            "name": "treasury_recovery_keys",
+            "type": {
+              "array": [
+                "pubkey",
+                3
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "LaunchPolicyV5",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "founder",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "oracle",
+            "type": "pubkey"
+          },
+          {
+            "name": "identity",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "spec_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "config",
+            "type": {
+              "defined": {
+                "name": "LaunchConfig"
+              }
+            }
+          },
+          {
+            "name": "state",
+            "type": "u8"
+          },
+          {
+            "name": "funded_mask",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "last_action_at",
+            "type": "i64"
+          },
+          {
+            "name": "period",
+            "type": "u64"
+          },
+          {
+            "name": "shared_used",
+            "type": "u64"
+          },
+          {
+            "name": "report_period",
+            "type": "u64"
+          },
+          {
+            "name": "report_capacity",
+            "type": "u64"
+          },
+          {
+            "name": "report_at",
+            "type": "i64"
+          },
+          {
+            "name": "report_sequence",
+            "type": "u64"
+          },
+          {
+            "name": "founder_period_used",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_period_used",
+            "type": "u64"
+          },
+          {
+            "name": "founder_released_total",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_released_total",
+            "type": "u64"
+          },
+          {
+            "name": "annual_index",
+            "type": "u8"
+          },
+          {
+            "name": "founder_annual_used",
+            "type": "u64"
+          },
+          {
+            "name": "treasury_annual_used",
+            "type": "u64"
+          },
+          {
+            "name": "initial_oracle",
+            "type": "pubkey"
+          },
+          {
+            "name": "controller",
+            "type": "pubkey"
+          },
+          {
+            "name": "controller_epoch",
+            "type": "u64"
+          },
+          {
+            "name": "oracle_epoch",
+            "type": "u64"
+          },
+          {
+            "name": "oracle_activated_at",
+            "type": "i64"
+          },
+          {
+            "name": "report_epoch",
+            "type": "u64"
+          },
+          {
+            "name": "report_valid",
+            "type": "bool"
+          },
+          {
+            "name": "change_sequence",
+            "type": "u64"
+          },
+          {
+            "name": "pending_change",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawal",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "WithdrawalRole"
+                  }
+                },
+                2
+              ]
+            }
+          },
+          {
+            "name": "approval_count",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LaunchVaultV5",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "policy",
+            "type": "pubkey"
+          },
+          {
+            "name": "depositor",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "principal",
+            "type": "u64"
+          },
+          {
+            "name": "released_total",
+            "type": "u64"
+          },
+          {
+            "name": "period",
+            "type": "u64"
+          },
+          {
+            "name": "period_used",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TreasuryApprovalV5",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "policy",
+            "type": "pubkey"
+          },
+          {
+            "name": "period",
+            "type": "u64"
+          },
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "recipient_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "need",
+            "type": "u64"
+          },
+          {
+            "name": "consumed",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "author",
+            "type": "pubkey"
+          },
+          {
+            "name": "author_epoch",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawalKeyV5",
+      "docs": [
+        "Permanent O(1) canonical key index. No reset/close instruction exists.",
+        "Initial actors and guardians are also checked directly from frozen config."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "policy",
+            "type": "pubkey"
+          },
+          {
+            "name": "subject",
+            "type": "pubkey"
+          },
+          {
+            "name": "history_mask",
+            "type": "u8"
+          },
+          {
+            "name": "pending_mask",
+            "type": "u8"
+          },
+          {
+            "name": "recipient",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawalProposalV5",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "policy",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": "u8"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "epoch",
+            "type": "u64"
+          },
+          {
+            "name": "predecessor",
+            "type": "pubkey"
+          },
+          {
+            "name": "successor",
+            "type": "pubkey"
+          },
+          {
+            "name": "recovery",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "execute_after",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "finished_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawalRole",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "current",
+            "type": "pubkey"
+          },
+          {
+            "name": "epoch",
+            "type": "u64"
+          },
+          {
+            "name": "sequence",
+            "type": "u64"
+          },
+          {
+            "name": "pending",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ExperimentalProfileDisabled",
+      "msg": "This build cannot admit launch policies; no production profile is approved"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidConfig",
+      "msg": "Invalid immutable configuration or role"
+    },
+    {
+      "code": 6002,
+      "name": "IdentityMismatch",
+      "msg": "Policy identity does not bind these actors, mint and exact configuration"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidState",
+      "msg": "Operation is unavailable in this lifecycle state"
+    },
+    {
+      "code": 6004,
+      "name": "T0Boundary",
+      "msg": "T0 boundary has not been satisfied"
+    },
+    {
+      "code": 6005,
+      "name": "PoolsNotFunded",
+      "msg": "Both designated pools must be funded exactly once"
+    },
+    {
+      "code": 6006,
+      "name": "Unauthorized",
+      "msg": "Unauthorized actor, account or destination"
+    },
+    {
+      "code": 6007,
+      "name": "MintAuthorityLive",
+      "msg": "Mint and freeze authorities must both be revoked"
+    },
+    {
+      "code": 6008,
+      "name": "WrongPrincipal",
+      "msg": "Deposit must equal the configured principal"
+    },
+    {
+      "code": 6009,
+      "name": "ClockRollback",
+      "msg": "Clock or period moved backwards"
+    },
+    {
+      "code": 6010,
+      "name": "CliffActive",
+      "msg": "Founder 180-day cliff remains active"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidReport",
+      "msg": "Capacity report is missing, stale, replayed or invalid"
+    },
+    {
+      "code": 6012,
+      "name": "CapacityExceeded",
+      "msg": "Amount exceeds principal, period cap or shared capacity"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidApproval",
+      "msg": "Treasury approval, recipient, period or notice is invalid"
+    },
+    {
+      "code": 6014,
+      "name": "Overflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6015,
+      "name": "ZeroAmount",
+      "msg": "Amount must be nonzero"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidAnnualRule",
+      "msg": "No frozen annual rule covers this period, or its input is invalid"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidAccounting",
+      "msg": "A stored accounting invariant was violated"
+    },
+    {
+      "code": 6018,
+      "name": "CapacityCorrectionPause",
+      "msg": "A corrected quota is below already-used capacity; both pools pause"
+    },
+    {
+      "code": 6019,
+      "name": "ReservedQuotaExceeded",
+      "msg": "This pool cannot consume the other pool's reserved capacity"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidChange",
+      "msg": "A different proposal is pending, or the nonce/epoch was replayed"
+    },
+    {
+      "code": 6021,
+      "name": "ChangeNotice",
+      "msg": "The accepted change is not mature"
+    },
+    {
+      "code": 6022,
+      "name": "RecoveryQuorum",
+      "msg": "Two distinct pre-registered recovery keys are required"
+    },
+    {
+      "code": 6023,
+      "name": "WithdrawalPaused",
+      "msg": "Beneficiary role is paused by a pending accepted change"
+    },
+    {
+      "code": 6024,
+      "name": "WithdrawalAuthority",
+      "msg": "Beneficiary key or authority epoch is not current"
+    },
+    {
+      "code": 6025,
+      "name": "KnownSelfPayment",
+      "msg": "Known beneficiary/guardian/successor cannot receive Treasury payments"
+    },
+    {
+      "code": 6026,
+      "name": "IneligibleSuccessor",
+      "msg": "Retired keys, own guardians and historical recipients cannot be successors"
+    },
+    {
+      "code": 6027,
+      "name": "ProposalClock",
+      "msg": "Signed proposal clock must equal the executing TEST_ONLY bank clock"
+    },
+    {
+      "code": 6028,
+      "name": "WithdrawalWindow",
+      "msg": "Withdrawal proposal is outside its execution or expiry window"
+    }
+  ]
+}
