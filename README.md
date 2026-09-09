@@ -3,7 +3,13 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
-**2026-09-09 new candidate:** [Launch v2](docs/LAUNCH_V2_T0_180D_CANDIDATE.md)
+**Latest local candidate:** [Launch v3](docs/LAUNCH_V3_RESERVED_CAPACITY_CANDIDATE.md)
+adds per-pool reserved capacity, frozen annual-input intervals and an independent
+raw-state verifier. One pool cannot consume the other's same-period reservation
+in the TEST_ONLY profile. Production economics, live IRB inputs and recovery remain
+open; B1/B2/v2 and their artifact pins are preserved.
+
+**Earlier T0/180-day candidate:** [Launch v2](docs/LAUNCH_V2_T0_180D_CANDIDATE.md)
 implements a separate common-T0 / 180-day lifecycle with consented deposits,
 prelaunch cancellation and original-depositor refunds. It is **local TEST_ONLY**;
 the default build cannot create policies. Shared-capacity reservation, annual

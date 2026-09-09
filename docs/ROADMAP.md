@@ -6,7 +6,13 @@ only a disclosed possible case study.
 
 ## Frontier state
 
-2026-09-09 engineering tranche: [Launch v2 T0/180-day candidate](LAUNCH_V2_T0_180D_CANDIDATE.md)
+E-03 now has a [reserved-capacity/annual-input local candidate](LAUNCH_V3_RESERVED_CAPACITY_CANDIDATE.md)
+and an independent verifier for its declared raw-account graph. Same-period
+treasury-first starvation is rejected in v3; production adoption, live annual
+inputs, E-04 recovery/upgrade controls and E-05 real-loader/RPC integration with
+accountable review remain open. Earlier v2 receipts describe that older profile.
+
+Earlier E-01/E-02 tranche: [Launch v2 T0/180-day candidate](LAUNCH_V2_T0_180D_CANDIDATE.md)
 adds an isolated local lifecycle, two role-bound pools and safe cancelled-policy
 refunds. Next are reserved shared capacity/annual IRB (E-03), recovery and
 upgrade control (E-04), then an exact full integration and external review

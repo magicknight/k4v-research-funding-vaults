@@ -1,0 +1,153 @@
+{
+  "schema": "K4V-LAUNCH-V3-LOCAL-VALIDATION-v1",
+  "date": "2026-09-09",
+  "base_commit": "b5c4de522fe0b8c722b9c597b7bfa9a108866a5f",
+  "scope": "E03_TEST_ONLY_reserved_capacity_annual_input_interface_and_raw_graph_verifier",
+  "candidate": {
+    "path": "spec/LAUNCH_V3_TEST_ONLY_CANDIDATE_v1.json",
+    "bytes": 2236,
+    "sha256": "436dcb65d8b5437930c4ac6c22336e48400cbe21b2ff8a15cddac6608c9a0731"
+  },
+  "checks": {
+    "rust_unit_and_abi": 5,
+    "litesvm_signed_transaction_tests": 26,
+    "new_rust_total": 31,
+    "new_python_verifier_tests": 8,
+    "python_integer_samples": 1000,
+    "new_javascript_tests": 3,
+    "compiler_generated_idl_check": "PASS",
+    "test_profile_clippy": "PASS",
+    "python_full_suite_passed": 49,
+    "python_full_suite_skipped": 1,
+    "javascript_full_suite_passed": 7,
+    "workspace_clippy": "PASS",
+    "workspace_default_rust_passed": 75,
+    "historical_B1_B2_rust_passed": 66,
+    "launch_v2_test_profile_rust_passed": 22,
+    "unique_rust_tests_across_profiles": 119,
+    "v2_frozen_artifact_check": "PASS"
+  },
+  "transaction_tests": [
+    "default_artifact_cannot_admit_policy",
+    "identity_prevents_foreign_creator_and_changed_t0_squatting",
+    "consent_required_and_solo_owner_can_fill_all_roles",
+    "deposits_require_revoked_authorities_exact_amount_and_designated_role",
+    "both_exact_pools_required_duplicate_pool_rejected_and_deposit_time_does_not_retime",
+    "t0_rejects_late_deposit_late_arm_and_cancel",
+    "unarmed_expiry_unlocks_only_original_depositors_refund_and_retains_tombstone",
+    "armed_cancellation_needs_all_roles_and_refunds_principal_and_late_dust",
+    "exact_t0_blocks_both_pools_and_treasury_can_use_mature_prelaunch_notice_at_t0_plus_one",
+    "founder_180_day_minus_one_exact_and_plus_one_are_enforced_on_real_tokens",
+    "skipped_periods_do_not_accumulate_and_cliff_is_not_full_unlock",
+    "report_signer_sequence_freshness_and_clock_rollback_fail_closed",
+    "capacity_decrease_and_increase_preserve_used_counters",
+    "treasury_notice_boundary_recipient_owner_and_consumption_are_enforced",
+    "treasury_cannot_approve_self_current_period_or_replace_a_budget",
+    "six_periods_reserve_each_pool_in_both_execution_orders",
+    "failed_token_cpi_rolls_back_policy_vault_and_treasury_approval",
+    "active_refund_wrong_founder_destination_and_role_swap_are_rejected",
+    "partial_withdrawals_preserve_weights_and_unused_shares_cannot_be_borrowed",
+    "a_drop_below_either_used_quota_pauses_both_pools_until_covered",
+    "annual_shared_balance_uses_prior_periods_without_double_debit",
+    "annual_boundary_changes_rate_without_resetting_lifetime_or_carrying_unused_budget",
+    "individual_annual_limit_binds_a_thirteenth_window_and_missing_future_input_blocks_release",
+    "annual_inputs_are_immutable_bound_and_reject_invalid_ranges_rates_or_sources",
+    "zero_annual_rate_pauses_and_does_not_default_to_five_percent",
+    "export_raw_sbf_state_for_independent_verification"
+  ],
+  "results": {
+    "six_periods_both_orders": "F=800000000000000 and T=1200000000000000 each period under C=2000000000000000",
+    "partial_calls": "do_not_reweight_remaining_budget",
+    "corrected_capacity": "both_pools_pause_when_either_used_exceeds_new_quota",
+    "annual_shared_exhaustion": "full_period_prior_only_math_no_double_debit",
+    "annual_boundary": "new_basis_rate_no_lifetime_reset_or_unused_carry",
+    "thirteenth_window": "individual_annual_cap_blocks_even_with_monthly_headroom",
+    "missing_or_zero_annual_input": "no_default_five_percent_or_automatic_extension",
+    "supply_conserved": "1000000000000000000"
+  },
+  "build_issue_resolved": {
+    "initial": "Refund account validation exceeded the SBF stack limit after larger annual state",
+    "repair": "Box<LaunchPolicyV3> in Refund context",
+    "final_sbf_builds": "no_stack_offset_diagnostic",
+    "refund_and_solo_owner_transactions": "PASS"
+  },
+  "raw_graph": {
+    "source": "exported after signed local SBF/SPL transfers",
+    "sample": {
+      "path": "examples/launch_v3_raw_snapshot.json",
+      "bytes": 5995,
+      "sha256": "d6b3f865e6aaa8cc609bcb9b7ec1ad046212f430eb868875f4f9a035d7d6425b"
+    },
+    "mint_setup": "LiteSVM account fixtures",
+    "authenticates_public_chain": false,
+    "authenticates_IRB_truth": false,
+    "arbitrary_funding_graph_supported": false,
+    "private_keys_serialized": false
+  },
+  "source_files": [
+    {
+      "path": "programs/launch-vault-v3/Cargo.toml",
+      "bytes": 1152,
+      "sha256": "5b93e46626d21f64f05670fafa63334abba13f6730fbb1212eea3008065ebde0"
+    },
+    {
+      "path": "programs/launch-vault-v3/src/capacity.rs",
+      "bytes": 7460,
+      "sha256": "ae8e8904a6a0e7c3a9a644c37559d7acef7a4ae03a57036f15ceae0053647eca"
+    },
+    {
+      "path": "programs/launch-vault-v3/src/contexts.rs",
+      "bytes": 5406,
+      "sha256": "cdef8d15c5889caae64ee9b11a2bf691d641b0858482a6d7a0226b825a45f9fb"
+    },
+    {
+      "path": "programs/launch-vault-v3/src/lib.rs",
+      "bytes": 13974,
+      "sha256": "22de55105b1c604f95f7722839d961a59fb914220e67ed2e34c805d5dd63551e"
+    },
+    {
+      "path": "programs/launch-vault-v3/src/state.rs",
+      "bytes": 6145,
+      "sha256": "3acfa9ba10353a12110165a060cccb1c1d403ecddbe5653b524ecc7a9ab0fd39"
+    },
+    {
+      "path": "programs/launch-vault-v3/tests/abi.rs",
+      "bytes": 5434,
+      "sha256": "1cbd0d224a96f4eab1b9f16bc0a37641ff7a1f533d7faf46ee33386b664b2198"
+    },
+    {
+      "path": "programs/launch-vault-v3/tests/launch_litesvm.rs",
+      "bytes": 39200,
+      "sha256": "db2dd0a952dc6b5ed40c155c3b31cbea423b1e7888c4d3bf53ff21159a8ac155"
+    }
+  ],
+  "limitations": [
+    "production_allocation_adoption",
+    "actual_IRB_sources_and_retrieval",
+    "year_start_basis_derivation",
+    "production_calendar_and_nonaligned_boundaries",
+    "later_year_update_authorization_and_notice",
+    "oracle_recovery",
+    "controller_recovery",
+    "production_upgrade_control",
+    "real_loader_and_authenticated_RPC_verifier",
+    "human_accountable_security_review"
+  ],
+  "public_chain_transactions": 0,
+  "official_mint": null,
+  "independent_human_audit": false,
+  "historical_artifact_regression": [
+    {
+      "path": "target/deploy/beneficiary_vault.so",
+      "bytes": 228184,
+      "sha256": "98629d79fc3c9e3755b5e1c298305bcde61748731c42155e93fc73ab5b49cd98",
+      "matches_frozen_R3_v2": true
+    },
+    {
+      "path": "target/deploy/purpose_vault.so",
+      "bytes": 372984,
+      "sha256": "7af9d476f4185f87da46b06259092a6a43d66ef819f562a77b01df47577ad9ef",
+      "matches_frozen_R3_v2": true
+    }
+  ]
+}
