@@ -1,0 +1,142 @@
+{
+  "cases": [
+    {
+      "delay_seconds": 0,
+      "local_signature": "4AtpRKDPuNvJWfX1D1BRzafkpNokszRc4nJxsA3JDyGcdTfTYnxXjmCevtcwSvCbCWBdg6Qb6ZHk3udvDso8gcQY",
+      "outcome": "ACCEPTED",
+      "recovery": false,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 1,
+      "local_signature": "3xeMjLnqKYZ1sRgcA9dgjHoa1FigcvifnG7ijwQLYz7S5LYtpGGfVk8fjgRrTsBBLwsm3U1ABxYXuAoD615bKt5A",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": false,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 30,
+      "local_signature": "3YPmryKJJRGJtGMgWvnUJYjB3Qpk9VpgWCdnmHEH4yGvpaYZS3wqwoCJFm1qwHuiSt7K3zc1j7fwCMjFNJh7U5AK",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": false,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 300,
+      "local_signature": "55q6Mu2P2p2JhJGyXisGtz8VbqoNXRQso2KdqiHzrgansAbXGUoZTmaiSmcNMJCSqeAu8F2JaLYXfq41mtgWetYT",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": false,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 0,
+      "local_signature": "3uw7J6MD4gQDi49CyZCbYbAZrwahinhnJ4pUTQhrQfYqY6bcQp5WyeGbJ4Q4sDh7RaqsLzDq75DJNTMnRnPcHwL",
+      "outcome": "ACCEPTED",
+      "recovery": true,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 1,
+      "local_signature": "3g8hc22AUw24PryvLfsZgsH4LYxMEZvJd2cPxrKh9dqvtKhJTMAdjevob12YA1fkhXXbHLHVu4QEdzaSeVNqBRx3",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": true,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 30,
+      "local_signature": "4jsed9Cpg1m422Lu8b9ViGAndGyLdv3ssXda7Mfx26wcpypLNmNe6VhNz1kbyoMYpiTN6ryzZBn6ySmhpg5h3K6",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": true,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 300,
+      "local_signature": "3252h9Lt5sj6RXzsJp9xrGcmqkurqHFDV74XRfaVMpyVi1cYnPmVGquQRRasHVNUn7WccGMBoaxQmUDoKan1Gtco",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": true,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 0,
+      "local_signature": "2xWwyiZmHTaVa6yzarQGeYfkgFu6SKTCan4BSjEMEPiGLKRnCUspQuU3Zavc7g8iZQDFr1BZ2BS3HDFrZEgK1hCm",
+      "outcome": "ACCEPTED",
+      "recovery": false,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 1,
+      "local_signature": "5prqD6RFr4L66gCg6mrgY3EMZyaoD3RvHgNt3gmhzxDwAduJpANczvbZgGHGitmG4DzbGVMmSFyQjEeJmrqF2C6H",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": false,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 30,
+      "local_signature": "2AjJjszbmoNwVXjxU3rTZ6HmeYxN4pJHUxXz5FfkENBjF8ouBwPgAC7xK2miD4ookpyKd6epoNzzAeWUTAgCi7GM",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": false,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 300,
+      "local_signature": "gczbAzEYWijWfozKwCxxwZqi2UfgaGjE3pMD9K28i8xV1EDWidpyXNdu6bgLB5EzMEwe8CXEbN7argK9qzhH5ya",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": false,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 0,
+      "local_signature": "2Mi1GgziTzMcgJwFN9Sxgqfur3gKRBu1VimPHr8ZeAWtuBMDupbF8Sf3nGFyrMNxeZctHC3D96SPy6DzanSa16kb",
+      "outcome": "ACCEPTED",
+      "recovery": true,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 1,
+      "local_signature": "4GejYb7HKDUW3Tpa7UPnmnqzcgjFg8b5Q3nTGYdZqLzo7jBPGUrMuxvvqDbFGwhqs6JXsN8UemJiijFdVw1CYB3W",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": true,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 30,
+      "local_signature": "2FbUpiNCpUuM3ioFmpXJyuGehxhxnGfU3bKTmk2VjtiiEEWyWRdGxzap2mELoxYD3QJcPBePikvBWGLPp8YtrGo7",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": true,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "delay_seconds": 300,
+      "local_signature": "GeAAd4rtp8p4nzgJXUdm8Kj1xxi9zdeLBzwGKCBBGzcuRYMJrDZWgt7VWKxoLbixCboTtqhsG9UweEeYZDtaKYg",
+      "outcome": "PROPOSAL_CLOCK_REJECTED_STATE_UNCHANGED",
+      "recovery": true,
+      "role": 1,
+      "same_valid_blockhash": true
+    }
+  ],
+  "clock_controlled": true,
+  "fee_airdrops": true,
+  "financial_transfers_tested": false,
+  "private_keys_serialized": false,
+  "probe": "clock_delay",
+  "program_and_mint_injected": true,
+  "program_id": "EUhWSZAfU8hDki7AXskYrwh8ErwXN8iqicaHTP7yQfYS",
+  "public_chain_transactions": 0,
+  "schema": "K4V-E09-V5-CLOCK-PROBE-v1",
+  "scope": "SIGNED_LOCAL_LITESVM_ON_UNCHANGED_V5_SBF"
+}

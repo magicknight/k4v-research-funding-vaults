@@ -1,0 +1,38 @@
+{
+  "cases": [
+    {
+      "first": "ACCEPTED",
+      "newly_signed_same_nonce": "PDA_ALREADY_IN_USE_STATE_UNCHANGED",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "first": "ACCEPTED",
+      "newly_signed_same_nonce": "PDA_ALREADY_IN_USE_STATE_UNCHANGED",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "first": "ACCEPTED",
+      "newly_signed_same_nonce": "PDA_ALREADY_IN_USE_STATE_UNCHANGED",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "first": "ACCEPTED",
+      "newly_signed_same_nonce": "PDA_ALREADY_IN_USE_STATE_UNCHANGED",
+      "recovery": true,
+      "role": 1
+    }
+  ],
+  "clock_controlled": true,
+  "fee_airdrops": true,
+  "financial_transfers_tested": false,
+  "private_keys_serialized": false,
+  "probe": "nonce_replay",
+  "program_and_mint_injected": true,
+  "program_id": "EUhWSZAfU8hDki7AXskYrwh8ErwXN8iqicaHTP7yQfYS",
+  "public_chain_transactions": 0,
+  "schema": "K4V-E09-V5-CLOCK-PROBE-v1",
+  "scope": "SIGNED_LOCAL_LITESVM_ON_UNCHANGED_V5_SBF"
+}

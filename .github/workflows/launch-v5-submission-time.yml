@@ -1,0 +1,23 @@
+name: v5-submission-time-counterexample-and-model
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  v5-submission-time-counterexample-and-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install Solana CLI 3.1.10
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Reproduce frozen-v5 timing failures and selected bounded-window model
+        run: bash tools/run_e09_local_reproduction.sh
