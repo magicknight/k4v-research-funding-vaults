@@ -1,0 +1,159 @@
+{
+  "schema": "K4V-E04-LOCAL-VALIDATION-v1",
+  "date": "2026-09-09",
+  "base_commit": "8bf933e0c75a8a3efff5e40f4bf95f208ae03660",
+  "scope": "E04_LOCAL_RECOVERY_AND_EXTERNAL_UPGRADE_GATE_TEST_ONLY",
+  "candidate": {
+    "path": "spec/E04_TEST_ONLY_CANDIDATE_v1.json",
+    "bytes": 3265,
+    "sha256": "c95c0d4dfa3ddf007eaf1ede68cf81a7d8f36f06b2cbf16591597fc56b44a848"
+  },
+  "checks": {
+    "v4_rust_unit_and_abi": 5,
+    "v4_signed_litesvm_tests": 39,
+    "v4_rust_total": 44,
+    "new_recovery_cases_within_v4": 13,
+    "gate_program_id_test": 1,
+    "gate_real_loader_tests": 6,
+    "gate_rust_total": 7,
+    "new_rust_total": 51,
+    "unique_rust_tests_all_profiles": 170,
+    "historical_B1_B2_tests": 66,
+    "v2_tests": 22,
+    "v3_tests": 31,
+    "workspace_default_rust": 81,
+    "v2_v3_profile_regressions": 53,
+    "new_javascript_identity_tests": 4,
+    "javascript_full_suite_passed": 11,
+    "python_full_suite_passed": 49,
+    "python_full_suite_skipped": 1,
+    "test_profile_clippy": "PASS",
+    "workspace_clippy": "PASS",
+    "both_compiler_idls_regenerated": "PASS",
+    "four_SBF_rebuilds_match_tested_bytes": true,
+    "SBF_stack_offset_diagnostics": 0
+  },
+  "key_results": [
+    "successor acceptance and recovery quorum required",
+    "old controller cannot veto recovery; quorum can atomically evict hostile normal proposal",
+    "nonce and epoch tombstones prevent replay",
+    "old oracle key reused later does not revive old epoch",
+    "new oracle report must be observed after activation; global report sequence retained",
+    "T0, all accounting, treasury notice and beneficiary identities unchanged by recovery",
+    "controller recovery alone cannot recover lost beneficiary withdrawal keys"
+  ],
+  "loader_receipt": {
+    "path": "evidence/UPGRADE_GATE_LOCAL_REAL_LOADER_2026-09-09.json",
+    "bytes": 2026,
+    "sha256": "f935eb29642434881c44ce2392099c55a11fc33b480589aa263e1b7035d2ba05"
+  },
+  "loader_receipt_check_scope": "HEADER_AND_ARTIFACT_COHERENCE_NOT_AUTHENTICATED_TRANSACTION_HISTORY",
+  "loader_results": [
+    "all installations via signed native loader instructions; no program injection in loader tests",
+    "actual deployed ProgramData payload equals artifact bytes; extra allocation remains zero",
+    "gate must already have None upgrade authority",
+    "actual target upgrade authority transferred to gate PDA",
+    "old uploader cannot write queued buffer; old target authority cannot upgrade directly",
+    "two distinct registered keys authorize exact buffer hash, length and return recipient",
+    "early execute rejected; exact maturity succeeds through real loader CPI",
+    "cancel restores only bound buffer authority; new nonce restarts full notice",
+    "invalid ELF CPI failure rolls back proposal, buffer and target",
+    "queued buffer cannot use unqueued-return path; explicit corrupted test state rejected by hash"
+  ],
+  "known_limitations": [
+    "production_recovery_and_upgrade_adoption",
+    "actual_recovery_committee_custody_and_independence",
+    "beneficiary_withdrawal_key_custody_and_recovery",
+    "upgrade_committee_losing_two_keys",
+    "actual_IRB_sources_basis_calendar_and_later_year_governance",
+    "independent_v4_governance_and_loader_RPC_verifier",
+    "whole_system_upgrade_semantic_compatibility_review",
+    "human_accountable_security_review",
+    "final_production_config_and_exact_T0"
+  ],
+  "raw_snapshot": {
+    "path": "examples/launch_v4_raw_snapshot.json",
+    "bytes": 6413,
+    "sha256": "7d6b59177f0f17ec4a57b5b0178e18d3093b51b3c73ae2e9c16e9db4a05f0bfb"
+  },
+  "v4_raw_RPC_verifier_complete": false,
+  "historical_artifact_bindings": [
+    {
+      "path": "target/deploy/beneficiary_vault.so",
+      "bytes": 228184,
+      "sha256": "98629d79fc3c9e3755b5e1c298305bcde61748731c42155e93fc73ab5b49cd98"
+    },
+    {
+      "path": "target/deploy/purpose_vault.so",
+      "bytes": 372984,
+      "sha256": "7af9d476f4185f87da46b06259092a6a43d66ef819f562a77b01df47577ad9ef"
+    }
+  ],
+  "historical_artifact_note": "B1/B2/v2/v3 source and external dependency versions unchanged; prior verified artifacts copied for local regressions and exact pins rechecked; remote CI rebuilds historical artifacts",
+  "source_files": [
+    {
+      "path": "programs/launch-vault-v4/Cargo.toml",
+      "bytes": 1152,
+      "sha256": "6bdc9aee67884aa491ae1706baf39a625861c88f935dccc855fbf4d49a662369"
+    },
+    {
+      "path": "programs/launch-vault-v4/src/capacity.rs",
+      "bytes": 7460,
+      "sha256": "39c9f83c788743f20a74df0a3b5539d05224b852e52abbc5fccd8234bf6f5411"
+    },
+    {
+      "path": "programs/launch-vault-v4/src/contexts.rs",
+      "bytes": 7292,
+      "sha256": "02577776d794e5d14f63a97381fb3be1880a97cabe84cfcffc62cef841cf9826"
+    },
+    {
+      "path": "programs/launch-vault-v4/src/governance.rs",
+      "bytes": 4362,
+      "sha256": "dbee95c065baed789fe3231a9cc238615028596d6b014025826b0e8e7c4a9ea1"
+    },
+    {
+      "path": "programs/launch-vault-v4/src/lib.rs",
+      "bytes": 15391,
+      "sha256": "5bd2a08fcee7eed46bed6ae43f077a0faf3f522e2703aa13ed3be263963ac890"
+    },
+    {
+      "path": "programs/launch-vault-v4/src/state.rs",
+      "bytes": 7391,
+      "sha256": "2b11ba6340afb5e5483e83c92c343030a248e5c62aaa181a3d48098f8a74ff57"
+    },
+    {
+      "path": "programs/launch-vault-v4/tests/abi.rs",
+      "bytes": 5878,
+      "sha256": "5e7b2b65e6a4122e79a17a21f8d4b1db46d90bf4e660842ee198a917bbfe49eb"
+    },
+    {
+      "path": "programs/launch-vault-v4/tests/launch_litesvm.rs",
+      "bytes": 55638,
+      "sha256": "3c21ed9fffd5f4acdd5540a814919372b9b10cb18108e1a9fee03aa4007cdb9d"
+    },
+    {
+      "path": "programs/upgrade-gate-v1/Cargo.toml",
+      "bytes": 1272,
+      "sha256": "3b98d5d0e830142098d7a120c45239f12c81856532bfa2f03967124cf8e2257c"
+    },
+    {
+      "path": "programs/upgrade-gate-v1/src/contexts.rs",
+      "bytes": 3329,
+      "sha256": "dd0e8e7d17b0bc8eba9c6653782bb37dbe1e49952d0bead864afa77c3368e3e9"
+    },
+    {
+      "path": "programs/upgrade-gate-v1/src/lib.rs",
+      "bytes": 11107,
+      "sha256": "e06cc08f495ab5d781d0891ad96a42fbe2bedddbb42b1e24e86262b7eac8ea41"
+    },
+    {
+      "path": "programs/upgrade-gate-v1/tests/real_loader.rs",
+      "bytes": 19534,
+      "sha256": "aa5ffd1d23a006c019c3ddbc3f7139cb1063780f7bec92751c9767ca80d82e34"
+    }
+  ],
+  "public_chain_transactions": 0,
+  "official_mint": null,
+  "outbound_messages_sent": false,
+  "independent_human_audit": false
+}

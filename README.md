@@ -3,7 +3,14 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
-**Latest local candidate:** [Launch v3](docs/LAUNCH_V3_RESERVED_CAPACITY_CANDIDATE.md)
+**Latest local candidate:** [Launch v4 and the external upgrade gate](docs/LAUNCH_V4_RECOVERY_AND_UPGRADE_CANDIDATE.md)
+add accepted key changes, fixed 2-of-3 lost-key recovery, report epochs and a
+90-day upgrade delay enforced through real loader CPI. The gate must itself be
+immutable before it can control a target. These are TEST_ONLY profiles; default
+artifacts refuse admission. Production rights and the full v4 RPC verifier
+remain open. Controller recovery does not restore lost withdrawal keys.
+
+**Earlier reserved-capacity candidate:** [Launch v3](docs/LAUNCH_V3_RESERVED_CAPACITY_CANDIDATE.md)
 adds per-pool reserved capacity, frozen annual-input intervals and an independent
 raw-state verifier. One pool cannot consume the other's same-period reservation
 in the TEST_ONLY profile. Production economics, live IRB inputs and recovery remain

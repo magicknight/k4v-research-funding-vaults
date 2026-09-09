@@ -1,0 +1,64 @@
+name: launch-v4-recovery-test-only
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  launch-v4-recovery-and-loader:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: Install Solana CLI 3.1.10
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Build the four exact candidate profiles
+        run: |
+          set -euo pipefail
+          NO_DNA=1 cargo build-sbf --tools-version v1.52 \
+            --manifest-path programs/launch-vault-v4/Cargo.toml \
+            --sbf-out-dir target/v4-disabled -- --locked 2>&1 | tee /tmp/v4-disabled.log
+          NO_DNA=1 cargo build-sbf --tools-version v1.52 \
+            --manifest-path programs/launch-vault-v4/Cargo.toml \
+            --sbf-out-dir target/v4-test -- --locked --features test-profile 2>&1 | tee /tmp/v4-test.log
+          NO_DNA=1 cargo build-sbf --tools-version v1.52 \
+            --manifest-path programs/upgrade-gate-v1/Cargo.toml \
+            --sbf-out-dir target/gate-disabled -- --locked 2>&1 | tee /tmp/gate-disabled.log
+          NO_DNA=1 cargo build-sbf --tools-version v1.52 \
+            --manifest-path programs/upgrade-gate-v1/Cargo.toml \
+            --sbf-out-dir target/gate-test -- --locked --features test-profile 2>&1 | tee /tmp/gate-test.log
+          if grep -qi 'Stack offset' /tmp/v4-disabled.log /tmp/v4-test.log /tmp/gate-disabled.log /tmp/gate-test.log; then
+            echo 'SBF stack-frame overflow is a failing gate'
+            exit 1
+          fi
+      - name: Verify exact candidate artifacts
+        run: python3 tools/verify_e04_artifacts.py
+      - name: Lint and execute recovery and native-loader transactions
+        env:
+          CARGO_TARGET_DIR: /tmp/k4v-native-target
+          K4V_V4_SNAPSHOT_OUT: ${{ github.workspace }}/target/v4-raw-snapshot.json
+          K4V_GATE_RECEIPT_OUT: ${{ github.workspace }}/target/upgrade-gate-real-loader.json
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy -p launch-vault-v4 -p upgrade-gate-v1 --all-targets --features test-profile --locked -- -D warnings
+          cargo test -p launch-vault-v4 -p upgrade-gate-v1 --features test-profile --locked
+      - name: Rebuild both compiler-generated interfaces
+        env:
+          CARGO_TARGET_DIR: /tmp/k4v-native-target
+        run: |
+          python3 tools/build_launch_v4_idl.py --check
+          python3 tools/build_upgrade_gate_v1_idl.py --check
+      - name: Check the independent identity codec
+        run: node --test probes/launch_v4_identity.test.mjs
+      - name: Check fresh loader receipt and artifact coherence
+        run: python3 tools/check_e04_loader_receipt.py target/upgrade-gate-real-loader.json

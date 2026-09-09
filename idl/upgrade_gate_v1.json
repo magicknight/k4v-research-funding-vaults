@@ -1,0 +1,387 @@
+{
+  "address": "5JVsAM5AnTBdeHsGjC78hcrrv9KfLKVgCNN4RzBiWjmA",
+  "metadata": {
+    "name": "upgrade_gate_v1",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "TEST_ONLY immutable upgrade gate with fixed 2-of-3 and 90-day notice"
+  },
+  "instructions": [
+    {
+      "name": "cancel_upgrade",
+      "discriminator": [
+        216,
+        52,
+        40,
+        78,
+        188,
+        214,
+        201,
+        228
+      ],
+      "accounts": [
+        {
+          "name": "member_one",
+          "signer": true
+        },
+        {
+          "name": "member_two",
+          "signer": true
+        },
+        {
+          "name": "gate",
+          "writable": true
+        },
+        {
+          "name": "buffer",
+          "writable": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "loader"
+        }
+      ],
+      "args": [
+        {
+          "name": "nonce",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "execute_upgrade",
+      "discriminator": [
+        205,
+        219,
+        100,
+        218,
+        66,
+        39,
+        215,
+        24
+      ],
+      "accounts": [
+        {
+          "name": "gate",
+          "writable": true
+        },
+        {
+          "name": "target",
+          "writable": true
+        },
+        {
+          "name": "programdata",
+          "writable": true
+        },
+        {
+          "name": "buffer",
+          "writable": true
+        },
+        {
+          "name": "spill",
+          "writable": true
+        },
+        {
+          "name": "rent"
+        },
+        {
+          "name": "clock"
+        },
+        {
+          "name": "loader"
+        }
+      ],
+      "args": [
+        {
+          "name": "nonce",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_gate",
+      "discriminator": [
+        41,
+        213,
+        207,
+        127,
+        15,
+        238,
+        192,
+        17
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "member_one",
+          "signer": true
+        },
+        {
+          "name": "member_two",
+          "signer": true
+        },
+        {
+          "name": "member_three",
+          "signer": true
+        },
+        {
+          "name": "current_authority",
+          "signer": true
+        },
+        {
+          "name": "target"
+        },
+        {
+          "name": "programdata",
+          "writable": true
+        },
+        {
+          "name": "gate_programdata"
+        },
+        {
+          "name": "gate",
+          "writable": true
+        },
+        {
+          "name": "loader"
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "propose_upgrade",
+      "discriminator": [
+        77,
+        18,
+        228,
+        21,
+        191,
+        199,
+        244,
+        6
+      ],
+      "accounts": [
+        {
+          "name": "member_one",
+          "signer": true
+        },
+        {
+          "name": "member_two",
+          "signer": true
+        },
+        {
+          "name": "return_authority",
+          "signer": true
+        },
+        {
+          "name": "gate",
+          "writable": true
+        },
+        {
+          "name": "buffer"
+        }
+      ],
+      "args": [
+        {
+          "name": "nonce",
+          "type": "u64"
+        },
+        {
+          "name": "code_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "return_unqueued_buffer",
+      "discriminator": [
+        29,
+        39,
+        220,
+        12,
+        95,
+        208,
+        232,
+        153
+      ],
+      "accounts": [
+        {
+          "name": "member_one",
+          "signer": true
+        },
+        {
+          "name": "member_two",
+          "signer": true
+        },
+        {
+          "name": "gate",
+          "writable": true
+        },
+        {
+          "name": "buffer",
+          "writable": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "loader"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "UpgradeGateV1",
+      "discriminator": [
+        158,
+        23,
+        114,
+        10,
+        123,
+        232,
+        246,
+        64
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "UpgradeGateV1",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "target",
+            "type": "pubkey"
+          },
+          {
+            "name": "programdata",
+            "type": "pubkey"
+          },
+          {
+            "name": "members",
+            "type": {
+              "array": [
+                "pubkey",
+                3
+              ]
+            }
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "buffer",
+            "type": "pubkey"
+          },
+          {
+            "name": "code_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "code_len",
+            "type": "u64"
+          },
+          {
+            "name": "return_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "execute_after",
+            "type": "i64"
+          },
+          {
+            "name": "last_action_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Disabled",
+      "msg": "Default artifact cannot initialize a TEST_ONLY gate"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidConfig",
+      "msg": "Invalid distinct committee keys or target"
+    },
+    {
+      "code": 6002,
+      "name": "Unauthorized",
+      "msg": "Two distinct registered committee signatures are required"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidLoader",
+      "msg": "Incorrect loader owner, target, programdata or authority"
+    },
+    {
+      "code": 6004,
+      "name": "UnsealedGate",
+      "msg": "This gate must itself be immutable before it can control a target"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidBuffer",
+      "msg": "Buffer authority, exact code length or hash does not match"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidProposal",
+      "msg": "Pending proposal or nonce mismatch"
+    },
+    {
+      "code": 6007,
+      "name": "Notice",
+      "msg": "The on-chain notice has not matured"
+    },
+    {
+      "code": 6008,
+      "name": "ClockRollback",
+      "msg": "Clock moved backwards"
+    },
+    {
+      "code": 6009,
+      "name": "Overflow",
+      "msg": "Arithmetic overflow"
+    }
+  ]
+}

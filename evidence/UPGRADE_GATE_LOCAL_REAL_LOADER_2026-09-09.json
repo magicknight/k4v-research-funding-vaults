@@ -1,0 +1,42 @@
+{
+  "accountable_human_audit": false,
+  "after_code_bytes": 423448,
+  "after_code_hash": "f1f7929478f4d8d51ab46398f79a352c99699c38afb905d3d4589d0522355d43",
+  "before_code_hash": "54accf5620943fdd75cff13679d9e2e5a83fc37093e9c898e2e09d3fe44d5b9c",
+  "created_at": 1700000000,
+  "early_execute_rejected_at": 1707775999,
+  "environment": "LiteSVM native upgradeable loader, controlled Clock/slots; no public RPC",
+  "execute_after": 1707776000,
+  "execute_signature": "5WQh7wqzAkkPq27wdWc3EVRDriV1fnDg2jP1xFDhgkCnuEiZ9CTPBrvxyNf11ee66JxhDkmT8xS93tyog49zdme7",
+  "execute_succeeded_at": 1707776000,
+  "gate": {
+    "authority": null,
+    "data_len": 340181,
+    "executable": false,
+    "loader_header_hex": "03000000350100000000000000cbd3a54cbeb341c079398e2f2e9665dd9d08bb7914134d465a8ebfff4ceeeaf9",
+    "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+    "program": "5JVsAM5AnTBdeHsGjC78hcrrv9KfLKVgCNN4RzBiWjmA",
+    "programdata": "EweWYJDMDZyh6LTrCG5QX1fbshN7XnvkMc3s6aE2CSxt"
+  },
+  "gate_account": "AwfnyfYt2hunUJvjH78BDQrc4FAHWSmJ878btaEMHL8z",
+  "gate_code_hash": "76c094b8ecac318fca485a4e70fb1c6d3a8754c7938123e5432314b6d07aed30",
+  "one_committee_key_absent": true,
+  "permissionless_execute": true,
+  "private_keys_serialized": false,
+  "program_injection_used": false,
+  "proposal_nonce": 1,
+  "proposal_signature": "3MqeiULuPLGHiHqa4cbzi2MLmYXbDHicq9PGHC8gKxEQGHbUzupvEmpaN1Wgz83vD3RNp912GreJTZfusKsZHPS6",
+  "public_chain_transactions": 0,
+  "schema": "K4V-UPGRADE-GATE-LOCAL-REAL-LOADER-v1",
+  "signed_transactions_sent": 1251,
+  "successful_transactions": 1242,
+  "target": {
+    "authority": "AwfnyfYt2hunUJvjH78BDQrc4FAHWSmJ878btaEMHL8z",
+    "data_len": 472613,
+    "executable": false,
+    "loader_header_hex": "03000000e2040000000000000193ba68b97c7948df9b3bdf68fe0323f1aec8fc655ac20447711f176a661fba1b",
+    "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+    "program": "5h5iUez8fpHThaQhDdyUSQab9ngRmG2zfMBNx5bGnB9Q",
+    "programdata": "2PuVfSNmhtuF9AaynHQFxh3vjWCXwUaYo9iyXVu5sL5R"
+  }
+}
