@@ -3,6 +3,12 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
+**Latest timing work:** [E-09 submission-window design and counterexample](docs/E09_SUBMISSION_TIME_DESIGN.md)
+reproduces the frozen v5 exact-clock failure with already signed transactions,
+then tests bounded signed admission intervals with full notice from actual
+acceptance. Three SBF counterexample tests and 21 model tests pass. New SBF
+implementation is E-10; the existing v5 timing limitation remains.
+
 **Latest verification handoff:** [E-08 v5 read-only export and review](docs/E08_V5_READ_ONLY_AND_REVIEW.md)
 binds an explicit network and initial policy identity, derives complete proposal
 and key-index history, and verifies one final response containing every account.

@@ -12,8 +12,11 @@ local-rehearsal checkpoints. Stable identity, custody, consumed budgets and
 annual accounting survive both beneficiary recoveries. [E-08](E08_V5_READ_ONLY_AND_REVIEW.md)
 now provides complete-history read-only v5 export with one final account response,
 28 new RPC tests, 11 loopback HTTP checkpoints and an exact-candidate human-review
-handoff. E-09 next addresses the exact-clock proposal API's submission-time
-reliability through bounded design and local delayed-submission tests.
+handoff. [E-09](E09_SUBMISSION_TIME_DESIGN.md) now reproduces the exact-clock
+failure on unchanged v5 SBF and freezes a bounded admission-window model: three
+signed-SBF counterexample tests and 21 timing/authority model tests pass.
+E-10 next implements these semantics in an isolated candidate and repeats
+delayed recovery, financial continuity and independent raw-account verification.
 Production rights, actual public-v5 observation and v4 migration remain open.
 
 E-06 remains the frozen [authority design/model](E06_WITHDRAWAL_KEY_RECOVERY_DESIGN.md)

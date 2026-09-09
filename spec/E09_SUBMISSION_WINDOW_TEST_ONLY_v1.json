@@ -1,0 +1,125 @@
+{
+  "schema": "K4V-E09-SUBMISSION-WINDOW-TEST-ONLY-v1",
+  "date": "2026-09-09",
+  "status": "DESIGN_AND_EXECUTABLE_MODEL_WITH_SIGNED_V5_COUNTEREXAMPLE",
+  "base_commit": "50ee02ffc89242493a9476f86c0fe898fefcc58a",
+  "v5_sbf_source_unchanged": true,
+  "new_sbf_repair_implemented": false,
+  "semantics": {
+    "max_admission_interval_seconds": 300,
+    "notice_seconds": 7776000,
+    "execution_window_seconds": 2592000,
+    "admission_bounds": "INCLUSIVE",
+    "notice_start": "ACTUAL_CHAIN_CLOCK_AT_ADMISSION",
+    "execution_end": "EXCLUSIVE",
+    "expiry_cleanup_start": "INCLUSIVE",
+    "signed_human_timestamp_claimed": false,
+    "future_scheduled_windows_allowed": true,
+    "pre_admission_cancellation": false,
+    "latest_admission_checked_for_i64_overflow": true,
+    "signature_fields": [
+      "program",
+      "policy",
+      "identity",
+      "role",
+      "predecessor",
+      "successor",
+      "mode",
+      "nonce",
+      "epoch",
+      "valid_from",
+      "valid_until"
+    ],
+    "frozen_constants_bound_to_digest": true,
+    "authority_semantics": "E06_UNCHANGED",
+    "financial_model": "OPAQUE_BYTE_WITNESS_ONLY"
+  },
+  "verification": {
+    "new_model_tests": 21,
+    "symbolic_quorum_subsets": 128,
+    "accepted_quorum_subsets": 32,
+    "model_role_mode_delay_cases": 16,
+    "new_signed_v5_sbf_tests": 3,
+    "target_proposal_transactions": 32,
+    "target_successes": 12,
+    "expected_refusals": 20,
+    "blockhash_deliberately_held_valid": true,
+    "v5_fixture_program_and_mint_injected": true,
+    "actual_token_transfer_in_new_probe": false
+  },
+  "sbf_artifacts": [
+    {
+      "path": "target/v5-disabled/launch_vault_v5.so",
+      "sha256": "8c13d6304001820add80fa3059ec39b8baa4a98b0479e0db72dd9ebc6ec143cc",
+      "bytes": 509536
+    },
+    {
+      "path": "target/v5-test/launch_vault_v5.so",
+      "sha256": "1dca41034f873882c41cc3eaaecc5b0124ae497f3ae41263a50ffccf9d339f14",
+      "bytes": 528160
+    }
+  ],
+  "source_bindings": {
+    "src/submission_window_model.py": {
+      "sha256": "1c1464cb80528d5b231b3a4dcafe1ab91472721697615d023ee95d7bcf1a275c",
+      "bytes": 5988
+    },
+    "src/withdrawal_recovery_model.py": {
+      "sha256": "a9dee7fe3ea773dc2b548da2af8751c2c6a72cfcedb33ddf9491bffb31dc040c",
+      "bytes": 8253
+    },
+    "tests/test_submission_window_model.py": {
+      "sha256": "b00ce21470cce32e3de79e8ff7324355436edf44d3e4c026d133a51da40a1cc6",
+      "bytes": 12826
+    },
+    "programs/launch-vault-v5/tests/e09_clock_probe.rs": {
+      "sha256": "0721b61e927812c6fce79aea4f297aec5f58c128e301a29a7434badf47991805",
+      "bytes": 11785
+    },
+    "docs/E09_SUBMISSION_TIME_DESIGN.md": {
+      "sha256": "a9336a495851ed0bb6d776ace7972ca4a9d09f46de19c35254f7bb030c29f898",
+      "bytes": 7745
+    },
+    "tools/run_e09_local_reproduction.sh": {
+      "sha256": "a883c2fc5f0febc5622edd995487a2e4601e11488ff07757a6bd8a154fd8dd61",
+      "bytes": 1704
+    },
+    "tools/verify_e09_inputs.py": {
+      "sha256": "4319185180db2ccfa621f19d3e2a657ec5cec8b56b599ad0bb35e9f56dd15f9b",
+      "bytes": 696
+    },
+    "tools/verify_e09_receipts.py": {
+      "sha256": "1b8f83b148383722836cce3e07c5354eb2a2eb60e61aca01a7c5ebf7c74603be",
+      "bytes": 1873
+    },
+    ".github/workflows/launch-v5-submission-time.yml": {
+      "sha256": "cecbddff033a749929ba452f12fe0c44bb5c499038a974a47989036ef03d1b56",
+      "bytes": 702
+    },
+    "spec/E06_WITHDRAWAL_RECOVERY_TEST_ONLY_v1.json": {
+      "sha256": "c060f89d53081c37edd71e63884a53c51d9601b97e57dc6cc4a304da7b6ccbdc",
+      "bytes": 4395
+    },
+    "spec/E08_REVIEW_SCOPE_v1.json": {
+      "sha256": "2f1c3567e282ef0b0fe0ed20751d9cda1465a335e7fa2d7ebfeb0060b0f9ead0",
+      "bytes": 8725
+    },
+    "evidence/e09/signature_refresh.json": {
+      "sha256": "16a16713e185444c4010573caca6ea9dca5d9c3887093105f9f58444700a0683",
+      "bytes": 1990
+    },
+    "evidence/e09/nonce_replay.json": {
+      "sha256": "25d1342401b08e443807535e3a489d7c96256aff61679c927fb1de132400de12",
+      "bytes": 1011
+    },
+    "evidence/e09/clock_delay.json": {
+      "sha256": "75ed820953a95c7fc7305b506ac6ebf742a3507a42fd766322a5342329d1b8fb",
+      "bytes": 4968
+    }
+  },
+  "next": "E10_ISOLATED_DEFAULT_DISABLED_SBF_IMPLEMENTATION_FINANCIAL_INTEGRATION_AND_RAW_VERIFICATION",
+  "public_chain_transactions": 0,
+  "outreach_messages_sent": 0,
+  "production_rights_adopted": false,
+  "independent_human_audit": false
+}
