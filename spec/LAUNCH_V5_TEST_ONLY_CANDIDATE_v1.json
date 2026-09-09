@@ -1,0 +1,112 @@
+{
+  "schema": "K4V-LAUNCH-V5-TEST-ONLY-CANDIDATE-v1",
+  "date": "2026-09-09",
+  "status": "LOCAL_SBF_ENGINEERING_PASS_PRODUCTION_OPEN",
+  "base_commit": "94aa0eda9c46b25808f7d07007a43dee70b9d3c3",
+  "e06_spec_binding": {
+    "sha256": "c060f89d53081c37edd71e63884a53c51d9601b97e57dc6cc4a304da7b6ccbdc",
+    "bytes": 4395
+  },
+  "program_id": "EUhWSZAfU8hDki7AXskYrwh8ErwXN8iqicaHTP7yQfYS",
+  "default_policy_admission": false,
+  "test_seed": "32 bytes each 87; public TEST_ONLY identity, never production",
+  "instruction_count": 18,
+  "account_sizes_with_discriminators": {
+    "ChangeProposalV5": 116,
+    "LaunchPolicyV5": 1065,
+    "LaunchVaultV5": 138,
+    "TreasuryApprovalV5": 177,
+    "WithdrawalKeyV5": 76,
+    "WithdrawalProposalV5": 156
+  },
+  "config_bytes": 492,
+  "constants": {
+    "founder_cliff_seconds": 15552000,
+    "period_seconds": 2592000,
+    "notice_seconds": 7776000,
+    "execution_window_seconds": 2592000,
+    "quorum": 2,
+    "committee_size": 3
+  },
+  "authority_model": "separate stable initial identity and current role key/epoch; permanent per-key history/recipient indexes",
+  "clock_acceptance": "signed created_at equals executing local bank Clock; public-network client behavior unproved",
+  "financial_kernel": "v4 capacity.rs identical after V5-to-V4 type-name normalization",
+  "v4_account_migration": false,
+  "new_SBF_recovery": true,
+  "live_public_v5_deployment": false,
+  "production_rights_adopted": false,
+  "human_review_accepted": false,
+  "sbf_artifacts": [
+    {
+      "path": "target/v5-disabled/launch_vault_v5.so",
+      "sha256": "8c13d6304001820add80fa3059ec39b8baa4a98b0479e0db72dd9ebc6ec143cc",
+      "bytes": 509536
+    },
+    {
+      "path": "target/v5-test/launch_vault_v5.so",
+      "sha256": "1dca41034f873882c41cc3eaaecc5b0124ae497f3ae41263a50ffccf9d339f14",
+      "bytes": 528160
+    }
+  ],
+  "preserved_e04_source_sha256": {
+    "programs/launch-vault-v4/src/capacity.rs": "39c9f83c788743f20a74df0a3b5539d05224b852e52abbc5fccd8234bf6f5411",
+    "programs/launch-vault-v4/src/contexts.rs": "02577776d794e5d14f63a97381fb3be1880a97cabe84cfcffc62cef841cf9826",
+    "programs/launch-vault-v4/src/governance.rs": "dbee95c065baed789fe3231a9cc238615028596d6b014025826b0e8e7c4a9ea1",
+    "programs/launch-vault-v4/src/lib.rs": "5bd2a08fcee7eed46bed6ae43f077a0faf3f522e2703aa13ed3be263963ac890",
+    "programs/launch-vault-v4/src/state.rs": "2b11ba6340afb5e5483e83c92c343030a248e5c62aaa181a3d48098f8a74ff57",
+    "programs/upgrade-gate-v1/src/contexts.rs": "dd0e8e7d17b0bc8eba9c6653782bb37dbe1e49952d0bead864afa77c3368e3e9",
+    "programs/upgrade-gate-v1/src/lib.rs": "e06cc08f495ab5d781d0891ad96a42fbe2bedddbb42b1e24e86262b7eac8ea41"
+  },
+  "source_bindings": {
+    "programs/launch-vault-v5/src/capacity.rs": {
+      "sha256": "101c95d32ff1a41a43b2e32ffe0d952272859886fbe1ad6a4eb2b73defa3190f",
+      "bytes": 7460
+    },
+    "programs/launch-vault-v5/src/contexts.rs": {
+      "sha256": "f87dc799ae8334e4149cd5295c199337d46131329479067be21c73c3318f1cd8",
+      "bytes": 11109
+    },
+    "programs/launch-vault-v5/src/governance.rs": {
+      "sha256": "0272a71820d3d1aa7f022c9262e03598c96d519ebdbbedea40d997174abf3e86",
+      "bytes": 4362
+    },
+    "programs/launch-vault-v5/src/lib.rs": {
+      "sha256": "a34438507f57422912609364100160a75170cb923c55020335bf69d1eec924bc",
+      "bytes": 18369
+    },
+    "programs/launch-vault-v5/src/state.rs": {
+      "sha256": "757abbc0a70ce4a4e69588886e30935b76e72c3a23e38e346caaa41beb1805d3",
+      "bytes": 10122
+    },
+    "programs/launch-vault-v5/src/withdrawal.rs": {
+      "sha256": "5517141fc8537499576b6f57f677ea7c9ef3c69e1d8b33e64cbecf92af6b06d2",
+      "bytes": 6027
+    }
+  },
+  "review_profile": {
+    "state": "ACTIVE_DUAL_POOL",
+    "depositor_count": 1,
+    "treasury_destination_count": 1,
+    "max_founder_destinations": 8,
+    "max_approvals": 64,
+    "max_proposals_per_role": 256,
+    "program_loader": "classic upgradeable loader with actual authority None",
+    "authentication": "supplied raw graph only; no RPC/chain/signature authentication"
+  },
+  "rehearsal": {
+    "checkpoints": 11,
+    "transactions_submitted": 639,
+    "transactions_successful": 628,
+    "expected_refusals": 11,
+    "program_mint_token_injection": false,
+    "fixture_assumptions": [
+      "controlled Clock and slots",
+      "SOL fee airdrops"
+    ],
+    "final_founder_released_whole": "300000",
+    "final_treasury_released_whole": "450000",
+    "new_year_founder_whole": "100000",
+    "new_year_treasury_whole": "150000"
+  },
+  "next": "E-08 read-only v5 export, RPC boundary tests and exact-candidate human-review handoff"
+}

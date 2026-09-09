@@ -6,11 +6,15 @@ only a disclosed possible case study.
 
 ## Frontier state
 
-E-06 has a [withdrawal-key recovery design and executable authority model](E06_WITHDRAWAL_KEY_RECOVERY_DESIGN.md). It freezes separate role consent,
-90-day waiting, role-local pauses, cancellation/expiry, epoch replay defenses
-and preservation of Treasury approvals. Twenty-two model tests pass; current
-v4 still cannot recover beneficiary withdrawal keys. E-07 implements a separate
-TEST_ONLY account/program candidate and tests it against the financial kernel.
+E-07 now has an [isolated v5 withdrawal-recovery SBF candidate](LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md):
+58 scoped Rust checks, 15 new Python checks and 11 independently decoded signed
+local-rehearsal checkpoints. Stable identity, custody, consumed budgets and
+annual accounting survive both beneficiary recoveries. E-08 next adds read-only
+v5 account export/RPC boundary checks and updates the human-review handoff.
+Production rights, actual public-v5 observation and v4 migration remain open.
+
+E-06 remains the frozen [authority design/model](E06_WITHDRAWAL_KEY_RECOVERY_DESIGN.md)
+that defines these TEST_ONLY semantics. It did not itself implement SBF recovery.
 
 E-05 has an [independent raw-account verifier, single-bank RPC exporter and
 combined local rehearsal](E05_INDEPENDENT_VERIFICATION_AND_REVIEW.md). Twelve
@@ -19,10 +23,9 @@ continued withdrawals and the annual boundary. All E-04 program bytes remain
 frozen. Engineering acceptance is author-run; external human acceptance and a
 live v4 RPC deployment remain open.
 
-The E-04 TEST_ONLY recovery/gate choices are not production rights. The remaining
-technical gap is beneficiary withdrawal-key recovery in actual SBF; the E-06
-authority model does not implement that boundary, and controller recovery
-does not restore those keys. The upgrade committee also has no extra
+The E-04 TEST_ONLY recovery/gate choices are not production rights. V4 still lacks
+beneficiary withdrawal-key recovery; E-07 implements it only in the separate
+v5 test candidate. Controller recovery does not confer beneficiary authority. The upgrade committee also has no extra
 route after losing two keys. Production choices and accountable review are
 separate unfinished work.
 
