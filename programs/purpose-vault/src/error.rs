@@ -62,4 +62,8 @@ pub enum CovenantError {
     NoPendingRotation,
     #[msg("the proposed oracle has not completed its 90-day notice")]
     RotationNoticeActive,
+    #[msg("mint authority must be revoked before depositing")]
+    MintAuthorityRetained,
+    #[msg("freeze authority must be revoked before depositing")]
+    FreezeAuthorityRetained,
 }

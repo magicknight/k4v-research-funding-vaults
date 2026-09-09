@@ -530,6 +530,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &[],
             DEPOSIT,
         )?,
+        token_instruction::set_authority(
+            &TOKEN_PROGRAM_ID,
+            &mint.pubkey(),
+            None,
+            spl_token_interface::instruction::AuthorityType::MintTokens,
+            &payer.pubkey(),
+            &[],
+        )?,
     ];
     let setup_tx = signed_transaction(
         &rpc,
@@ -575,7 +583,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         .data(),
     };
-    let deposit_tx = signed_transaction(&rpc, &[deposit_ix], &payer, &[])?;
+    let deposit_tx = signed_transaction(&rpc, &[deposit_ix], &payer, &[&beneficiary])?;
     let deposit_units = simulate(&rpc, &deposit_tx, "DEPOSIT", None)?;
     wait_for_send("DEPOSIT")?;
     let deposit_signature_value = rpc.send_and_confirm_transaction(&deposit_tx)?;

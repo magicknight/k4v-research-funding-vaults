@@ -14,6 +14,7 @@ use purpose_vault::{
         ORACLE_ROTATION_NOTICE_SECONDS, PERIOD_SECONDS, POLICY_SEED, TOKEN_VAULT_SEED, VAULT_SEED,
     },
     instruction,
+    instructions::open_policy::bound_policy_hash,
     state::{Approval, CovenantVault, MarketInput, PolicyWindow, VaultKind},
 };
 use solana_account::Account;
@@ -53,7 +54,7 @@ const FULL_PURPOSE_CAP: u64 = 2_083_333_333_333_333;
 const FULL_ELIGIBLE_VOLUME: u64 = 120_000_000_000_000_000;
 const FULL_MARKET_CAPACITY: u64 = 3_000_000_000_000_000;
 const MAX_AGE_SECONDS: i64 = 3 * 24 * 60 * 60;
-const POLICY_HASH: [u8; 32] = [0x42; 32];
+const POLICY_SPEC_HASH: [u8; 32] = [0x42; 32];
 /// What the two frozen vault schedules permit in one period between them. No
 /// oracle report can raise it, because no oracle touches a vault's cap.
 const SUM_OF_MONTHLY_CAPS: u64 = BENEFICIARY_CAP + PURPOSE_CAP;
@@ -90,6 +91,16 @@ const _: () = assert!(
 const _: () = assert!(FULL_BENEFICIARY_CAP <= FULL_MARKET_CAPACITY);
 const _: () = assert!(FULL_PURPOSE_CAP <= FULL_MARKET_CAPACITY);
 const _: () = assert!(FULL_BENEFICIARY_CAP + FULL_PURPOSE_CAP > FULL_MARKET_CAPACITY);
+/// Probe-C pins: six purpose-first periods must remain inside the deposited
+/// principal, and the published devnet ceiling must squeeze the beneficiary
+/// without zeroing it.
+const DEVNET_HARD_CEILING: u64 = 2_500_000;
+const DEVNET_SQUEEZE_HEADROOM: u64 = DEVNET_HARD_CEILING - PURPOSE_CAP;
+const _: () = assert!(6 * PURPOSE_CAP < PURPOSE_DEPOSIT);
+const _: () = assert!(DEVNET_HARD_CEILING > PURPOSE_CAP);
+const _: () = assert!(DEVNET_HARD_CEILING < BENEFICIARY_CAP + PURPOSE_CAP);
+const _: () = assert!(DEVNET_SQUEEZE_HEADROOM == 416_667);
+const _: () = assert!(DEVNET_SQUEEZE_HEADROOM < BENEFICIARY_CAP);
 
 #[derive(Clone, Copy)]
 struct FixtureAmounts {
@@ -143,6 +154,7 @@ struct Fixture {
     genesis_token: Pubkey,
     lp_token: Pubkey,
     policy: Pubkey,
+    policy_hash: [u8; 32],
     market: Pubkey,
     beneficiary_vault: Pubkey,
     beneficiary_vault_token: Pubkey,
@@ -219,19 +231,24 @@ fn assert_failed_with(
     );
 }
 
-fn policy_pda() -> Pubkey {
-    Pubkey::find_program_address(&[POLICY_SEED, POLICY_HASH.as_ref()], &purpose_vault::ID).0
+fn policy_pda(policy_hash: [u8; 32]) -> Pubkey {
+    Pubkey::find_program_address(&[POLICY_SEED, policy_hash.as_ref()], &purpose_vault::ID).0
 }
 
-fn market_pda() -> Pubkey {
-    Pubkey::find_program_address(&[MARKET_SEED, POLICY_HASH.as_ref()], &purpose_vault::ID).0
+fn market_pda(policy_hash: [u8; 32]) -> Pubkey {
+    Pubkey::find_program_address(&[MARKET_SEED, policy_hash.as_ref()], &purpose_vault::ID).0
 }
 
-fn vault_pda(kind: VaultKind, authority: Pubkey, mint: Pubkey) -> (Pubkey, Pubkey) {
+fn vault_pda(
+    kind: VaultKind,
+    authority: Pubkey,
+    mint: Pubkey,
+    policy_hash: [u8; 32],
+) -> (Pubkey, Pubkey) {
     let vault = Pubkey::find_program_address(
         &[
             VAULT_SEED,
-            POLICY_HASH.as_ref(),
+            policy_hash.as_ref(),
             &[kind.seed_byte()],
             authority.as_ref(),
             mint.as_ref(),
@@ -281,19 +298,20 @@ fn open_policy_instruction(
     max_age_seconds: i64,
     config: PolicyConfig,
 ) -> Instruction {
+    let policy_hash = bound_policy_hash(&authority, &mint, &POLICY_SPEC_HASH);
     Instruction {
         program_id: purpose_vault::ID,
         accounts: accounts::OpenPolicy {
             authority,
             oracle,
             mint,
-            policy: policy_pda(),
-            market: market_pda(),
+            policy: policy_pda(policy_hash),
+            market: market_pda(policy_hash),
             system_program: solana_system_interface::program::ID,
         }
         .to_account_metas(None),
         data: instruction::OpenPolicy {
-            policy_hash: POLICY_HASH,
+            policy_spec_hash: POLICY_SPEC_HASH,
             market_capacity_bps,
             max_age_seconds,
             hard_ceiling: config.hard_ceiling,
@@ -304,38 +322,36 @@ fn open_policy_instruction(
     }
 }
 
-fn propose_oracle_instruction(policy_authority: Pubkey, new_oracle: Pubkey) -> Instruction {
+fn propose_oracle_instruction(
+    policy: Pubkey,
+    market: Pubkey,
+    policy_authority: Pubkey,
+    new_oracle: Pubkey,
+) -> Instruction {
     Instruction {
         program_id: purpose_vault::ID,
         accounts: accounts::ProposeOracle {
             policy_authority,
-            policy: policy_pda(),
-            market: market_pda(),
+            policy,
+            market,
         }
         .to_account_metas(None),
         data: instruction::ProposeOracle { new_oracle }.data(),
     }
 }
 
-fn execute_rotation_instruction() -> Instruction {
+fn execute_rotation_instruction(market: Pubkey) -> Instruction {
     Instruction {
         program_id: purpose_vault::ID,
-        accounts: accounts::ExecuteOracleRotation {
-            market: market_pda(),
-        }
-        .to_account_metas(None),
+        accounts: accounts::ExecuteOracleRotation { market }.to_account_metas(None),
         data: instruction::ExecuteOracleRotation {}.data(),
     }
 }
 
-fn report_instruction(oracle: Pubkey, eligible_volume: u64) -> Instruction {
+fn report_instruction(market: Pubkey, oracle: Pubkey, eligible_volume: u64) -> Instruction {
     Instruction {
         program_id: purpose_vault::ID,
-        accounts: accounts::ReportVolume {
-            oracle,
-            market: market_pda(),
-        }
-        .to_account_metas(None),
+        accounts: accounts::ReportVolume { oracle, market }.to_account_metas(None),
         data: instruction::ReportVolume { eligible_volume }.data(),
     }
 }
@@ -355,7 +371,8 @@ fn deposit_instruction(
     depositor_token: Pubkey,
     args: DepositArgs,
 ) -> (Instruction, Pubkey, Pubkey) {
-    let (vault, vault_token) = vault_pda(args.kind, authority, mint);
+    let policy_hash = bound_policy_hash(&policy_authority, &mint, &POLICY_SPEC_HASH);
+    let (vault, vault_token) = vault_pda(args.kind, authority, mint, policy_hash);
     (
         Instruction {
             program_id: purpose_vault::ID,
@@ -365,7 +382,7 @@ fn deposit_instruction(
                 authority,
                 mint,
                 depositor_token,
-                policy: policy_pda(),
+                policy: policy_pda(policy_hash),
                 vault,
                 vault_token,
                 token_program: TOKEN_PROGRAM_ID,
@@ -386,6 +403,7 @@ fn deposit_instruction(
 }
 
 fn approve_instruction(
+    policy: Pubkey,
     approver: Pubkey,
     mint: Pubkey,
     vault: Pubkey,
@@ -399,7 +417,7 @@ fn approve_instruction(
             approver,
             mint,
             vault,
-            policy: policy_pda(),
+            policy,
             destination,
             approval: approval_pda(vault, period_index),
             system_program: solana_system_interface::program::ID,
@@ -527,6 +545,7 @@ fn setup_amounts_with(config: PolicyConfig, amounts: FixtureAmounts) -> Fixture 
     }
 
     let mint = Pubkey::new_unique();
+    let policy_hash = bound_policy_hash(&policy_authority.pubkey(), &mint, &POLICY_SPEC_HASH);
     let mint_value = Mint {
         mint_authority: COption::None,
         supply: amounts.beneficiary_deposit
@@ -640,14 +659,18 @@ fn setup_amounts_with(config: PolicyConfig, amounts: FixtureAmounts) -> Fixture 
 
     if config.report_volume {
         send(
-            report_instruction(oracle.pubkey(), amounts.eligible_volume),
+            report_instruction(
+                market_pda(policy_hash),
+                oracle.pubkey(),
+                amounts.eligible_volume,
+            ),
             &[&oracle],
             &mut svm,
         )
         .unwrap();
     }
 
-    let policy = policy_pda();
+    let policy = policy_pda(policy_hash);
     let genesis_ts = {
         let account = svm.get_account(&policy).unwrap();
         PolicyWindow::try_deserialize(&mut account.data.as_slice())
@@ -670,7 +693,8 @@ fn setup_amounts_with(config: PolicyConfig, amounts: FixtureAmounts) -> Fixture 
         genesis_token,
         lp_token,
         policy,
-        market: market_pda(),
+        policy_hash,
+        market: market_pda(policy_hash),
         beneficiary_vault,
         beneficiary_vault_token,
         purpose_vault,
@@ -749,6 +773,7 @@ fn setup_transaction_created_full_scale() -> (Fixture, Pubkey) {
 
     let mint_keypair = Keypair::new();
     let mint = mint_keypair.pubkey();
+    let policy_hash = bound_policy_hash(&policy_authority.pubkey(), &mint, &POLICY_SPEC_HASH);
     send_instructions(
         &[
             system_instruction::create_account(
@@ -928,13 +953,17 @@ fn setup_transaction_created_full_scale() -> (Fixture, Pubkey) {
     );
     send(purpose_deposit, &[&depositor, &policy_authority], &mut svm).unwrap();
     send(
-        report_instruction(oracle.pubkey(), amounts.eligible_volume),
+        report_instruction(
+            market_pda(policy_hash),
+            oracle.pubkey(),
+            amounts.eligible_volume,
+        ),
         &[&oracle],
         &mut svm,
     )
     .unwrap();
 
-    let policy = policy_pda();
+    let policy = policy_pda(policy_hash);
     let genesis_ts = {
         let account = svm.get_account(&policy).unwrap();
         PolicyWindow::try_deserialize(&mut account.data.as_slice())
@@ -958,7 +987,8 @@ fn setup_transaction_created_full_scale() -> (Fixture, Pubkey) {
             genesis_token,
             lp_token,
             policy,
-            market: market_pda(),
+            policy_hash,
+            market: market_pda(policy_hash),
             beneficiary_vault,
             beneficiary_vault_token,
             purpose_vault,
@@ -981,7 +1011,7 @@ fn refresh_market(fixture: &mut Fixture) {
 fn report_volume(eligible_volume: u64, fixture: &mut Fixture) {
     let oracle = fixture.oracle.insecure_clone();
     send(
-        report_instruction(oracle.pubkey(), eligible_volume),
+        report_instruction(fixture.market, oracle.pubkey(), eligible_volume),
         &[&oracle],
         &mut fixture.svm,
     )
@@ -999,6 +1029,7 @@ fn approve_and_advance(
     let approver = fixture.approver.insecure_clone();
     send(
         approve_instruction(
+            fixture.policy,
             approver.pubkey(),
             fixture.mint,
             fixture.purpose_vault,
@@ -1021,7 +1052,7 @@ fn deposit_freezes_two_kinds_against_one_shared_window() {
     let policy = read_policy(&fixture);
     assert_eq!(policy.authority, fixture.policy_authority.pubkey());
     assert_eq!(policy.mint, fixture.mint);
-    assert_eq!(policy.policy_hash, POLICY_HASH);
+    assert_eq!(policy.policy_hash, fixture.policy_hash);
     assert_eq!(policy.vault_count, 2);
     assert_eq!(policy.released_this_period, 0);
     assert_eq!(policy.current_period_index, 0);
@@ -1388,7 +1419,7 @@ fn zero_eligible_volume_rejects_every_release() {
 
     let oracle = fixture.oracle.insecure_clone();
     send(
-        report_instruction(oracle.pubkey(), 0),
+        report_instruction(fixture.market, oracle.pubkey(), 0),
         &[&oracle],
         &mut fixture.svm,
     )
@@ -1420,7 +1451,7 @@ fn a_stale_market_input_rejects_instead_of_reusing_the_last_value() {
     // then let exactly one second past the tolerance elapse.
     let oracle = fixture.oracle.insecure_clone();
     send(
-        report_instruction(oracle.pubkey(), ELIGIBLE_VOLUME),
+        report_instruction(fixture.market, oracle.pubkey(), ELIGIBLE_VOLUME),
         &[&oracle],
         &mut fixture.svm,
     )
@@ -1482,6 +1513,7 @@ fn an_approver_may_not_approve_a_destination_it_owns() {
     let approver = fixture.approver.insecure_clone();
     let outcome = send(
         approve_instruction(
+            fixture.policy,
             approver.pubkey(),
             fixture.mint,
             fixture.purpose_vault,
@@ -1502,6 +1534,7 @@ fn an_approval_for_the_current_period_is_rejected() {
     let approver = fixture.approver.insecure_clone();
     let outcome = send(
         approve_instruction(
+            fixture.policy,
             approver.pubkey(),
             fixture.mint,
             fixture.purpose_vault,
@@ -1653,9 +1686,9 @@ fn a_stranger_cannot_attach_a_vault_to_someone_elses_capacity_window() {
         )
         .unwrap();
 
-    let (instruction, vault, vault_token) = deposit_instruction(
+    let (mut instruction, vault, vault_token) = deposit_instruction(
         stranger.pubkey(),
-        stranger.pubkey(),
+        fixture.policy_authority.pubkey(),
         stranger.pubkey(),
         fixture.mint,
         stranger_source,
@@ -1666,6 +1699,8 @@ fn a_stranger_cannot_attach_a_vault_to_someone_elses_capacity_window() {
             cliff_seconds: 0,
         },
     );
+    // Keep the victim policy and derived vault, while signing only as the stranger.
+    instruction.accounts[1].pubkey = stranger.pubkey();
     let outcome = send(instruction, &[&stranger], &mut fixture.svm);
     assert_failed_with(outcome, "WrongPolicyAuthority");
     assert!(fixture.svm.get_account(&vault).is_none());
@@ -1758,7 +1793,7 @@ fn only_the_frozen_oracle_may_report_volume() {
         .airdrop(&impostor.pubkey(), 10_000_000_000)
         .unwrap();
     let outcome = send(
-        report_instruction(impostor.pubkey(), u64::MAX),
+        report_instruction(fixture.market, impostor.pubkey(), u64::MAX),
         &[&impostor],
         &mut fixture.svm,
     );
@@ -1949,7 +1984,12 @@ fn only_the_policy_authority_may_propose_an_oracle() {
         .unwrap();
 
     let outcome = send(
-        propose_oracle_instruction(impostor.pubkey(), replacement.pubkey()),
+        propose_oracle_instruction(
+            fixture.policy,
+            fixture.market,
+            impostor.pubkey(),
+            replacement.pubkey(),
+        ),
         &[&impostor],
         &mut fixture.svm,
     );
@@ -1959,7 +1999,12 @@ fn only_the_policy_authority_may_propose_an_oracle() {
     // The oracle cannot promote itself either: reporting is its only power.
     let oracle = fixture.oracle.insecure_clone();
     let outcome = send(
-        propose_oracle_instruction(oracle.pubkey(), replacement.pubkey()),
+        propose_oracle_instruction(
+            fixture.policy,
+            fixture.market,
+            oracle.pubkey(),
+            replacement.pubkey(),
+        ),
         &[&oracle],
         &mut fixture.svm,
     );
@@ -1968,7 +2013,12 @@ fn only_the_policy_authority_may_propose_an_oracle() {
     // And the default pubkey is not a proposal; it is the absence of one.
     let authority = fixture.policy_authority.insecure_clone();
     let outcome = send(
-        propose_oracle_instruction(authority.pubkey(), Pubkey::default()),
+        propose_oracle_instruction(
+            fixture.policy,
+            fixture.market,
+            authority.pubkey(),
+            Pubkey::default(),
+        ),
         &[&authority],
         &mut fixture.svm,
     );
@@ -1983,7 +2033,12 @@ fn a_proposed_oracle_cannot_take_effect_before_its_ninety_day_notice() {
     let proposed_at = fixture.genesis_ts + 60;
     set_time(proposed_at, &mut fixture);
     send(
-        propose_oracle_instruction(authority.pubkey(), replacement.pubkey()),
+        propose_oracle_instruction(
+            fixture.policy,
+            fixture.market,
+            authority.pubkey(),
+            replacement.pubkey(),
+        ),
         &[&authority],
         &mut fixture.svm,
     )
@@ -1997,7 +2052,7 @@ fn a_proposed_oracle_cannot_take_effect_before_its_ninety_day_notice() {
 
     set_time(proposed_at + ROTATION_NOTICE - 1, &mut fixture);
     let outcome = send(
-        execute_rotation_instruction(),
+        execute_rotation_instruction(fixture.market),
         &[&authority],
         &mut fixture.svm,
     );
@@ -2013,7 +2068,7 @@ fn a_proposed_oracle_cannot_take_effect_before_its_ninety_day_notice() {
         .airdrop(&stranger.pubkey(), 10_000_000_000)
         .unwrap();
     send(
-        execute_rotation_instruction(),
+        execute_rotation_instruction(fixture.market),
         &[&stranger],
         &mut fixture.svm,
     )
@@ -2031,7 +2086,7 @@ fn executing_a_rotation_that_was_never_proposed_is_rejected() {
     let authority = fixture.policy_authority.insecure_clone();
     set_time(fixture.genesis_ts + 10 * ROTATION_NOTICE, &mut fixture);
     let outcome = send(
-        execute_rotation_instruction(),
+        execute_rotation_instruction(fixture.market),
         &[&authority],
         &mut fixture.svm,
     );
@@ -2052,7 +2107,12 @@ fn a_second_proposal_replaces_the_first_and_restarts_its_clock() {
     let proposed_at = fixture.genesis_ts + 60;
     set_time(proposed_at, &mut fixture);
     send(
-        propose_oracle_instruction(authority.pubkey(), first.pubkey()),
+        propose_oracle_instruction(
+            fixture.policy,
+            fixture.market,
+            authority.pubkey(),
+            first.pubkey(),
+        ),
         &[&authority],
         &mut fixture.svm,
     )
@@ -2061,7 +2121,7 @@ fn a_second_proposal_replaces_the_first_and_restarts_its_clock() {
     let withdrawn_at = proposed_at + ROTATION_NOTICE - 1;
     set_time(withdrawn_at, &mut fixture);
     send(
-        propose_oracle_instruction(authority.pubkey(), sitting),
+        propose_oracle_instruction(fixture.policy, fixture.market, authority.pubkey(), sitting),
         &[&authority],
         &mut fixture.svm,
     )
@@ -2071,7 +2131,7 @@ fn a_second_proposal_replaces_the_first_and_restarts_its_clock() {
     // The first proposal's original deadline arrives and buys nothing.
     set_time(proposed_at + ROTATION_NOTICE, &mut fixture);
     let outcome = send(
-        execute_rotation_instruction(),
+        execute_rotation_instruction(fixture.market),
         &[&authority],
         &mut fixture.svm,
     );
@@ -2079,7 +2139,7 @@ fn a_second_proposal_replaces_the_first_and_restarts_its_clock() {
 
     set_time(withdrawn_at + ROTATION_NOTICE, &mut fixture);
     send(
-        execute_rotation_instruction(),
+        execute_rotation_instruction(fixture.market),
         &[&authority],
         &mut fixture.svm,
     )
@@ -2104,14 +2164,19 @@ fn a_rotation_restores_who_may_speak_and_nothing_else() {
     let proposed_at = fixture.genesis_ts + 60;
     set_time(proposed_at, &mut fixture);
     send(
-        propose_oracle_instruction(authority.pubkey(), incoming.pubkey()),
+        propose_oracle_instruction(
+            fixture.policy,
+            fixture.market,
+            authority.pubkey(),
+            incoming.pubkey(),
+        ),
         &[&authority],
         &mut fixture.svm,
     )
     .unwrap();
     set_time(proposed_at + ROTATION_NOTICE, &mut fixture);
     send(
-        execute_rotation_instruction(),
+        execute_rotation_instruction(fixture.market),
         &[&authority],
         &mut fixture.svm,
     )
@@ -2129,13 +2194,13 @@ fn a_rotation_restores_who_may_speak_and_nothing_else() {
 
     // What it did do: moved the post, in one direction only.
     let outcome = send(
-        report_instruction(outgoing.pubkey(), u64::MAX),
+        report_instruction(fixture.market, outgoing.pubkey(), u64::MAX),
         &[&outgoing],
         &mut fixture.svm,
     );
     assert_failed_with(outcome, "ConstraintHasOne");
     send(
-        report_instruction(incoming.pubkey(), ELIGIBLE_VOLUME),
+        report_instruction(fixture.market, incoming.pubkey(), ELIGIBLE_VOLUME),
         &[&incoming],
         &mut fixture.svm,
     )
@@ -2159,7 +2224,12 @@ fn a_release_resumes_only_after_the_replacement_oracle_has_spoken() {
     let cliff_end = read_vault(&fixture, fixture.beneficiary_vault).cliff_end_ts;
     set_time(cliff_end, &mut fixture);
     send(
-        propose_oracle_instruction(authority.pubkey(), incoming.pubkey()),
+        propose_oracle_instruction(
+            fixture.policy,
+            fixture.market,
+            authority.pubkey(),
+            incoming.pubkey(),
+        ),
         &[&authority],
         &mut fixture.svm,
     )
@@ -2168,7 +2238,7 @@ fn a_release_resumes_only_after_the_replacement_oracle_has_spoken() {
     let rotated_at = cliff_end + ROTATION_NOTICE;
     set_time(rotated_at, &mut fixture);
     send(
-        execute_rotation_instruction(),
+        execute_rotation_instruction(fixture.market),
         &[&authority],
         &mut fixture.svm,
     )
@@ -2184,7 +2254,7 @@ fn a_release_resumes_only_after_the_replacement_oracle_has_spoken() {
     assert_failed_with(outcome, "StaleMarketInput");
 
     send(
-        report_instruction(incoming.pubkey(), ELIGIBLE_VOLUME),
+        report_instruction(fixture.market, incoming.pubkey(), ELIGIBLE_VOLUME),
         &[&incoming],
         &mut fixture.svm,
     )
@@ -2399,4 +2469,444 @@ fn a_policy_may_not_declare_half_a_silence_rule() {
     assert_failed_with(outcome, "InvalidSilenceGrace");
 
     send(open(PolicyConfig::default()), &[&authority], &mut svm).unwrap();
+}
+
+#[test]
+fn probe_a_b2_policy_squatting_is_rejected_and_creator_keeps_namespace() {
+    // K4V-01 regression against the newly compiled program, preserving the victim accounts.
+    let mut svm = LiteSVM::new();
+    svm.add_program_from_file(purpose_vault::ID, program_path())
+        .unwrap();
+
+    let attacker = Keypair::new();
+    let intended_authority = Keypair::new();
+    let hostile_oracle = Keypair::new();
+    let intended_oracle = Keypair::new();
+    let depositor = Keypair::new();
+    let beneficiary = Keypair::new();
+    for key in [
+        &attacker,
+        &intended_authority,
+        &hostile_oracle,
+        &intended_oracle,
+        &depositor,
+        &beneficiary,
+    ] {
+        svm.airdrop(&key.pubkey(), 10_000_000_000).unwrap();
+    }
+
+    let mint = Pubkey::new_unique();
+    let mut mint_data = vec![0; Mint::LEN];
+    Mint::pack(
+        Mint {
+            mint_authority: COption::None,
+            supply: BENEFICIARY_DEPOSIT,
+            decimals: 9,
+            is_initialized: true,
+            freeze_authority: COption::None,
+        },
+        &mut mint_data,
+    )
+    .unwrap();
+    svm.set_account(
+        mint,
+        Account {
+            lamports: 10_000_000,
+            data: mint_data,
+            owner: TOKEN_PROGRAM_ID,
+            executable: false,
+            rent_epoch: 0,
+        },
+    )
+    .unwrap();
+    let depositor_token = Pubkey::new_unique();
+    svm.set_account(
+        depositor_token,
+        token_account(mint, depositor.pubkey(), BENEFICIARY_DEPOSIT),
+    )
+    .unwrap();
+
+    let intended_hash = bound_policy_hash(&intended_authority.pubkey(), &mint, &POLICY_SPEC_HASH);
+    let honest = open_policy_instruction(
+        intended_authority.pubkey(),
+        intended_oracle.pubkey(),
+        mint,
+        MARKET_BPS,
+        MAX_AGE_SECONDS,
+        PolicyConfig::default(),
+    );
+    let mut unsigned = honest.clone();
+    unsigned.accounts[0].is_signer = false;
+    assert_failed_with(send(unsigned, &[&attacker], &mut svm), "AccountNotSigner");
+    let mut attack = honest.clone();
+    // Same published digest/accounts; replace creator and oracle with attacker keys.
+    attack.accounts[0].pubkey = attacker.pubkey();
+    attack.accounts[1].pubkey = hostile_oracle.pubkey();
+    assert_failed_with(send(attack, &[&attacker], &mut svm), "ConstraintSeeds");
+    assert!(svm.get_account(&policy_pda(intended_hash)).is_none());
+    assert!(svm.get_account(&market_pda(intended_hash)).is_none());
+    // A stranger can create their own namespace without occupying the victim's.
+    let own = open_policy_instruction(
+        attacker.pubkey(),
+        hostile_oracle.pubkey(),
+        mint,
+        1,
+        MAX_AGE_SECONDS,
+        PolicyConfig {
+            hard_ceiling: 1,
+            ..PolicyConfig::default()
+        },
+    );
+    send(own, &[&attacker], &mut svm).unwrap();
+    let attacker_hash = bound_policy_hash(&attacker.pubkey(), &mint, &POLICY_SPEC_HASH);
+    assert_ne!(policy_pda(attacker_hash), policy_pda(intended_hash));
+    assert_ne!(market_pda(attacker_hash), market_pda(intended_hash));
+    send(honest, &[&intended_authority], &mut svm).unwrap();
+    let policy = PolicyWindow::try_deserialize(
+        &mut svm
+            .get_account(&policy_pda(intended_hash))
+            .unwrap()
+            .data
+            .as_slice(),
+    )
+    .unwrap();
+    let market = MarketInput::try_deserialize(
+        &mut svm
+            .get_account(&market_pda(intended_hash))
+            .unwrap()
+            .data
+            .as_slice(),
+    )
+    .unwrap();
+    assert_eq!(policy.authority, intended_authority.pubkey());
+    assert_eq!(policy.hard_ceiling, NO_CEILING);
+    assert_eq!(market.oracle, intended_oracle.pubkey());
+    let (ix, vault, token) = deposit_instruction(
+        depositor.pubkey(),
+        intended_authority.pubkey(),
+        beneficiary.pubkey(),
+        mint,
+        depositor_token,
+        DepositArgs {
+            kind: VaultKind::Beneficiary,
+            amount: BENEFICIARY_DEPOSIT,
+            annual_release_bps: ANNUAL_BPS,
+            cliff_seconds: MIN_CLIFF_SECONDS,
+        },
+    );
+    let mut attack_deposit = ix.clone();
+    attack_deposit.accounts[1].pubkey = attacker.pubkey();
+    assert_failed_with(
+        send(attack_deposit, &[&depositor, &attacker], &mut svm),
+        "WrongPolicyAuthority",
+    );
+    assert!(svm.get_account(&vault).is_none());
+    assert!(svm.get_account(&token).is_none());
+    send(ix, &[&depositor, &intended_authority], &mut svm).unwrap();
+    assert_eq!(token_balance(&svm, token), BENEFICIARY_DEPOSIT);
+    assert_eq!(token_balance(&svm, depositor_token), 0);
+}
+
+#[test]
+fn probe_b_b2_authority_matrix_rejects_both_kinds_before_locking() {
+    for (mint_live, freeze_live) in [(false, false), (true, false), (false, true), (true, true)] {
+        for kind in [VaultKind::Beneficiary, VaultKind::Purpose] {
+            let mut svm = LiteSVM::new();
+            svm.add_program_from_file(purpose_vault::ID, program_path())
+                .unwrap();
+            let owner = Keypair::new();
+            let beneficiary = Keypair::new();
+            for key in [&owner, &beneficiary] {
+                svm.airdrop(&key.pubkey(), 10_000_000_000).unwrap();
+            }
+            let mint = Pubkey::new_unique();
+            let source = Pubkey::new_unique();
+            let mut data = vec![0; Mint::LEN];
+            Mint::pack(
+                Mint {
+                    mint_authority: if mint_live {
+                        COption::Some(owner.pubkey())
+                    } else {
+                        COption::None
+                    },
+                    freeze_authority: if freeze_live {
+                        COption::Some(owner.pubkey())
+                    } else {
+                        COption::None
+                    },
+                    supply: BENEFICIARY_DEPOSIT,
+                    decimals: 9,
+                    is_initialized: true,
+                },
+                &mut data,
+            )
+            .unwrap();
+            svm.set_account(
+                mint,
+                Account {
+                    lamports: 10_000_000,
+                    data,
+                    owner: TOKEN_PROGRAM_ID,
+                    executable: false,
+                    rent_epoch: 0,
+                },
+            )
+            .unwrap();
+            svm.set_account(
+                source,
+                token_account(mint, owner.pubkey(), BENEFICIARY_DEPOSIT),
+            )
+            .unwrap();
+            send(
+                open_policy_instruction(
+                    owner.pubkey(),
+                    owner.pubkey(),
+                    mint,
+                    MARKET_BPS,
+                    MAX_AGE_SECONDS,
+                    PolicyConfig::default(),
+                ),
+                &[&owner],
+                &mut svm,
+            )
+            .unwrap();
+            let policy = policy_pda(bound_policy_hash(&owner.pubkey(), &mint, &POLICY_SPEC_HASH));
+            let (ix, vault, token) = deposit_instruction(
+                owner.pubkey(),
+                owner.pubkey(),
+                beneficiary.pubkey(),
+                mint,
+                source,
+                DepositArgs {
+                    kind,
+                    amount: BENEFICIARY_DEPOSIT,
+                    annual_release_bps: ANNUAL_BPS,
+                    cliff_seconds: if kind == VaultKind::Beneficiary {
+                        MIN_CLIFF_SECONDS
+                    } else {
+                        0
+                    },
+                },
+            );
+            if mint_live || freeze_live {
+                assert_failed_with(
+                    send(ix.clone(), &[&owner], &mut svm),
+                    if mint_live {
+                        "MintAuthorityRetained"
+                    } else {
+                        "FreezeAuthorityRetained"
+                    },
+                );
+                assert!(svm.get_account(&vault).is_none());
+                assert!(svm.get_account(&token).is_none());
+                assert_eq!(token_balance(&svm, source), BENEFICIARY_DEPOSIT);
+                assert_eq!(
+                    PolicyWindow::try_deserialize(
+                        &mut svm.get_account(&policy).unwrap().data.as_slice()
+                    )
+                    .unwrap()
+                    .vault_count,
+                    0
+                );
+                for (live, authority_type) in [
+                    (mint_live, AuthorityType::MintTokens),
+                    (freeze_live, AuthorityType::FreezeAccount),
+                ] {
+                    if live {
+                        send(
+                            token_instruction::set_authority(
+                                &TOKEN_PROGRAM_ID,
+                                &mint,
+                                None,
+                                authority_type,
+                                &owner.pubkey(),
+                                &[],
+                            )
+                            .unwrap(),
+                            &[&owner],
+                            &mut svm,
+                        )
+                        .unwrap();
+                    }
+                }
+            }
+            send(ix, &[&owner], &mut svm).unwrap();
+            assert_eq!(token_balance(&svm, token), BENEFICIARY_DEPOSIT);
+            assert_eq!(token_balance(&svm, source), 0);
+            assert!(send(
+                token_instruction::freeze_account(
+                    &TOKEN_PROGRAM_ID,
+                    &token,
+                    &mint,
+                    &owner.pubkey(),
+                    &[]
+                )
+                .unwrap(),
+                &[&owner],
+                &mut svm
+            )
+            .is_err());
+            for authority_type in [AuthorityType::MintTokens, AuthorityType::FreezeAccount] {
+                assert!(send(
+                    token_instruction::set_authority(
+                        &TOKEN_PROGRAM_ID,
+                        &mint,
+                        Some(&owner.pubkey()),
+                        authority_type,
+                        &owner.pubkey(),
+                        &[]
+                    )
+                    .unwrap(),
+                    &[&owner],
+                    &mut svm
+                )
+                .is_err());
+            }
+        }
+    }
+}
+
+fn preapprove_purpose_periods(fixture: &mut Fixture, start_period: u64, count: u64) {
+    let destination = fixture.contractor_token;
+    let approver = fixture.approver.insecure_clone();
+    // Write at the start of the previous period so each approval has a full
+    // 30-day notice by the time its named period opens.
+    set_time(
+        period_start(fixture, start_period) - PERIOD_SECONDS,
+        fixture,
+    );
+    for period in start_period..start_period + count {
+        send(
+            approve_instruction(
+                fixture.policy,
+                approver.pubkey(),
+                fixture.mint,
+                fixture.purpose_vault,
+                destination,
+                period,
+                PURPOSE_CAP,
+            ),
+            &[&approver],
+            &mut fixture.svm,
+        )
+        .expect("a future-period approval must be recorded");
+    }
+}
+
+#[test]
+fn probe_c_purpose_first_multi_period_shared_window_starvation() {
+    // K4V-04 complete starvation: when hard_ceiling equals the purpose cap,
+    // a purpose-first co-tenant consumes the entire shared window every
+    // period. Unused beneficiary capacity expires; there is no reservation.
+    let mut fixture = setup_with(PolicyConfig {
+        hard_ceiling: PURPOSE_CAP,
+        ..PolicyConfig::default()
+    });
+    let start_period = first_joint_period();
+    let destination = fixture.contractor_token;
+    preapprove_purpose_periods(&mut fixture, start_period, 6);
+
+    for period in start_period..start_period + 6 {
+        set_time(period_start(&fixture, period), &mut fixture);
+        refresh_market(&mut fixture);
+
+        send(
+            release_purpose_instruction(&fixture, destination, period, PURPOSE_CAP),
+            &[&fixture.approver.insecure_clone()],
+            &mut fixture.svm,
+        )
+        .expect("purpose-first must consume the whole ceiling");
+        assert_eq!(read_policy(&fixture).released_this_period, PURPOSE_CAP);
+
+        assert_failed_with(
+            send(
+                release_beneficiary_instruction(&fixture, 1),
+                &[&fixture.beneficiary.insecure_clone()],
+                &mut fixture.svm,
+            ),
+            "AggregateCapacityExceeded",
+        );
+        assert_failed_with(
+            send(
+                release_beneficiary_instruction(&fixture, BENEFICIARY_CAP),
+                &[&fixture.beneficiary.insecure_clone()],
+                &mut fixture.svm,
+            ),
+            "AggregateCapacityExceeded",
+        );
+    }
+
+    assert_eq!(
+        read_vault(&fixture, fixture.beneficiary_vault).released_total,
+        0
+    );
+    assert_eq!(token_balance(&fixture.svm, fixture.beneficiary_token), 0);
+    assert_eq!(
+        read_vault(&fixture, fixture.purpose_vault).released_total,
+        6 * PURPOSE_CAP
+    );
+    assert_eq!(token_balance(&fixture.svm, destination), 6 * PURPOSE_CAP);
+}
+
+#[test]
+fn probe_c_devnet_parameters_shared_window_squeeze_starves_beneficiary() {
+    // Published devnet numbers do not zero the beneficiary. Purpose-first
+    // leaves DEVNET_SQUEEZE_HEADROOM of BENEFICIARY_CAP each period, so six
+    // months transfer 2_500_002 instead of 7_500_000. Complete starvation is
+    // the previous test, where hard_ceiling equals the purpose cap.
+    let mut fixture = setup_with(PolicyConfig {
+        hard_ceiling: DEVNET_HARD_CEILING,
+        ..PolicyConfig::default()
+    });
+    let start_period = first_joint_period();
+    let destination = fixture.contractor_token;
+    preapprove_purpose_periods(&mut fixture, start_period, 6);
+
+    for period in start_period..start_period + 6 {
+        set_time(period_start(&fixture, period), &mut fixture);
+        refresh_market(&mut fixture);
+
+        send(
+            release_purpose_instruction(&fixture, destination, period, PURPOSE_CAP),
+            &[&fixture.approver.insecure_clone()],
+            &mut fixture.svm,
+        )
+        .unwrap();
+
+        assert_failed_with(
+            send(
+                release_beneficiary_instruction(&fixture, BENEFICIARY_CAP),
+                &[&fixture.beneficiary.insecure_clone()],
+                &mut fixture.svm,
+            ),
+            "AggregateCapacityExceeded",
+        );
+        assert_failed_with(
+            send(
+                release_beneficiary_instruction(&fixture, DEVNET_SQUEEZE_HEADROOM + 1),
+                &[&fixture.beneficiary.insecure_clone()],
+                &mut fixture.svm,
+            ),
+            "AggregateCapacityExceeded",
+        );
+        send(
+            release_beneficiary_instruction(&fixture, DEVNET_SQUEEZE_HEADROOM),
+            &[&fixture.beneficiary.insecure_clone()],
+            &mut fixture.svm,
+        )
+        .unwrap();
+    }
+
+    assert_eq!(
+        read_vault(&fixture, fixture.beneficiary_vault).released_total,
+        6 * DEVNET_SQUEEZE_HEADROOM
+    );
+    assert_eq!(
+        token_balance(&fixture.svm, fixture.beneficiary_token),
+        6 * DEVNET_SQUEEZE_HEADROOM
+    );
+    assert_eq!(
+        read_vault(&fixture, fixture.purpose_vault).released_total,
+        6 * PURPOSE_CAP
+    );
 }

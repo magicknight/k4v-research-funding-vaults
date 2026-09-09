@@ -30,6 +30,7 @@ import {
 import * as multisig from "@sqds/multisig";
 import { createHash, randomBytes } from "crypto";
 import fs from "fs";
+import { boundPolicyHash } from "./policy_identity.mjs";
 
 const RPC = process.env.K4V_SURFPOOL_RPC ?? "http://127.0.0.1:19199";
 if (!RPC.startsWith("http://127.0.0.1:") && !RPC.startsWith("http://localhost:")) {
@@ -61,10 +62,10 @@ const CLIFF = 730 * 24 * 3600;
 const PERIOD = 30 * 24 * 3600;
 const U64_MAX = 18_446_744_073_709_551_615n;
 const POST_REPLACEMENT_PERIOD = BigInt(Math.floor(CLIFF / PERIOD) + 2);
-const POLICY_HASH = randomBytes(32);
+const POLICY_SPEC_HASH = randomBytes(32);
 
 const record = {
-  schema: "k4v-r3-b2-full-scale-squads-local/v0.1",
+  schema: "k4v-r3-b2-full-scale-squads-local/v0.2",
   epistemic_status: "LOCAL_TEST_EVIDENCE_NOT_INDEPENDENT",
   cluster: "local-surfpool-devnet-fork",
   rpc: RPC,
@@ -206,9 +207,9 @@ async function throughMultisig({
   return signature;
 }
 
-function vaultPdas(kind, authority, mint) {
+function vaultPdas(kind, authority, mint, policyHash) {
   const [vault] = PublicKey.findProgramAddressSync(
-    [Buffer.from("purpose-vault"), POLICY_HASH, Buffer.from([kind]), authority.toBuffer(), mint.toBuffer()],
+    [Buffer.from("purpose-vault"), policyHash, Buffer.from([kind]), authority.toBuffer(), mint.toBuffer()],
     B2,
   );
   const [token] = PublicKey.findProgramAddressSync([Buffer.from("purpose-token"), vault.toBuffer()], B2);
@@ -344,6 +345,7 @@ async function main() {
     connection, payer, mint, payer, AuthorityType.FreezeAccount, null,
   );
 
+  const POLICY_HASH = boundPolicyHash(B2.toBuffer(), vaultPda.toBuffer(), mint.toBuffer(), POLICY_SPEC_HASH);
   const [policyPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("purpose-policy"), POLICY_HASH], B2,
   );
@@ -362,7 +364,7 @@ async function main() {
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
     data: Buffer.concat([
-      disc("open_policy"), POLICY_HASH, u16(MARKET_BPS), i64(MAX_AGE), u64(U64_MAX), u64(0), i64(0),
+      disc("open_policy"), POLICY_SPEC_HASH, u16(MARKET_BPS), i64(MAX_AGE), u64(U64_MAX), u64(0), i64(0),
     ]),
   });
   await throughMultisig({ ...context, instructions: [openPolicy], label: "open_policy" });
@@ -377,8 +379,8 @@ async function main() {
   });
   await direct(report, payer, [oracle], "report_volume_initial");
 
-  const [beneficiaryVault, beneficiaryVaultToken] = vaultPdas(0, beneficiary.publicKey, mint);
-  const [purposeVault, purposeVaultToken] = vaultPdas(1, vaultPda, mint);
+  const [beneficiaryVault, beneficiaryVaultToken] = vaultPdas(0, beneficiary.publicKey, mint, POLICY_HASH);
+  const [purposeVault, purposeVaultToken] = vaultPdas(1, vaultPda, mint, POLICY_HASH);
   const deposit = (kind, authority, source, vault, vaultToken, amount, cliff) =>
     new TransactionInstruction({
       programId: B2,
@@ -542,6 +544,7 @@ async function main() {
     policy: policyPda.toBase58(),
     market: marketPda.toBase58(),
     policy_hash: POLICY_HASH.toString("hex"),
+    policy_spec_hash: POLICY_SPEC_HASH.toString("hex"),
     oracle: oracle.publicKey.toBase58(),
     founder_staging: founderToken.toBase58(),
     treasury_staging: treasuryToken.toBase58(),

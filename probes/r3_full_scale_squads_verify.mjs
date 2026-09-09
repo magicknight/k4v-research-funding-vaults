@@ -9,6 +9,7 @@ import { TOKEN_PROGRAM_ID, getAccount, getMint } from "@solana/spl-token";
 import * as multisig from "@sqds/multisig";
 import { createHash } from "crypto";
 import fs from "fs";
+import { boundPolicyHash } from "./policy_identity.mjs";
 
 const input = process.env.K4V_R3_SQUADS_RECEIPT_IN;
 if (!input) throw new Error("K4V_R3_SQUADS_RECEIPT_IN is required");
@@ -119,6 +120,12 @@ async function main() {
   const approvalKey = P(receipt.approval_after_replacement);
   const policyHash = Buffer.from(receipt.policy_hash, "hex");
   if (policyHash.length !== 32) throw new Error("policy hash must be 32 bytes");
+  if (receipt.schema === "k4v-r3-b2-full-scale-squads-local/v0.2" && typeof receipt.policy_spec_hash !== "string") throw new Error("bound policy specification hash is required");
+  if (receipt.policy_spec_hash !== undefined) {
+    const bound = boundPolicyHash(B2.toBuffer(), vaultPda.toBuffer(), mintKey.toBuffer(), Buffer.from(receipt.policy_spec_hash, "hex"));
+    if (!policyHash.equals(bound)) throw new Error("policy identity does not bind the declared creator and mint");
+  }
+
 
   const mint = await getMint(connection, mintKey, "confirmed", TOKEN_PROGRAM_ID);
   const tokenAddresses = {
@@ -186,7 +193,8 @@ async function main() {
     untouched_allocations_exact: tokenAccounts.genesis.amount === EXPECTED_GENESIS && tokenAccounts.lp.amount === EXPECTED_LP,
     full_vault_deposits_exact: beneficiaryVault.deposited === EXPECTED_FOUNDER && purposeVault.deposited === EXPECTED_TREASURY,
     monthly_caps_exact: beneficiaryVault.monthlyCap === EXPECTED_FOUNDER_CAP && purposeVault.monthlyCap === EXPECTED_TREASURY_CAP,
-    policy_and_market_pdas_canonical: same(policyKey, derivedPolicy) && same(marketKey, derivedMarket),
+    policy_and_market_pdas_canonical: same(policyKey, derivedPolicy) && same(marketKey, derivedMarket) &&
+      [policy, market, beneficiaryVault, purposeVault].every(account => account.policyHash.equals(policyHash)),
     purpose_vault_and_token_pdas_canonical: same(purposeVaultKey, derivedPurposeVault) &&
       same(P(receipt.purpose_vault_token), derivedPurposeToken),
     approval_pda_canonical: same(approvalKey, derivedApproval),

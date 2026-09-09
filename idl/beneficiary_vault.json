@@ -12,7 +12,7 @@
       "discriminator": [242, 35, 198, 137, 82, 225, 242, 182],
       "accounts": [
         { "name": "depositor", "writable": true, "signer": true },
-        { "name": "beneficiary" },
+        { "name": "beneficiary", "signer": true },
         { "name": "mint" },
         { "name": "depositor_token", "writable": true },
         {
@@ -142,7 +142,9 @@
     { "code": 6006, "name": "CliffActive", "msg": "beneficiary cliff has not ended" },
     { "code": 6007, "name": "PeriodCapExceeded", "msg": "release exceeds this period's non-carrying cap" },
     { "code": 6008, "name": "DepositExceeded", "msg": "release exceeds the original deposit" },
-    { "code": 6009, "name": "InvalidClock", "msg": "clock moved before the frozen cliff timestamp" }
+    { "code": 6009, "name": "InvalidClock", "msg": "clock moved before the frozen cliff timestamp" },
+    { "code": 6010, "name": "MintAuthorityRetained", "msg": "mint authority must be revoked before depositing" },
+    { "code": 6011, "name": "FreezeAuthorityRetained", "msg": "freeze authority must be revoked before depositing" }
   ],
   "types": [
     {

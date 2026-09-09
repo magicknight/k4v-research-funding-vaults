@@ -68,6 +68,14 @@ pub fn deposit_handler(
     annual_release_bps: u16,
     cliff_seconds: i64,
 ) -> Result<()> {
+    require!(
+        ctx.accounts.mint.mint_authority.is_none(),
+        CovenantError::MintAuthorityRetained
+    );
+    require!(
+        ctx.accounts.mint.freeze_authority.is_none(),
+        CovenantError::FreezeAuthorityRetained
+    );
     require!(amount > 0, CovenantError::ZeroAmount);
     require!(
         (1..=MAX_ANNUAL_RELEASE_BPS).contains(&annual_release_bps),

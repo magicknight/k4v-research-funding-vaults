@@ -19,7 +19,7 @@ pub mod purpose_vault {
     /// this policy indexes the same 30-day periods and debits one counter.
     pub fn open_policy(
         ctx: Context<OpenPolicy>,
-        policy_hash: [u8; 32],
+        policy_spec_hash: [u8; 32],
         market_capacity_bps: u16,
         max_age_seconds: i64,
         hard_ceiling: u64,
@@ -28,7 +28,7 @@ pub mod purpose_vault {
     ) -> Result<()> {
         instructions::open_policy::open_policy_handler(
             ctx,
-            policy_hash,
+            policy_spec_hash,
             market_capacity_bps,
             max_age_seconds,
             hard_ceiling,

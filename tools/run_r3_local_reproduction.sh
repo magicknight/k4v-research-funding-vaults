@@ -11,7 +11,7 @@ squads_port="${K4V_R3_SQUADS_PORT:-19199}"
 squads_ws_port="${K4V_R3_SQUADS_WS_PORT:-19200}"
 run_stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 out_dir="${K4V_R3_OUT_DIR:-$repo_root/target/r3-reproduction/$run_stamp}"
-candidate="$repo_root/spec/R3_TEST_ONLY_CANDIDATE_v1.json"
+candidate="$repo_root/spec/R3_TEST_ONLY_CANDIDATE_v2.json"
 offline_pid=""
 squads_pid=""
 

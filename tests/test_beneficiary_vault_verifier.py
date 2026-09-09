@@ -143,6 +143,59 @@ class BeneficiaryVaultVerifierTests(unittest.TestCase):
         changed["observed_at_ts"] += 1
         self.assertNotEqual(first["sha256"], verification_receipt(changed)["sha256"])
 
+    def test_probe_a_dust_squatted_vault_is_accepted_as_valid(self):
+        # 240 base units at 500 bps -> monthly_cap = (240 * 500 // 10_000) // 12 = 1
+        dust_deposit = 240
+        dust_cap = (dust_deposit * 500 // 10_000) // 12
+        self.assertEqual(dust_cap, 1)
+
+        state_pda, state_bump = find_program_address(
+            (STATE_SEED, BENEFICIARY_BYTES, MINT_BYTES, POLICY_HASH), PROGRAM_ID_BYTES
+        )
+        token_pda, token_bump = find_program_address(
+            (TOKEN_VAULT_SEED, state_pda), PROGRAM_ID_BYTES
+        )
+        genesis = 1_800_000_000
+        cliff_end = genesis + MIN_CLIFF_SECONDS
+        state_address = _base58_encode(state_pda)
+        mint = _base58_encode(MINT_BYTES)
+        attacker_depositor = bytes([0xAA] * 32)
+
+        dust_snapshot = {
+            "schema": SNAPSHOT_SCHEMA,
+            "program_id": _base58_encode(PROGRAM_ID_BYTES),
+            "vault_state": state_address,
+            "vault_token_account": _base58_encode(token_pda),
+            "observed_at_ts": cliff_end,
+            "state": {
+                "depositor": _base58_encode(attacker_depositor),
+                "beneficiary": _base58_encode(BENEFICIARY_BYTES),
+                "mint": mint,
+                "policy_hash": POLICY_HASH.hex(),
+                "deposited_amount": dust_deposit,
+                "monthly_cap": dust_cap,
+                "released_total": 0,
+                "released_this_period": 0,
+                "genesis_ts": genesis,
+                "cliff_end_ts": cliff_end,
+                "current_period_index": 0,
+                "annual_release_bps": 500,
+                "mint_decimals": 9,
+                "state_bump": state_bump,
+                "token_vault_bump": token_bump,
+            },
+            "token_account": {
+                "mint": mint,
+                "authority": state_address,
+                "amount": dust_deposit,
+            },
+        }
+        result = verify_snapshot(dust_snapshot)
+        self.assertTrue(result.valid)
+        self.assertEqual(result.reasons, ())
+        self.assertEqual(result.expected_monthly_cap, 1)
+        self.assertEqual(result.token_surplus_amount, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

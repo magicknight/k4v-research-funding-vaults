@@ -22,4 +22,8 @@ pub enum VaultError {
     DepositExceeded,
     #[msg("clock moved before the frozen cliff timestamp")]
     InvalidClock,
+    #[msg("mint authority must be revoked before depositing")]
+    MintAuthorityRetained,
+    #[msg("freeze authority must be revoked before depositing")]
+    FreezeAuthorityRetained,
 }

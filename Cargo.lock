@@ -2579,6 +2579,7 @@ dependencies = [
  "solana-pubkey 3.0.0",
  "solana-rpc-client",
  "solana-rpc-client-api",
+ "solana-sha256-hasher",
  "solana-signer",
  "solana-system-interface 2.0.0",
  "solana-transaction",

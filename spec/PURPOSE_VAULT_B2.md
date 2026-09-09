@@ -103,9 +103,13 @@ token    = PDA("purpose-token",    vault)
 approval = PDA("purpose-approval", vault, period_index_le)
 ~~~
 
-`policy_hash` is a non-zero 32-byte digest binding the deployment to an
-externally published policy artifact. B2 checks its shape and freezes it; it
-does not decide whether the referenced prose is true or legally effective.
+`open_policy` accepts a nonzero `policy_spec_hash`. It derives `policy_hash`
+as SHA-256 of `"k4v-policy-authority-v1" || program_id || signing_creator ||
+mint || policy_spec_hash`, using raw 32-byte keys. Account layouts and downstream
+seeds stay unchanged; the digest now separates creator/mint namespaces. The
+specification hash still refers to external prose whose truth is not decided
+by the program. Existing clients must update their derivation; supplying the
+old unbound digest/account pair fails the new seed constraint.
 
 ## The market input is an oracle, and it fails closed
 
@@ -232,6 +236,13 @@ That is the conservative direction of failure. The covenant permits an
 emergency power to pause but never to accelerate, and a recovery path that
 could restore releases would be an acceleration path wearing a different name.
 
+The current `deposit` rejects both a retained mint authority and a retained
+freeze authority before transferring any tokens. `open_policy` may precede
+revocation because it locks no tokens. The old September 3 probes demonstrated
+freezing after deposit on old bytes; the new rejection matrix covers both vault
+kinds and all four authority combinations. This admission gate does not thaw
+old frozen vaults or repair lost oracle keys.
+
 ## Conflict of interest
 
 The covenant requires the founder to recuse when they are the payee. B2
@@ -296,6 +307,15 @@ a working answer.
   from it, is decided off chain. B2 receives one integer and does not know how
   it was assembled. Denominating that integer in base units removes the price
   from the aggregation but not the judgement.
+- Creator/mint namespace capture is addressed by the bound policy digest in
+  the September 9 candidate. Historical devnet accounts and receipts keep their
+  original unbound identities; no public upgrade or migration was performed.
+- The shared window is competitive. There is no per-vault reservation.
+  Purpose-first consumption can zero the beneficiary for every period when
+  `hard_ceiling <= purpose monthly_cap`, and under the published devnet
+  ceiling `2,500,000` it leaves `416,667` of the beneficiary's `1,250,000`.
+  Unused capacity expires. Whether that is accepted headroom or a defect to
+  repair is a Founder decision.
 - The approval authority in tests is a single key. Production requires a
   multisig, and no treasury signers exist yet. B2 builds the mechanism, not the
   governance.

@@ -106,10 +106,12 @@ If decimals are 9, the two aligned deposits are `300,000,000,000,000,000` and
 `500,000,000,000,000,000` base units. If another decimal count is selected, the
 test derives exact equivalents rather than copying these literals.
 
-The next decisive construction is the R4 repair transaction: classify and test
-the seven medium pre-audit mechanisms, repair the accepted defects, then obtain
-one unrelated human/accountable rerun. The same-user agent and Claude results
-advance the evidence without being relabelled as human independence.
+The next decisive construction is the R4 repair transaction: K4V-01..04 are
+now confirmed on the current bytes
+(`evidence/K4V_ADVERSARIAL_PROBES_2026-09-03.json`). Founder decisions for
+K4V-01..06, accepted repairs, and one unrelated human/accountable rerun remain
+open. The same-user agent and Claude results advance the evidence without
+being relabelled as human independence.
 
 ## Independence without a personal network
 

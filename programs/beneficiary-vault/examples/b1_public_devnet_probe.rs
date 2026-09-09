@@ -579,6 +579,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &[],
             DEPOSIT,
         )?,
+        token_instruction::set_authority(
+            &TOKEN_PROGRAM_ID,
+            &mint.pubkey(),
+            None,
+            spl_token_interface::instruction::AuthorityType::MintTokens,
+            &payer.pubkey(),
+            &[],
+        )?,
     ];
     let tx = signed(
         &ctx,
@@ -622,7 +630,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         .data(),
     };
-    let tx = signed(&ctx, &[deposit_ix], &payer, &[])?;
+    let tx = signed(&ctx, &[deposit_ix], &payer, &[&beneficiary])?;
     let (deposit_signature, deposit_units) = simulate_then_send(&mut ctx, &tx, "DEPOSIT")?;
 
     let state_account = ctx.rpc.get_account(&vault_state)?;
