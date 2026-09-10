@@ -251,6 +251,9 @@ def materialize() -> None:
     a = tests.index('#[test]\nfn identity_prevents_foreign_creator_and_changed_t0_squatting()')
     b = tests.index('#[test]', a + 8)
     tests = tests[:a] + IDENTITY_TEST + tests[b:]
+    tests = once(tests,
+        'fn consent_required_and_solo_owner_can_fill_all_roles() {\n    let mut f = Fixture::new(false, false);',
+        'fn consent_required_and_solo_owner_can_fill_all_roles() {\n    let mut f = Fixture::new(false, false);\n    // Preparation commits separately; the failed consent must preserve it exactly.\n    f.run(f.prepare_ix()).unwrap();')
     tests = once(tests, '    f.config.recovery_keys.swap(0, 1);',
         '    f.config.recovery_keys.swap(0, 1);\n    f.rebind(); // New immutable preparation; old actor order cannot consent to it.')
     extra = ROOT / 'tests/e11b_bootstrap_cases.rs'
