@@ -1,0 +1,56 @@
+name: E11 local validator
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  e11-client-and-agave:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: npm ci --ignore-scripts
+      - name: Client safety and transaction wire budgets
+        run: node --test clients/launch_v6_local_client.test.mjs tools/e11_process.test.mjs tools/e11b_bootstrap_wire.test.mjs
+      - name: Preserve frozen E10 inputs
+        run: python3 tools/verify_e10_artifacts.py --sources-only
+      - name: Install Solana CLI 3.1.10
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Build the frozen test-only v6 SBF
+        run: |
+          set -euo pipefail
+          NO_DNA=1 cargo build-sbf --tools-version v1.52 \
+            --manifest-path candidates/launch-vault-v6/Cargo.toml --sbf-out-dir target/v6-test \
+            -- --locked --features test-profile 2>&1 | tee /tmp/k4v-e11-build.log
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          data = Path("target/v6-test/launch_vault_v6.so").read_bytes()
+          assert len(data) == 529584
+          assert hashlib.sha256(data).hexdigest() == "36e5b4f8916d7c4844e625f8665dd91b8057c43e88699168d0cb2936cd02c171"
+          log = Path("/tmp/k4v-e11-build.log").read_text().lower()
+          assert all(s not in log for s in ("stack offset", "overwrites values", "error:"))
+          PY
+      - name: Execute actual Agave transactions and export raw RPC observations
+        run: node tools/e11_agave_rehearsal.mjs
+      - name: Verify checksums
+        run: sha256sum -c SHA256SUMS
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: e11-agave-${{ github.sha }}
+          path: |
+            target/e11/*.json
+            target/e11/*.log
+          if-no-files-found: ignore
+          retention-days: 30
