@@ -1,0 +1,29 @@
+name: Offline evidence demo
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: python3 -m unittest discover -s tests -p 'test_evidence_demo.py' -v
+      - name: Replay frozen raw evidence and render offline walkthrough
+        run: |
+          mkdir -p target/evidence-demo
+          python3 tools/evidence_demo.py --output target/evidence-demo/report.json
+          python3 tools/evidence_demo.py --format html --output target/evidence-demo/index.html
+          git diff --exit-code
+      - uses: actions/upload-artifact@v6
+        with:
+          name: evidence-demo-${{ github.sha }}
+          path: target/evidence-demo/
+          retention-days: 30
