@@ -1,0 +1,29 @@
+name: E11B engineering
+on:
+  push:
+    branches: [codex/e11b-compact-bootstrap]
+  pull_request:
+    paths:
+      - 'candidates/launch-vault-v7/**'
+      - 'tools/*e11b*'
+      - '.github/workflows/e11b-engineering.yml'
+permissions:
+  contents: read
+jobs:
+  source-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Export tracked source at the exact revision
+        run: |
+          mkdir -p /tmp/e11b-source
+          git rev-parse HEAD > /tmp/e11b-source/commit.txt
+          git archive --format=tar HEAD | gzip -n > /tmp/e11b-source/source.tar.gz
+          cd /tmp/e11b-source && sha256sum source.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@v6
+        with:
+          name: e11b-source-${{ github.sha }}
+          path: /tmp/e11b-source/
+          if-no-files-found: error
+          retention-days: 7
