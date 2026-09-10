@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Construct explicit mature-state fixtures; never rewrite the frozen program.
+"""Create mature, explicitly preloaded test fixtures without changing frozen SBF.
 
-A temporary copy changes only test START and three public, insecure fixture keys.
-Its existing native-loader rehearsal creates the complete application graph by
-signed transactions under controlled Clock. Agave later imports those bytes;
-that import is NOT an uninterrupted naturally elapsed validator history.
+Only a temporary test copy's origin time and public insecure fixture keys change.
+Its complete signed native-loader history uses controlled Clock, not natural soak.
 """
 from __future__ import annotations
 import argparse
@@ -23,6 +21,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 from launch_v7_verifier import read_policy, read_vault, read_token
+from e11b_verifier import expand_bundle
 PERIOD = 2_592_000
 FIXTURE_BLOB = '6f2eecb342a3a399d4e8f6aa68ca3e7d0681fc7b'
 CASE = 'e11b::signed_native_loader_dual_withdrawal_recovery_preserves_money_notices_and_year_boundary'
@@ -43,11 +42,11 @@ def extract_program() -> None:
     subprocess.run(['python3', 'tools/verify_e11b_archive.py'], cwd=ROOT, check=True)
     identity = json.loads((ROOT / 'spec/LAUNCH_V7_BUILD_IDENTITY_v1.json').read_text())
     with tarfile.open(ROOT / 'evidence/e11b/accepted-local-evidence.tar.gz', 'r:gz') as archive:
-        member = archive.getmember('target/e11b/raw-rehearsal.json')
+        member = archive.getmember('target/e11b/fresh-bundle.json')
         if not member.isfile() or member.size > 100_000_000:
             raise ValueError('BAD_ARCHIVE_MEMBER')
         raw = json.load(archive.extractfile(member))
-    data = bytes.fromhex(raw['snapshots'][0]['accounts']['program_data']['data_hex'])
+    data = bytes.fromhex(expand_bundle(raw)[0]['accounts']['program_data']['data_hex'])
     spec = identity['profiles']['test']
     code = data[45:45 + spec['bytes']]
     if sha(code) != spec['sha256'] or code[:4] != b'\x7fELF':
@@ -66,8 +65,6 @@ def construct(phase: str) -> None:
     blob = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
     if blob != FIXTURE_BLOB:
         raise ValueError('FROZEN_TEST_FIXTURE_CHANGED')
-    # Scenario R executes in period 9; scenario Y expires in period 13.
-    # This is a newly constructed fixture origin, never a rewrite of a live T0.
     offset_periods = 11 if phase == 'recovery' else 15
     anchor = int(time.time()) - offset_periods * PERIOD - 60 - 300
     source = replace_once(raw.decode(), 'const START: i64 = 1_700_000_000;', f'const START: i64 = {anchor};')
