@@ -1,0 +1,63 @@
+name: E-SOAK observation journal
+on:
+  push:
+    branches: [main, codex/e-soak-observation-journal]
+  pull_request:
+    paths:
+      - 'src/soak_journal.py'
+      - 'tools/soak_*'
+      - 'tests/test_soak_journal.py'
+      - 'docs/E_SOAK*'
+      - '.github/workflows/e-soak-observer.yml'
+permissions:
+  contents: read
+concurrency:
+  group: e-soak-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  journal-and-actual-node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+      - run: npm ci --ignore-scripts
+      - name: Journal failure and replay tests
+        run: PYTHONPATH=src python3 -m unittest discover -s tests -p test_soak_journal.py -v
+      - name: Install pinned validator
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Recover frozen program and check unchanged predecessor evidence
+        run: |
+          sha256sum -c SHA256SUMS
+          sha256sum -c E11B_SHA256SUMS
+          sha256sum -c E11C_SHA256SUMS
+          python3 tools/verify_e11c_archive.py
+          python3 tools/e11c_prepare_fixture.py --extract-program
+      - name: Observe real signed bootstrap and restart observer
+        run: node tools/soak_agave_smoke.mjs
+      - name: Check no frozen source was changed
+        run: git diff --exit-code
+      - name: Bind source and retain evidence
+        if: always()
+        run: |
+          mkdir -p target/e-soak target/e11b/agave
+          git rev-parse HEAD > target/e-soak/checked-out-commit.txt
+          git rev-parse HEAD^{tree} > target/e-soak/checked-out-tree.txt
+          git archive --format=tar.gz -o target/e-soak/source.tar.gz HEAD
+          tar -czf target/e-soak-evidence.tar.gz target/e-soak target/e11b/agave
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: e-soak-${{ github.sha }}
+          path: target/e-soak-evidence.tar.gz
+          if-no-files-found: error
+          retention-days: 30
