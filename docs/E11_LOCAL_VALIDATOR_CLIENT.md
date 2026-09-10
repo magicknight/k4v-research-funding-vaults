@@ -38,7 +38,7 @@ Run from a fresh checkout with Node 20, Python 3.12 and Solana CLI 3.1.10:
 The new CI workflow builds and pins the exact SBF and saves JSON observations,
 signed transaction bytes (public data), receipts and validator logs as artifacts.
 Agave 3.1.10 genesis writes Some(authority), including when the CLI receives
-\`none\`. The rehearsal instead preloads an ephemeral explicit authority, verifies
+`none`. The rehearsal instead preloads an ephemeral explicit authority, verifies
 that initial state and submits a signed native-loader SetAuthority(None).
 It verifies finalized revocation and the exact unchanged code hash before opening
 the policy. The program is then immutable; program deployment itself remains a

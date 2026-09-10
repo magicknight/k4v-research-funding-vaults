@@ -9,7 +9,7 @@ test('two-stage layout fits with distinct actors, extra payer and compute instru
     assert(receipt[name].bytes <= 1232, name);
     assert.equal(receipt[name].verified, true);
   }
-  assert.equal(receipt.prepare.bytes, 1033);
+  assert.equal(receipt.prepare.bytes, 933);
   assert.equal(receipt.open.bytes, 827);
   assert.equal(receipt.open.signatures, 6);
   assert.equal(receipt.open_separate_payer_compute.signatures, 7);
