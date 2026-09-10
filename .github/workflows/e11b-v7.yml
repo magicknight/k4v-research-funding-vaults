@@ -1,0 +1,67 @@
+name: E11B isolated v7 bootstrap
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  v7-sbf-and-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+      - name: Verify frozen sources and materialize new namespace
+        run: |
+          set -euo pipefail
+          test -s tests/e11b_bootstrap_cases.rs
+          python3 -m py_compile tools/materialize_e11b_v7.py
+          python3 tools/verify_e10_artifacts.py --sources-only
+          python3 tools/materialize_e11b_v7.py
+      - name: Install pinned Solana toolchain
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Compile default-disabled and test-only v7
+        run: |
+          set -euo pipefail
+          NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path candidates/launch-vault-v7/Cargo.toml --sbf-out-dir target/v7-disabled -- --locked 2>&1 | tee target/e11b/build-disabled.log
+          NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path candidates/launch-vault-v7/Cargo.toml --sbf-out-dir target/v7-test -- --locked --features test-profile 2>&1 | tee target/e11b/build-test.log
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          for p in Path('target/e11b').glob('build-*.log'):
+              log=p.read_text().lower()
+              assert all(s not in log for s in ('stack offset','overwrites values','error:')), p
+          result={}
+          for profile in ('test','disabled'):
+              p=Path(f'target/v7-{profile}/launch_vault_v7.so')
+              b=p.read_bytes()
+              assert b[:4]==b'\x7fELF'
+              result[profile]={'size':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+          Path('target/e11b/builds.json').write_text(json.dumps(result,indent=2)+'\n')
+          print('V7_BUILD_RESULT '+json.dumps(result))
+          PY
+      - name: Signed SBF bootstrap and inherited financial/recovery tests
+        run: |
+          set -euo pipefail
+          cargo test --manifest-path candidates/launch-vault-v7/Cargo.toml --locked --features test-profile -- --nocapture 2>&1 | tee target/e11b/rust-tests.log
+          python3 tools/verify_e10_artifacts.py --sources-only
+          sha256sum -c SHA256SUMS
+      - name: Preserve materialized source for review
+        if: always()
+        run: |
+          mkdir -p target/e11b
+          tar --exclude=target --exclude='*.so' --exclude='*-keypair.json' -czf target/e11b/generated-v7-source.tar.gz candidates/launch-vault-v7 || true
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: e11b-v7-${{ github.sha }}
+          path: target/e11b/
+          if-no-files-found: error
+          retention-days: 30
