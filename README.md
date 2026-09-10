@@ -3,14 +3,17 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
-**Latest engineering candidate:** [E-10 v6 bounded submission](docs/E10_V6_BOUNDED_SUBMISSION.md)
-implements signed admission windows with full notice from actual on-chain
-acceptance in an isolated, default-disabled candidate. Both delayed recoveries
-preserve custody, old approvals and continued releases into year two. Local
-validation covers 63 Rust checks, 47 Python raw/RPC checks, 4 JavaScript identity
-checks and 11 loopback checkpoints. E-11 next connects a client to a local
-validator for actual submission, confirmation and RPC observation. Public
-deployment and production rights remain open.
+**Latest engineering candidate:** [E-11B v7 compact bootstrap](docs/E11B_ENGINEERING_ACCEPTANCE.md)
+implements immutable preparation plus six-role consent in an isolated,
+default-disabled program. Initial full acceptance passed 72 Rust, 21 JavaScript
+and six additional Python test methods, 11 native-loader financial checkpoints,
+and actual Agave six-role initialization with 15 finalized client transactions.
+The complete accepted source, exact build hashes, raw receipts and
+[review handoff](docs/E11B_REVIEW_HANDOFF.md) are public. Run
+`bash tools/run_e11b_acceptance.sh` to rebuild/replay the committed candidate.
+A successful earlier run does not certify an untested descendant; consult the
+exact commit's E11B workflow. Natural long-duration execution, named human
+review, production parameters/rights and public deployment remain open.
 
 **Frozen timing design:** [E-09 submission-window design and counterexample](docs/E09_SUBMISSION_TIME_DESIGN.md)
 reproduces the frozen v5 exact-clock failure with already signed transactions,

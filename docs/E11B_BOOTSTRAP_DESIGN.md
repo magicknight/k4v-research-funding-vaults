@@ -1,7 +1,9 @@
 # E-11B bootstrap design: immutable preparation and compact consent
 
-Status: DESIGN AND OFFLINE SIGNED-WIRE PROTOTYPE ONLY. No SBF implements this
-protocol yet. The v6 ABI, program bytes and E-10 evidence remain unchanged.
+Historical status at E-11A: design and offline signed-wire prototype only.
+The implemented descendant is now [E-11B v7](E11B_ENGINEERING_ACCEPTANCE.md).
+The proposal below is preserved as design provenance; it is not the live
+implementation status. The v6 ABI, program bytes and E-10 evidence are unchanged.
 
 The accepted v6 open_policy needs six signatures and 564 instruction bytes.
 It serializes to 1,352 legacy bytes or 1,264 ideal-v0 bytes against a 1,232-byte
