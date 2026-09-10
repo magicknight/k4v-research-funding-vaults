@@ -27,6 +27,8 @@ objects are fsynced before their references are committed. A single-writer file
 lock also protects replay from concurrent writes. Partial records, altered
 objects, changed decoder code and incompatible manifests stop replay/resume;
 the tool never truncates or repairs the original evidence automatically.
+Cross-language summaries render nanosecond timestamps as decimal strings so a
+JavaScript consumer cannot silently round their last digits.
 
 Supply `--expect-head` from an independently retained earlier receipt when
 resuming. A hash chain alone cannot detect replacement of the whole history or

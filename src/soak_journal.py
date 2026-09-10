@@ -316,12 +316,16 @@ class Journal:
 
     def summary(self):
         first, last = self.first_sample, self.last_sample
+        def public_stamp(value):
+            # Nanoseconds exceed JavaScript's exact integer range. Keep the raw
+            # Python journal integers, but make cross-language summaries lossless.
+            return {**value, "wall_ns": str(value["wall_ns"])} if value else None
         return {"schema": "K4V-SOAK-SUMMARY-v1", "valid": True,
                 "scope": "LOCAL_RPC_OBSERVATION_JOURNAL", "head_sha256": self.head,
                 "run_sha256": self.run_hash, "events": self.count, "samples": self.samples,
                 "observation_errors": self.errors, "observer_sessions": self.sessions,
                 "unclosed_observer_sessions": self.unclosed_sessions + int(self.active_session is not None),
-                "anomalies": sorted(self.anomalies), "first_sample": first, "last_sample": last,
+                "anomalies": sorted(self.anomalies), "first_sample": public_stamp(first), "last_sample": public_stamp(last),
                 "observed_bank_span_seconds": last["bank_time"] - first["bank_time"] if first else 0,
                 "observed_wall_span_seconds": (last["wall_ns"] - first["wall_ns"]) / 1e9 if first else 0,
                 "max_observed_gap_seconds": self.max_observed_gap_seconds,

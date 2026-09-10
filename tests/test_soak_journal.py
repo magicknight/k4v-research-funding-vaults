@@ -67,6 +67,7 @@ class SoakJournalTests(unittest.TestCase):
         summary = self.finish()
         self.assertEqual((summary["samples"], summary["observer_sessions"]), (2, 2))
         self.assertEqual(summary["observed_bank_span_seconds"], 10)
+        self.assertEqual(summary["first_sample"]["wall_ns"], "1800000000000000000")
         self.assertEqual(summary["anomalies"], [])
         self.assertFalse(summary["natural_90_180_day_soak"])
         self.assertFalse(summary["validator_uptime_verified"])
