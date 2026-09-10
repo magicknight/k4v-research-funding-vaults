@@ -1,14 +1,14 @@
-// Actual local Agave RPC. Only the immutable program is preloaded in genesis.
+// Actual local Agave RPC. Program bytes start in genesis; a signed loader transaction revokes its temporary authority.
 // Mint, tokens, policy, deposits and proposals are created by signed transactions.
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync, createWriteStream, mkdtempSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
-import { Keypair, SystemProgram } from '@solana/web3.js';
+import { Keypair, PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, MINT_SIZE, ACCOUNT_SIZE, AuthorityType, createInitializeMint2Instruction,
   createInitializeAccount3Instruction, createMintToCheckedInstruction, createSetAuthorityInstruction } from '@solana/spl-token';
-import { LocalRpc, PROGRAM, SYSTEM, pda, integer, hash, sleep, readClock, readBoundPolicy,
+import { LocalRpc, PROGRAM, LOADER, CODE_SHA256, SYSTEM, decodeAccount, pda, integer, hash, sleep, readClock, readBoundPolicy,
   signInstructions, inspectEnvelope, submitSigned, prepareWithdrawal } from '../clients/launch_v6_local_client.mjs';
 import { fixture, instruction, openInstruction, wireSizes, UNIT, SUPPLY } from './e11_fixtures.mjs';
 import { trackLocalChild, stopLocalChild } from './e11_process.mjs';
@@ -18,10 +18,11 @@ const out = resolve('target/e11');
 mkdirSync(out, { recursive: true });
 const ledger = mkdtempSync(join(tmpdir(), 'k4v-e11-agave-'));
 const log = createWriteStream(join(out, 'validator.log'));
+const loaderAuthority = Keypair.generate();
 const validator = spawn('solana-test-validator', ['--reset', '--quiet', '--ledger', ledger,
   '--rpc-port', '19599', '--faucet-port', '19699', '--bind-address', '127.0.0.1',
   '--dynamic-port-range', '19700-19800', '--upgradeable-program', PROGRAM.toBase58(),
-  resolve('target/v6-test/launch_vault_v6.so'), 'none'], { stdio: ['ignore', 'pipe', 'pipe'] });
+  resolve('target/v6-test/launch_vault_v6.so'), loaderAuthority.publicKey.toBase58()], { stdio: ['ignore', 'pipe', 'pipe'] });
 const trackedValidator = trackLocalChild(validator);
 validator.stdout.pipe(log, { end: false }); validator.stderr.pipe(log, { end: false });
 const rpc = new LocalRpc('http://127.0.0.1:19599');
@@ -72,6 +73,28 @@ try {
   // Explicit single-operator fixture, not six independent bootstrap signers.
   const f = fixture({ solo: true });
   await airdrop(f.creator.publicKey, 30000000000);
+  // Agave 3.1.10 genesis always stores Some(authority), even for CLI "none".
+  // Seal through the actual loader instead of treating Some(default) as None.
+  const programData = PublicKey.findProgramAddressSync([PROGRAM.toBuffer()], LOADER)[0];
+  async function programAuthority(label, expected) {
+    const response = await rpc.call('getMultipleAccounts', [[programData.toBase58()], { encoding: 'base64', commitment: 'finalized' }]);
+    const bytes = decodeAccount(response.value[0], LOADER.toBase58(), false, 45 + 529584);
+    assert.equal(bytes.readUInt32LE(0), 3);
+    assert.equal(hash(bytes.subarray(45)), CODE_SHA256);
+    assert.equal(bytes[12], expected === null ? 0 : 1);
+    if (expected !== null) assert(bytes.subarray(13, 45).equals(expected.toBuffer()));
+    const record = { label, slot: response.context.slot, option_tag: bytes[12],
+      authority: expected?.toBase58() ?? null, sha256: hash(bytes.subarray(45)) };
+    save('program-' + label, record);
+    console.log('PROGRAM_AUTHORITY ' + JSON.stringify(record));
+    return record;
+  }
+  await programAuthority('genesis', loaderAuthority.publicKey);
+  const loaderInstruction = new TransactionInstruction({ programId: LOADER, data: Buffer.from([4, 0, 0, 0]),
+    keys: [{ pubkey: programData, isSigner: false, isWritable: true },
+      { pubkey: loaderAuthority.publicKey, isSigner: true, isWritable: false }] });
+  const sealing = await send('revoke-genesis-upgrade-authority', [loaderInstruction], f.creator, [f.creator, loaderAuthority]);
+  await programAuthority('sealed', null);
   const mintRent = await rpc.call('getMinimumBalanceForRentExemption', [MINT_SIZE]);
   const tokenRent = await rpc.call('getMinimumBalanceForRentExemption', [ACCOUNT_SIZE]);
   const makeAccount = (key, space, lamports) => SystemProgram.createAccount({ fromPubkey: f.creator.publicKey,
@@ -209,7 +232,8 @@ try {
     assert.equal(final.snapshot.accounts[name].data_hex, cancelled.snapshot.accounts[name].data_hex, 'REJECTION_MUTATED_' + name);
   }
   const receipt = { schema: 'K4V-E11A-AGAVE-RECEIPT-v1', valid: true, cluster: 'local-agave',
-    version, genesis_hash: genesisHash, program: PROGRAM.toBase58(), program_origin: 'immutable-genesis-SBF',
+    version, genesis_hash: genesisHash, program: PROGRAM.toBase58(), program_origin: 'genesis-SBF-then-signed-loader-authority-revocation',
+    authority_revocation_signature: sealing.signature,
     program_sha256: hash(readFileSync('target/v6-test/launch_vault_v6.so')), client_private_keys_serialized: false,
     policy_token_account_injection: false, clock_override: false, public_chain_transactions: 0,
     bootstrap: 'creator-founder-treasury-same-key-four-signatures', independent_bootstrap: 'BLOCKED_PACKET_SIZE',

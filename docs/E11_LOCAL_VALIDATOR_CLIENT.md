@@ -37,7 +37,12 @@ Run from a fresh checkout with Node 20, Python 3.12 and Solana CLI 3.1.10:
 
 The new CI workflow builds and pins the exact SBF and saves JSON observations,
 signed transaction bytes (public data), receipts and validator logs as artifacts.
-The program is an immutable genesis fixture. Mint, token accounts, policy,
+Agave 3.1.10 genesis writes Some(authority), including when the CLI receives
+\`none\`. The rehearsal instead preloads an ephemeral explicit authority, verifies
+that initial state and submits a signed native-loader SetAuthority(None).
+It verifies finalized revocation and the exact unchanged code hash before opening
+the policy. The program is then immutable; program deployment itself remains a
+genesis fixture. Mint, token accounts, policy,
 deposits, arm/activate, recovery proposal and cancellation use actual signed
 transactions. Test SOL comes from the local faucet. The client never writes its
 ephemeral private keys. Agave's own temporary ledger is deleted and excluded
@@ -64,6 +69,10 @@ v6's frozen ABI in place. A compact consent/open instruction bound to a prepared
 immutable configuration is a design option to review before implementation.
 Then rerun independent-role client/RPC setup and the long-duration recovery /
 continued-withdrawal path with explicit clock and runtime evidence boundaries.
+
+The offline [E-11B design and signed packet prototype](E11B_BOOTSTRAP_DESIGN.md)
+measures a prepared-config/compact-consent solution. It has no SBF implementation
+or validator acceptance yet.
 
 Human review, production parameter adoption and public deployment remain open.
 F-02 feedback and its F-03 dependent work remain paused and demand unverified.
