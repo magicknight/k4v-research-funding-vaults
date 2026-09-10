@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Keypair, SystemProgram, Transaction } from '@solana/web3.js';
 import { hash, integer, loopbackEndpoint, proposalInstruction, signInstructions, inspectEnvelope,
-  submitSigned } from './launch_v6_local_client.mjs';
+  submitSigned, readClockBoundAccounts, CLOCK, SYSVAR } from './launch_v6_local_client.mjs';
 import { wireSizes } from '../tools/e11_fixtures.mjs';
 const a = Keypair.generate(), b = Keypair.generate(), blockhash = Keypair.generate().publicKey.toBase58();
 function rpc({ lostSend = false, neverConfirm = false, expired = false, simulationError = false,
@@ -104,4 +104,34 @@ test('RPC send acknowledgement alone is insufficient; retries never re-sign or r
 test('finalized program error is failure even when the transport succeeds', async () => {
   const r = rpc({ statusError: { InstructionError: [0, 'Custom'] } }), e = await envelope(r);
   assert.equal((await submitSigned(r, e, e.messageHash)).status, 'ONCHAIN_FAILED');
+});
+
+function clockAccount(slot, owner = SYSVAR) {
+  const bytes = Buffer.alloc(40); bytes.writeBigUInt64LE(BigInt(slot)); bytes.writeBigInt64LE(100n, 32);
+  return { owner, executable: false, data: [bytes.toString('base64'), 'base64'] };
+}
+test('clock mismatch discards the whole response before a bounded fresh read', async () => {
+  let reads = 0;
+  const addresses = [a.publicKey.toBase58(), CLOCK.toBase58()];
+  const transport = { async call(method, params) {
+    assert.equal(method, 'getMultipleAccounts'); assert.deepEqual(params[0], addresses);
+    reads++;
+    return { context: { slot: reads === 1 ? 10 : 12 },
+      value: [{ marker: reads === 1 ? 'discarded' : 'fresh' }, clockAccount(reads === 1 ? 11 : 12)] };
+  } };
+  const { response } = await readClockBoundAccounts(transport, addresses, { pollMs: 0 });
+  assert.equal(reads, 2); assert.equal(response.context.slot, 12);
+  assert.equal(response.value[0].marker, 'fresh');
+});
+test('persistent clock skew is rejected after three complete reads', async () => {
+  let reads = 0;
+  const transport = { async call() { reads++; return { context: { slot: 10 }, value: [clockAccount(11)] }; } };
+  await assert.rejects(readClockBoundAccounts(transport, [CLOCK.toBase58()], { pollMs: 0 }), /^Error: CLOCK_BANK$/);
+  assert.equal(reads, 3);
+});
+test('invalid Clock account ownership is not retried or accepted', async () => {
+  let reads = 0;
+  const transport = { async call() { reads++; return { context: { slot: 10 }, value: [clockAccount(10, a.publicKey.toBase58())] }; } };
+  await assert.rejects(readClockBoundAccounts(transport, [CLOCK.toBase58()], { pollMs: 0 }), /ACCOUNT_ENVELOPE/);
+  assert.equal(reads, 1);
 });

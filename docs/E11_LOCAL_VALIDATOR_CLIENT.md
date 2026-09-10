@@ -77,3 +77,8 @@ or validator acceptance yet.
 
 Human review, production parameter adoption and public deployment remain open.
 F-02 feedback and its F-03 dependent work remain paused and demand unverified.
+
+Transient Clock/context mismatch is rejected, logged and retried at most three
+times using a complete fresh response. Persistent skew or invalid ownership
+still fails. The Python exporter is unchanged; a Clock-bank rejection may restart
+the whole export at most three times, never joining bytes across attempts.

@@ -74,18 +74,32 @@ export function decodeAccount(value, owner, executable, length) {
     (length === undefined || bytes.length === length), 'ACCOUNT_BYTES');
   return bytes;
 }
+// A mismatched response is discarded in full. Never combine Clock from one
+// response with other accounts from another, and never accept persistent skew.
+export async function readClockBoundAccounts(rpc, addresses, { commitment = 'finalized', pollMs = 200 } = {}) {
+  const clockIndex = addresses.indexOf(CLOCK.toBase58());
+  requireThat(clockIndex >= 0 && addresses.lastIndexOf(CLOCK.toBase58()) === clockIndex, 'CLOCK_REQUEST');
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const r = await rpc.call('getMultipleAccounts', [addresses, { encoding: 'base64', commitment }]);
+    requireThat(Number.isSafeInteger(r?.context?.slot) && r.context.slot >= 0 &&
+      Array.isArray(r.value) && r.value.length === addresses.length, 'CLOCK_RESPONSE');
+    const clock = decodeAccount(r.value[clockIndex], SYSVAR, false, 40);
+    if (clock.readBigUInt64LE(0) === BigInt(r.context.slot)) return { response: r, clock };
+    console.warn('CLOCK_BANK_REJECTED ' + JSON.stringify({ attempt, context_slot: r.context.slot,
+      clock_slot: clock.readBigUInt64LE(0).toString() }));
+    if (attempt < 3) await sleep(pollMs);
+  }
+  throw new Error('CLOCK_BANK');
+}
 export async function readClock(rpc, commitment = 'finalized') {
-  const r = await rpc.call('getMultipleAccounts', [[CLOCK.toBase58()], { encoding: 'base64', commitment }]);
-  requireThat(Number.isSafeInteger(r?.context?.slot) && r.value?.length === 1, 'CLOCK_RESPONSE');
-  const raw = decodeAccount(r.value[0], SYSVAR, false, 40);
-  requireThat(raw.readBigUInt64LE(0) === BigInt(r.context.slot), 'CLOCK_BANK');
+  const { response: r, clock: raw } = await readClockBoundAccounts(rpc, [CLOCK.toBase58()], { commitment });
   return { slot: r.context.slot, now: raw.readBigInt64LE(32) };
 }
 export async function readBoundPolicy(rpc, binding) {
   requireThat(await rpc.call('getGenesisHash') === binding.genesisHash, 'GENESIS_MISMATCH');
   const programData = PublicKey.findProgramAddressSync([PROGRAM.toBuffer()], LOADER)[0];
-  const r = await rpc.call('getMultipleAccounts', [[binding.policy, PROGRAM.toBase58(), programData.toBase58(), CLOCK.toBase58()],
-    { encoding: 'base64', commitment: 'finalized' }]);
+  const { response: r } = await readClockBoundAccounts(rpc,
+    [binding.policy, PROGRAM.toBase58(), programData.toBase58(), CLOCK.toBase58()]);
   requireThat(Number.isSafeInteger(r?.context?.slot) && r.value?.length === 4, 'POLICY_RESPONSE');
   const policy = decodeAccount(r.value[0], PROGRAM.toBase58(), false, 1065);
   const program = decodeAccount(r.value[1], LOADER.toBase58(), true, 36);

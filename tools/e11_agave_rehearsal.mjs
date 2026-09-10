@@ -144,10 +144,18 @@ try {
     external_accounts: { source: f.source.publicKey.toBase58(), founder_destination_0: f.founderOut.publicKey.toBase58(),
       treasury_destination: f.treasuryOut.publicKey.toBase58() }, approval_periods: [] };
   save('manifest', manifest);
-  function observe(label) {
+  async function observe(label) {
     const path = join(out, 'observation-' + label + '.json');
-    const result = spawnSync('python3', ['src/launch_v6_rpc_exporter.py', '--rpc-url', rpc.endpoint,
-      '--manifest', join(out, 'manifest.json'), '--output', path], { encoding: 'utf8', env: { ...process.env, PYTHONPATH: 'src' } });
+    let result;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      result = spawnSync('python3', ['src/launch_v6_rpc_exporter.py', '--rpc-url', rpc.endpoint,
+        '--manifest', join(out, 'manifest.json'), '--output', path], { encoding: 'utf8', env: { ...process.env, PYTHONPATH: 'src' } });
+      if (result.status === 0) break;
+      let rejected; try { rejected = JSON.parse(result.stdout); } catch { /* Other failures are not retried. */ }
+      if (rejected?.error !== 'RPC_CLOCK_BANK_MISMATCH' || attempt === 3) break;
+      console.warn('RPC_EXPORT_CLOCK_RESTART ' + JSON.stringify({ label, attempt }));
+      await sleep(200); // Restart the entire exporter; no discarded bytes are reused.
+    }
     assert.equal(result.status, 0, result.stdout + result.stderr);
     const decoded = JSON.parse(readFileSync(path, 'utf8'));
     assert.equal(decoded.verification.valid, true);
@@ -156,7 +164,7 @@ try {
     console.log('RPC_VERIFIED ' + label + ' slot=' + decoded.snapshot.slot);
     return decoded;
   }
-  observe('active');
+  await observe('active');
   const reportAt = (await readClock(rpc)).now;
   await send('report-capacity', [instruction('report_capacity', { oracle: f.oracle.publicKey, policy: f.policy },
     [integer(f.config.shared_hard_cap), integer(reportAt, true), integer(1n), integer(0n)])], f.creator, [f.creator, f.oracle]);
@@ -188,7 +196,7 @@ try {
   assert.equal(admission.status, 'FINALIZED');
   assert.equal(delayed.envelope.bytes, originalBytes);
   receipts.push({ label: 'delayed-recovery', ...delayed.envelope, result: admission });
-  const pending = observe('recovery-pending');
+  const pending = await observe('recovery-pending');
   const proposalRaw = Buffer.from(pending.snapshot.accounts.withdrawal_0_1.data_hex, 'hex');
   const createdAt = proposalRaw.readBigInt64LE(138), executeAfter = proposalRaw.readBigInt64LE(146);
   assert(createdAt >= delayed.fields.validFrom + 3n && createdAt <= delayed.fields.validUntil);
@@ -207,7 +215,7 @@ try {
   await send('successor-cancels-recovery', [instruction('cancel_withdrawal', { initiator: successors[0].publicKey,
     cosigner: successors[0].publicKey, policy: f.policy, proposal: proposalKey, successor_record: recordKey })],
   f.creator, [f.creator, successors[0]]);
-  const cancelled = observe('cancelled');
+  const cancelled = await observe('cancelled');
   assert.equal(Buffer.from(cancelled.snapshot.accounts.withdrawal_0_1.data_hex, 'hex')[162], 2);
 
   const short = await prepareWithdrawal(rpc, binding, intent(successors[1]), signers(successors[1]), 3n);
@@ -226,7 +234,7 @@ try {
   const expiredBlockhash = await submitSigned(rpc, bh, bh.messageHash);
   assert.equal(expiredBlockhash.reason, 'BLOCKHASH_EXPIRED');
   refusal.push({ label: 'expired-blockhash', result: expiredBlockhash });
-  const final = observe('after-rejections');
+  const final = await observe('after-rejections');
   for (const name of ['policy', 'source', 'mint', 'founder_vault', 'treasury_vault',
     'founder_token', 'treasury_token', 'founder_destination_0', 'treasury_destination']) {
     assert.equal(final.snapshot.accounts[name].data_hex, cancelled.snapshot.accounts[name].data_hex, 'REJECTION_MUTATED_' + name);
