@@ -1,0 +1,124 @@
+{
+  "schema": "K4V-E10-LOCAL-VALIDATION-v1",
+  "date": "2026-09-10",
+  "status": "PASS",
+  "spec": {
+    "path": "spec/LAUNCH_V6_TEST_ONLY_CANDIDATE_v1.json",
+    "sha256": "14cb266249f93cc4cda6e8aeb53b4ddaa8f3c78ba5b847277ae3cebbf9a71c81",
+    "bytes": 7590
+  },
+  "verification": {
+    "rust_tests": 63,
+    "rust_submission_tests": 5,
+    "rust_lifecycle_tests": 53,
+    "rust_abi_tests": 3,
+    "rust_library_tests": 2,
+    "javascript_identity_tests": 4,
+    "python_raw_and_rpc_tests": 47,
+    "probe_transactions": 142,
+    "probe_accepted": 44,
+    "probe_expected_refusals": 98,
+    "native_loader_transactions": 641,
+    "native_loader_accepted": 630,
+    "native_loader_expected_refusals": 11,
+    "raw_checkpoints": 11,
+    "loopback_requests": 55,
+    "native_recovery_delays_seconds": [
+      30,
+      30
+    ]
+  },
+  "sbf_artifacts": [
+    {
+      "path": "target/v6-disabled/launch_vault_v6.so",
+      "sha256": "40b36c9cb26b77d6235ef8f460fff1d629ec4f4644c6fb94284d2be84c09f215",
+      "bytes": 510912
+    },
+    {
+      "path": "target/v6-test/launch_vault_v6.so",
+      "sha256": "36e5b4f8916d7c4844e625f8665dd91b8057c43e88699168d0cb2936cd02c171",
+      "bytes": 529584
+    }
+  ],
+  "rehearsal": {
+    "clock_controlled": true,
+    "delayed_submissions": [
+      {
+        "accepted_at": 1720736030,
+        "delay_seconds": 30,
+        "local_signature": "SSDFDYFRGGGsSvert6AEvpgSZo6Grebs4eBmHepvNC2HRGkMS44VpQyDVz9ofF2LkeoeJSndqmU9eDihsTLWXdx",
+        "role": 0,
+        "same_valid_blockhash": true,
+        "valid_from": 1720736000,
+        "valid_until": 1720736300
+      },
+      {
+        "accepted_at": 1720736060,
+        "delay_seconds": 30,
+        "local_signature": "4aNm5EePGMMkowpyyha9qwEzqAg3HMdh3GBMMX8a9T8D7bnxEiAkAr2nWsF6kBvMTQEtn2jmNU36LJpU52QqzD4b",
+        "role": 1,
+        "same_valid_blockhash": true,
+        "valid_from": 1720736030,
+        "valid_until": 1720736330
+      }
+    ],
+    "fee_airdrops": true,
+    "private_keys_serialized": false,
+    "program_or_token_injection": false,
+    "public_chain_transactions": 0,
+    "schema": "K4V-E10-LOCAL-REHEARSAL-v1",
+    "scope": "AUTHOR_RUN_LOCAL_LITESVM",
+    "signed_transactions_sent": 641,
+    "signed_transactions_successful": 630
+  },
+  "frozen_receipts": {
+    "evidence/e10/blockhash_separation.json": {
+      "sha256": "56d4914397c419fc3af751f978d1a1e8080430eb0327c7907d50458026c7eb03",
+      "bytes": 975
+    },
+    "evidence/e10/interval_boundaries.json": {
+      "sha256": "fd236e52070b322135e17a84c79dc844f8d5632183dddaebe3874592be9f511b",
+      "bytes": 5016
+    },
+    "evidence/e10/loopback.json": {
+      "sha256": "304c07d34082bb69f139210bd5b445d0054e6d307ebc13d9f635ccfbbd790697",
+      "bytes": 11913
+    },
+    "evidence/e10/nonce_race.json": {
+      "sha256": "b03c8dab7d00cf38490479d75380587491c5d1f8e85663a07dba20c74979519b",
+      "bytes": 1185
+    },
+    "evidence/e10/signature_binding.json": {
+      "sha256": "516db6cd5a62e10df3ba12c761fba1405cc66e3a294591d77b2dee7217e1a9d4",
+      "bytes": 7666
+    },
+    "evidence/e10/signed_delay.json": {
+      "sha256": "72997e94f6f83d302df04e470ed41308ffbc49155375dfd5127387e6497f7d4f",
+      "bytes": 5556
+    }
+  },
+  "raw_bundle": {
+    "path": "examples/e10_rehearsal_bundle.json",
+    "sha256": "084a2b910afc139f835148141ea3424e36d425a305681dd01f240328689072eb",
+    "bytes": 282825
+  },
+  "local_build": "BOTH_PROFILES_BUILT_WITH_PINNED_TOOLS_AND_NO_STACK_DIAGNOSTICS",
+  "reproduction_command": "bash tools/run_e10_local_reproduction.sh",
+  "scope": {
+    "signed_probe_program_mint_injected": true,
+    "native_rehearsal_program_mint_token_injected": false,
+    "clock_controlled": true,
+    "sol_airdrops": true,
+    "blockhash_held_valid_for_delay": true,
+    "actual_blockhash_lifetime_proven": false,
+    "http_source": "LOCAL_RECORDED_RUNTIME_BYTES",
+    "public_rpc_requests": 0,
+    "public_chain_transactions": 0,
+    "raw_verifier_proves_transaction_signatures": false,
+    "independent_human_audit": false,
+    "website_changed": false,
+    "production_rights_adopted": false,
+    "feedback": "PAUSED_BY_FOUNDER_DEMAND_UNVERIFIED"
+  },
+  "next": "E11_LOCAL_VALIDATOR_CLIENT_SUBMIT_CONFIRM_AND_ACTUAL_RPC_OBSERVATION"
+}

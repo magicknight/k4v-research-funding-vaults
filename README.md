@@ -3,20 +3,29 @@
 This repository turns “we will release tokens slowly and only for a stated
 purpose” from a verbal promise into public, testable code.
 
-**Latest timing work:** [E-09 submission-window design and counterexample](docs/E09_SUBMISSION_TIME_DESIGN.md)
+**Latest engineering candidate:** [E-10 v6 bounded submission](docs/E10_V6_BOUNDED_SUBMISSION.md)
+implements signed admission windows with full notice from actual on-chain
+acceptance in an isolated, default-disabled candidate. Both delayed recoveries
+preserve custody, old approvals and continued releases into year two. Local
+validation covers 63 Rust checks, 47 Python raw/RPC checks, 4 JavaScript identity
+checks and 11 loopback checkpoints. E-11 next connects a client to a local
+validator for actual submission, confirmation and RPC observation. Public
+deployment and production rights remain open.
+
+**Frozen timing design:** [E-09 submission-window design and counterexample](docs/E09_SUBMISSION_TIME_DESIGN.md)
 reproduces the frozen v5 exact-clock failure with already signed transactions,
 then tests bounded signed admission intervals with full notice from actual
 acceptance. Three SBF counterexample tests and 21 model tests pass. New SBF
-implementation is E-10; the existing v5 timing limitation remains.
+implementation is now the separate E-10 v6 candidate; v5 remains frozen.
 
-**Latest verification handoff:** [E-08 v5 read-only export and review](docs/E08_V5_READ_ONLY_AND_REVIEW.md)
+**Earlier verification handoff:** [E-08 v5 read-only export and review](docs/E08_V5_READ_ONLY_AND_REVIEW.md)
 binds an explicit network and initial policy identity, derives complete proposal
 and key-index history, and verifies one final response containing every account.
 Twenty-eight new RPC tests and eleven loopback HTTP checkpoints pass. The exact
 E-07 SBF candidate is preserved. Public-v5 observation, reliable submission-time
 handling and named human review remain open.
 
-**Latest engineering candidate:** [E-07 v5 beneficiary withdrawal recovery](docs/LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md)
+**Earlier engineering candidate:** [E-07 v5 beneficiary withdrawal recovery](docs/LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md)
 enforces the E-06 role-authority model in isolated SBF. Signed local transactions
 recover both beneficiary keys, preserve approvals/custody, and continue releases
 into the next annual interval. Eleven raw checkpoints independently verify,

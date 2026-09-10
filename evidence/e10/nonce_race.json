@@ -1,0 +1,42 @@
+{
+  "cases": [
+    {
+      "competing_rejected": true,
+      "fresh_hash_replay_after_cancellation_rejected": true,
+      "recovery": false,
+      "role": 0,
+      "successor_cancellation_accepted": true
+    },
+    {
+      "competing_rejected": true,
+      "fresh_hash_replay_after_cancellation_rejected": true,
+      "recovery": true,
+      "role": 0,
+      "successor_cancellation_accepted": true
+    },
+    {
+      "competing_rejected": true,
+      "fresh_hash_replay_after_cancellation_rejected": true,
+      "recovery": false,
+      "role": 1,
+      "successor_cancellation_accepted": true
+    },
+    {
+      "competing_rejected": true,
+      "fresh_hash_replay_after_cancellation_rejected": true,
+      "recovery": true,
+      "role": 1,
+      "successor_cancellation_accepted": true
+    }
+  ],
+  "clock_controlled": true,
+  "fee_airdrops": true,
+  "financial_transfers_tested": false,
+  "private_keys_serialized": false,
+  "probe": "nonce_race",
+  "program_and_mint_injected": true,
+  "program_id": "FixSiDfTxvoy5Zgjp5KdFU8U23ChwCxPWY3WTkmMW2fU",
+  "public_chain_transactions": 0,
+  "schema": "K4V-E10-V6-SUBMISSION-PROBE-v1",
+  "scope": "SIGNED_LOCAL_LITESVM_ON_V6_TEST_SBF"
+}

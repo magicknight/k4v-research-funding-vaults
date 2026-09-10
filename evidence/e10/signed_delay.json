@@ -1,0 +1,174 @@
+{
+  "cases": [
+    {
+      "accepted": true,
+      "delay_seconds": 0,
+      "local_signature": "5ziRQ6D5vDwKzHVa32U5i3zccpWF75u4mrKWbaa3FAmhobZh8UFq5wtVfsr3TgTgpfL4d83HLsNbqSHgE68LCDdb",
+      "recovery": false,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 1,
+      "local_signature": "2doW3kk2SMDuRvX77L3yp3ddJteFffFBcsxeDhoHPm2RsgjmCVASaD8R9tPF1hbkvSV5hKrVpkhmZCogpzCA2RwF",
+      "recovery": false,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 30,
+      "local_signature": "3Cb23b6V7792MUB1DwjySmQ4X6afQpkKB5goNeQ6mQ4TgkFpbASzDdgquUTDrWsWkLSEW78aDN2Gvx1AB5hXDkAm",
+      "recovery": false,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 300,
+      "local_signature": "NboUSb5agX1ygQxoz8Ri6qLwf6hJircjCQeeFMbWH6eXwA1oZyd2VhhC6BLLfMeGfK3Ad8QWu4H3EfiFipkQEQQ",
+      "recovery": false,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": false,
+      "delay_seconds": 301,
+      "local_signature": "fBtGVh9GK6jd45r3YV47XB1GEJQUMZGNt656UTL9t2FvTF8h6z3hs3VsikU9grh4zsc3RBjxhWuwrpPyro8JNJf",
+      "recovery": false,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 0,
+      "local_signature": "27DuUwNpFdsd2qBbb57qi3hSBh5r4jcAYaLf4NUoDs8zvxaLNSPnY9ET9nYRVxiZVUPmbWYNdzZvkGx6ZptcnwMC",
+      "recovery": true,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 1,
+      "local_signature": "2tmYo7qE1WqmBdVJJJGVePZ9Za53FaWF8QdzcYWsPGzkvmuW7ymtSsFH79DnxwLuaVkLY9MmqxEwSQDo3vW9zXJn",
+      "recovery": true,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 30,
+      "local_signature": "67phCy4ruTH5Nv1fy9HYtxQNjXh7YLX7e9m25qsYxxGVCsbGt1CF4p8mUh3qUQosNiahjAX34UZvBQy2LRsJp6Ag",
+      "recovery": true,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 300,
+      "local_signature": "4EuVHqgzDqhHTJ8JYoYgF4PFTZLBbiPS2XSGrrLnmxMVPgLE5MAxfZ1mBf98W1pQEhC16yZn6TJM2VkJDceYMTo1",
+      "recovery": true,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": false,
+      "delay_seconds": 301,
+      "local_signature": "4EEF28rSwWNtCbffsQW3cP47qLquD7E5MrhSVwp55GTRC5XRA7FDiFfvVkLrbVyY3pZBFCvY6bteBpSPYHYs7QNa",
+      "recovery": true,
+      "role": 0,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 0,
+      "local_signature": "63AgqEjg8s3pgn7cV1ehEgNSJm6ro93hoQWYEyXBFcvUtExpW2Ln33FWY6acLZYCiS6DrTVKF4cPogqkjyHUtRgd",
+      "recovery": false,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 1,
+      "local_signature": "5UDTQJhsNUFemtiC7XH7b6rwtB6ayDPSfC7z444Vfpj34EBnfA5QjSR2pfeHeP8L7ToHY8N2EQepkkQyQNaMm7WX",
+      "recovery": false,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 30,
+      "local_signature": "3GmTMvsd8tNdA52ihpmZDqeQgiY5Eog2CnfiSmvKTRyC2nCMRfemZ1ZxEcRz1VeMMXX4fNMg64u1V74K8EVqogEd",
+      "recovery": false,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 300,
+      "local_signature": "5SCY9ZNkvANgc6WGTnRdZikf3FgyqE64j6fC9K4sjSu6qi75Gpj6apPMe35C2arEArqGvkNseF99CuEqw6CTz1LF",
+      "recovery": false,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": false,
+      "delay_seconds": 301,
+      "local_signature": "5vnwFKaHv8P2zUVmjxr3DMkrnnwSxeHuPqu3eUHe2vcCGmUnzUTWxbX8KZuAbExVXP3y5gJ8cEg9ehA6nMBMnNY6",
+      "recovery": false,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 0,
+      "local_signature": "5uwCm5CYfms7pYj6MCjSBQpg8ddSQiZSp5mh9jB6U7casqhXPcAEKDnkjDYYXtKTco9rvqExWZyDqFwV56Fi4z5N",
+      "recovery": true,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 1,
+      "local_signature": "3yN2RLpB7ErM1xCop1YiSE22QvEgSXrbyPkzmYTLHLbgm43ECiQx1hzegK8JX1sEkpZdMy2VG6pxc66a3ZKyqGjo",
+      "recovery": true,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 30,
+      "local_signature": "22txzazdszR4wPcxSK8dvJaXjpDN4kCc9qqgB4RY5sTfkYMXHeGYHwogNQLoa7ggiASPJ3kbmadDbgr5fouBGMFJ",
+      "recovery": true,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": true,
+      "delay_seconds": 300,
+      "local_signature": "5oqvn7ZtHV5jbbbqxk49LRRfs7mxiAEoUEwsMyQvTtdh4TGqP71658VEYWzAGEgzsuQA3qZ7Z6WmpK7LMMFtef5K",
+      "recovery": true,
+      "role": 1,
+      "same_valid_blockhash": true
+    },
+    {
+      "accepted": false,
+      "delay_seconds": 301,
+      "local_signature": "mjnFkC4D3ykFiojCVgcGdmWp5UBkVyrSUPxuUJ8xsqJhhXFKzF1sHNoT8AJv7zzwtf3dkhg66VwfofLxjENkRRH",
+      "recovery": true,
+      "role": 1,
+      "same_valid_blockhash": true
+    }
+  ],
+  "clock_controlled": true,
+  "fee_airdrops": true,
+  "financial_transfers_tested": false,
+  "private_keys_serialized": false,
+  "probe": "signed_delay",
+  "program_and_mint_injected": true,
+  "program_id": "FixSiDfTxvoy5Zgjp5KdFU8U23ChwCxPWY3WTkmMW2fU",
+  "public_chain_transactions": 0,
+  "schema": "K4V-E10-V6-SUBMISSION-PROBE-v1",
+  "scope": "SIGNED_LOCAL_LITESVM_ON_V6_TEST_SBF"
+}

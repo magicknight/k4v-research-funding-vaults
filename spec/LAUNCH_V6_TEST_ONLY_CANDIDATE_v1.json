@@ -1,0 +1,215 @@
+{
+  "schema": "K4V-E10-V6-TEST-ONLY-CANDIDATE-v1",
+  "date": "2026-09-10",
+  "status": "LOCAL_IMPLEMENTATION_AND_REPRODUCTION_PASS",
+  "base_commit": "3451444ada83f5865b451e677191b04a419894aa",
+  "program_id": "FixSiDfTxvoy5Zgjp5KdFU8U23ChwCxPWY3WTkmMW2fU",
+  "local_fixture_seed_byte": 88,
+  "production_key": false,
+  "default_policy_admission": false,
+  "test_profile_required": true,
+  "workspace": "candidates/launch-vault-v6",
+  "identity_domain": "k4v-launch-policy-v6-test-profile-1",
+  "semantics": {
+    "max_submission_window_seconds": 300,
+    "notice_seconds": 7776000,
+    "execution_window_seconds": 2592000,
+    "admission_bounds": "INCLUSIVE",
+    "notice_start": "ACTUAL_RUNTIME_CLOCK",
+    "execution_end": "EXCLUSIVE",
+    "expiry_cleanup": "INCLUSIVE",
+    "signed_explicit_predecessor": true,
+    "pre_admission_revocation": false
+  },
+  "abi": {
+    "instruction_bytes": 74,
+    "proposal_bytes": 172,
+    "policy_bytes": 1065,
+    "config_bytes": 492,
+    "vault_bytes": 138,
+    "approval_bytes": 177,
+    "key_index_bytes": 76,
+    "generic_change_bytes": 116,
+    "proposal_time_offsets": {
+      "valid_from": 122,
+      "valid_until": 130,
+      "created_at": 138,
+      "execute_after": 146,
+      "expires_at": 154
+    }
+  },
+  "toolchain": {
+    "solana_cli": "3.1.10",
+    "sbf_tools": "v1.52",
+    "no_dna": "1",
+    "anchor_lang": "1.1.2",
+    "anchor_spl": "1.1.2",
+    "locked": true
+  },
+  "sbf_artifacts": [
+    {
+      "path": "target/v6-disabled/launch_vault_v6.so",
+      "sha256": "40b36c9cb26b77d6235ef8f460fff1d629ec4f4644c6fb94284d2be84c09f215",
+      "bytes": 510912
+    },
+    {
+      "path": "target/v6-test/launch_vault_v6.so",
+      "sha256": "36e5b4f8916d7c4844e625f8665dd91b8057c43e88699168d0cb2936cd02c171",
+      "bytes": 529584
+    }
+  ],
+  "source_bindings": {
+    ".github/workflows/launch-v6.yml": {
+      "sha256": "737f29aa4fe6d0f25d25ec0ab5a51a6906114c63972c26b20e77951c8acf67fe",
+      "bytes": 752
+    },
+    "candidates/launch-vault-v6/Cargo.lock": {
+      "sha256": "233d7382a5bec2003eed3ebb24a2366dff079f85389f03e92b0abc0b8fbd6587",
+      "bytes": 111732
+    },
+    "candidates/launch-vault-v6/Cargo.toml": {
+      "sha256": "9bf2a64a4f94ef312692e14b121167318c931909b03f0b38dd263c6e1bd9fbc7",
+      "bytes": 1449
+    },
+    "candidates/launch-vault-v6/src/capacity.rs": {
+      "sha256": "9a1b532cdb4937075c2a90305c5ace1ea504e8bb9721a0aa35c23dddd1c0b116",
+      "bytes": 7460
+    },
+    "candidates/launch-vault-v6/src/contexts.rs": {
+      "sha256": "cea2b50f406b2e76398178349b9e13dc777bc9a46ebaf16ed093ad8e009dd313",
+      "bytes": 11109
+    },
+    "candidates/launch-vault-v6/src/governance.rs": {
+      "sha256": "006dd5c7eb41a173a1de91f1e46794b961591a66abe262d515a67e0005417ac1",
+      "bytes": 4362
+    },
+    "candidates/launch-vault-v6/src/lib.rs": {
+      "sha256": "e458d4ca7475fcd1d3a7bdcaf34d8718e345fa0323ea283ab94a2b8f985b117b",
+      "bytes": 18646
+    },
+    "candidates/launch-vault-v6/src/state.rs": {
+      "sha256": "2536d2becb2216e5099eca495cec0ee545bb4f1b016b3fa1b9f39f40f71faf51",
+      "bytes": 10268
+    },
+    "candidates/launch-vault-v6/src/withdrawal.rs": {
+      "sha256": "37a42b6c80ba9b7bd61ed9682778108f38dcf0e6d4e02be3e60a46da4064b449",
+      "bytes": 6769
+    },
+    "candidates/launch-vault-v6/tests/abi.rs": {
+      "sha256": "635ac1554f07e2c83c46e8b79b6a17d54f7f0cabc59ae2bd45f8598bbee13ff1",
+      "bytes": 6794
+    },
+    "candidates/launch-vault-v6/tests/launch_litesvm.rs": {
+      "sha256": "0a712018ab2abf9aa28b4c38529c6081da03eb95be71aa920350cf7e197c35c1",
+      "bytes": 62311
+    },
+    "candidates/launch-vault-v6/tests/submission_window.rs": {
+      "sha256": "0a7f4f68bee1d90c3d6af409fa36fb2d8ecfe1e9ebf2106c9aac32f39b132d1b",
+      "bytes": 17629
+    },
+    "candidates/launch-vault-v6/tests/support/e10.rs": {
+      "sha256": "02d3f8546a808a074a38f015a8d1a26c5749e325b398eb59b6b00c6e5f887072",
+      "bytes": 16351
+    },
+    "candidates/launch-vault-v6/tests/support/withdrawal_tests.rs": {
+      "sha256": "7ab2326f5d720a376df5ebdcc46900eabe61ef2263100bc7de2dc6957d695728",
+      "bytes": 14196
+    },
+    "docs/E10_V6_BOUNDED_SUBMISSION.md": {
+      "sha256": "e4670c96e282d1c144352ed66aadd377f063c0f33b1bfa95b4be00526cea4325",
+      "bytes": 7198
+    },
+    "examples/e10_rehearsal_bundle.json": {
+      "sha256": "084a2b910afc139f835148141ea3424e36d425a305681dd01f240328689072eb",
+      "bytes": 282825
+    },
+    "idl/launch_vault_v6.json": {
+      "sha256": "a7180d7baff8d13a45994c274aa515c16e6bdce6c8c44844b123aef54f7ac195",
+      "bytes": 30123
+    },
+    "probes/launch_v6_identity.mjs": {
+      "sha256": "e6c65ea00e4f4ce6f1b912f95cf0fcbfd6496bcbf2900ea9b5b7d5f5eb636836",
+      "bytes": 3324
+    },
+    "probes/launch_v6_identity.test.mjs": {
+      "sha256": "ba0e79efa34c6494c71caceaf100e91c54f15583f944b396fa8029301a25c938",
+      "bytes": 3239
+    },
+    "spec/LAUNCH_V6_IDENTITY_VECTOR_v1.json": {
+      "sha256": "f5dc59b603c2cf3818d2915e0f3d314e4ad282190dcafdd452c1c55c18c70589",
+      "bytes": 3548
+    },
+    "src/e10_verifier.py": {
+      "sha256": "fe07e02dd4d8edd43a0b09dc2924f010deaf649990fdaecdd9964ce3438c014f",
+      "bytes": 6856
+    },
+    "src/launch_v6_rpc_exporter.py": {
+      "sha256": "0be192e03874fe6993b03ea47a050c489ae101d4c8374b94aa673e94379ef524",
+      "bytes": 13902
+    },
+    "src/launch_v6_verifier.py": {
+      "sha256": "4b2e141b14f903dd868927a6083cfa3acd2c332d541684b63c8f55235bd9188f",
+      "bytes": 28862
+    },
+    "tests/test_launch_v6_rpc_exporter.py": {
+      "sha256": "e5bb17615baea0a382dc7cd985ed43e71e2e4dd92463445f292b49eec0ed1e71",
+      "bytes": 20610
+    },
+    "tests/test_launch_v6_verifier.py": {
+      "sha256": "15cbb9f9c27456a58aeb92f73de13c9608a7f10e4336da02aa17797cd5a8f037",
+      "bytes": 10716
+    },
+    "tools/build_launch_v6_idl.py": {
+      "sha256": "4e789cb197dfa423032dcad42e2dc784b8fa83cb83b67650f770ebce11d56d78",
+      "bytes": 2615
+    },
+    "tools/e10_recorded_rpc.py": {
+      "sha256": "fb68c54e3f377144a987e8c3a42cbe076e4255bc8108bf096d3566a4e7f3c892",
+      "bytes": 5467
+    },
+    "tools/pack_e10_rehearsal.py": {
+      "sha256": "5d8c9bdd1b138f8f470b7ef2dfa7819535416b9ca288b3f8945e2c9952becd9a",
+      "bytes": 1024
+    },
+    "tools/run_e10_local_reproduction.sh": {
+      "sha256": "ae62f51eb47ed34e4e4a5484e031c8aaced5b55f47733d8475187fe777fae899",
+      "bytes": 2340
+    },
+    "tools/verify_e10_artifacts.py": {
+      "sha256": "731645c49b48e11a8bab0953126b53a27e730d68d6dde59c13e94a85b26f8871",
+      "bytes": 1216
+    },
+    "tools/verify_e10_probes.py": {
+      "sha256": "300d4bb51c4e50f327c9aa7499fee751e909c973efaebbc80671769a3731ed49",
+      "bytes": 2821
+    }
+  },
+  "verification": {
+    "rust_tests": 63,
+    "rust_submission_tests": 5,
+    "rust_lifecycle_tests": 53,
+    "rust_abi_tests": 3,
+    "rust_library_tests": 2,
+    "javascript_identity_tests": 4,
+    "python_raw_and_rpc_tests": 47,
+    "probe_transactions": 142,
+    "probe_accepted": 44,
+    "probe_expected_refusals": 98,
+    "native_loader_transactions": 641,
+    "native_loader_accepted": 630,
+    "native_loader_expected_refusals": 11,
+    "raw_checkpoints": 11,
+    "loopback_requests": 55,
+    "native_recovery_delays_seconds": [
+      30,
+      30
+    ]
+  },
+  "preservation": "E07_E08_E09_FROZEN_INPUTS_AND_ROOT_LOCK_UNCHANGED",
+  "financial_kernel_changed": false,
+  "public_chain_transactions": 0,
+  "outreach_messages_sent": 0,
+  "independent_human_audit": false,
+  "production_rights_adopted": false,
+  "next": "E11_LOCAL_VALIDATOR_CLIENT_SUBMIT_CONFIRM_AND_ACTUAL_RPC_OBSERVATION"
+}

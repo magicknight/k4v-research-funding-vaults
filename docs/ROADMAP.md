@@ -6,6 +6,15 @@ only a disclosed possible case study.
 
 ## Frontier state
 
+E-10 implements the [v6 bounded-submission candidate](E10_V6_BOUNDED_SUBMISSION.md)
+in a separate Cargo workspace, program identity and account namespace. Delayed
+signed proposals start full notice at actual admission; partial release,
+delayed recovery, further release and year-two accounting pass on new SBF.
+63 Rust / 47 Python / 4 JavaScript checks and 11 loopback HTTP checkpoints pass.
+E-11 is next: a client plus local-validator submission/confirmation and actual
+RPC observation, including expired-message handling. Human review and production
+authorities remain open. Founder-requested demand feedback is paused/unverified.
+
 E-07 now has an [isolated v5 withdrawal-recovery SBF candidate](LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md):
 58 scoped Rust checks, 15 new Python checks and 11 independently decoded signed
 local-rehearsal checkpoints. Stable identity, custody, consumed budgets and
@@ -15,8 +24,8 @@ now provides complete-history read-only v5 export with one final account respons
 handoff. [E-09](E09_SUBMISSION_TIME_DESIGN.md) now reproduces the exact-clock
 failure on unchanged v5 SBF and freezes a bounded admission-window model: three
 signed-SBF counterexample tests and 21 timing/authority model tests pass.
-E-10 next implements these semantics in an isolated candidate and repeats
-delayed recovery, financial continuity and independent raw-account verification.
+The E-10 implementation above preserves all these frozen v5 inputs and adds
+delayed recovery, financial continuity and independent v6 raw-account verification.
 Production rights, actual public-v5 observation and v4 migration remain open.
 
 E-06 remains the frozen [authority design/model](E06_WITHDRAWAL_KEY_RECOVERY_DESIGN.md)
