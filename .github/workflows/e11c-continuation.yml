@@ -1,0 +1,107 @@
+name: E11C actual validator continuation
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: e11c-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  mature-state-continuation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+      - run: npm ci --ignore-scripts
+      - name: Install pinned validator
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Check frozen source and recover exact accepted SBF bytes
+        run: |
+          set -euo pipefail
+          mkdir -p target/e11c
+          python3 -m py_compile tools/e11c_prepare_fixture.py tools/verify_e11c_continuation.py
+          node --check tools/e11c_agave_continuation.mjs
+          sha256sum -c SHA256SUMS
+          sha256sum -c E11B_SHA256SUMS
+          python3 tools/e11c_prepare_fixture.py --extract-program
+      - name: Mature dual-recovery actual-validator continuation
+        run: |
+          python3 tools/e11c_prepare_fixture.py --phase recovery
+          node tools/e11c_agave_continuation.mjs recovery
+      - name: Expiry and year-two actual-validator continuation
+        run: |
+          python3 tools/e11c_prepare_fixture.py --phase expiry
+          node tools/e11c_agave_continuation.mjs expiry
+      - name: Recheck unchanged source and aggregate exact scope
+        run: |
+          set -euo pipefail
+          sha256sum -c SHA256SUMS
+          sha256sum -c E11B_SHA256SUMS
+          git diff --exit-code
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          root=Path('target/e11c')
+          receipts=[json.loads((root/p/'receipt.json').read_text()) for p in ('recovery','expiry')]
+          assert all(r['valid'] and r['application_state_preloaded'] and not r['natural_90_180_day_soak'] for r in receipts)
+          result={'schema':'K4V-E11C-ACCEPTANCE-v1','valid':True,'tested_commit':os.environ['GITHUB_SHA'],
+            'scope':'TWO_SEPARATE_PRELOADED_STATE_ACTUAL_AGAVE_CONTINUATIONS',
+            'finalized_client_transactions':sum(r['finalized_client_transactions'] for r in receipts),
+            'raw_checkpoints':sum(len(r['raw_checkpoints']) for r in receipts),
+            'application_state_preloaded':True,'actual_validator_clock_override':False,
+            'natural_90_180_day_soak':False,'production_ready':False,'independent_human_review':False,
+            'phase_receipts_sha256':{p:hashlib.sha256((root/p/'receipt.json').read_bytes()).hexdigest() for p in ('recovery','expiry')}}
+          (root/'acceptance.json').write_text(json.dumps(result,indent=2)+'\n')
+          print(json.dumps(result))
+          PY
+      - name: Archive source and evidence
+        if: always()
+        run: |
+          mkdir -p target/e11c
+          git rev-parse HEAD > target/e11c/checked-out-commit.txt
+          git rev-parse HEAD^{tree} > target/e11c/checked-out-tree.txt
+          git archive --format=tar.gz -o target/e11c/checked-out-source.tar.gz HEAD
+          tar -czf target/e11c-evidence.tar.gz target/e11c
+      - name: Store evidence as an unreferenced Git blob for reviewed publication
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/codex/e11c-validator-continuation'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64,hashlib,json,os,urllib.request
+          from pathlib import Path
+          repo=os.environ['GITHUB_REPOSITORY']
+          assert repo=='magicknight/k4v-research-funding-vaults'
+          path=Path('target/e11c-evidence.tar.gz');raw=path.read_bytes()
+          assert len(raw)<90_000_000
+          body=json.dumps({'content':base64.b64encode(raw).decode(),'encoding':'base64'}).encode()
+          request=urllib.request.Request('https://api.github.com/repos/'+repo+'/git/blobs',data=body,
+            headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},method='POST')
+          with urllib.request.urlopen(request,timeout=120) as response: result=json.load(response)
+          record={'git_blob_sha':result['sha'],'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),
+            'tested_commit':os.environ['GITHUB_SHA'],'branch_modified':False,'publication_status':'UNREFERENCED_BLOB_REQUIRES_REVIEWED_TREE_COMMIT'}
+          Path('target/e11c/evidence-blob.json').write_text(json.dumps(record,indent=2)+'\n')
+          print(json.dumps(record))
+          PY
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: e11c-${{ github.sha }}
+          path: |
+            target/e11c/
+            target/e11c-evidence.tar.gz
+          if-no-files-found: error
+          retention-days: 30
