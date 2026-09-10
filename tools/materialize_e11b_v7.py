@@ -29,6 +29,7 @@ INPUTS = {
     'tests/launch_litesvm.rs': '00e441a282e93d9fcdf49eb7ddd5cff028ff4fd6',
     'tests/submission_window.rs': '30ff95696e9494700bf56f157a64833ea11d5e98',
     'tests/support/e10.rs': '1b86bacb47ca08778d145b889f5ee21e3de0c4b9',
+    'tests/support/withdrawal_tests.rs': '49c4e0cb4c73d7261a9cc773e850efe41fe0a54b',
 }
 
 def blob_sha(data: bytes) -> str:
@@ -168,6 +169,27 @@ fn identity_prevents_foreign_creator_and_changed_t0_squatting() {
 }
 
 '''
+PROBE_OPEN = '''        let preparation = Pubkey::find_program_address(
+            &[b"launch-v7-preparation", &identity], &ID).0;
+        let preparing = ix(
+            accounts::PreparePolicy {
+                creator: keys[0].pubkey(), founder: keys[1].pubkey(),
+                treasury: keys[2].pubkey(), oracle: keys[3].pubkey(), mint,
+                preparation, system_program: solana_system_interface::program::ID,
+            },
+            instruction::PreparePolicy { config, spec_hash: [42; 32], identity },
+        );
+        let opening = ix(
+            accounts::OpenPreparedPolicy {
+                creator: keys[0].pubkey(), founder: keys[1].pubkey(),
+                treasury: keys[2].pubkey(), oracle: keys[3].pubkey(),
+                recovery_one: keys[4].pubkey(), recovery_two: keys[5].pubkey(),
+                recovery_three: keys[6].pubkey(), mint, preparation, policy,
+                system_program: solana_system_interface::program::ID,
+            },
+            instruction::OpenPreparedPolicy {},
+        );
+'''
 
 def materialize() -> None:
     if NEW.exists():
@@ -207,8 +229,6 @@ def materialize() -> None:
     opened_context = opened_context.replace('OpenPolicy', 'OpenPreparedPolicy')
     opened_context = once(opened_context, '    #[account(init, payer = creator, space = 8 + LaunchPolicyV7::INIT_SPACE,',
         PREPARATION_FIELD + '    #[account(init, payer = creator, space = 8 + LaunchPolicyV7::INIT_SPACE,')
-    opened_context = opened_context.replace('identity.as_ref()', 'preparation.identity.as_ref()', 1) if False else opened_context
-    # Only policy's old instruction-argument seed changes; preparation retains its own seed.
     opened_context = once(opened_context,
         'seeds = [b"launch-v7-policy", identity.as_ref()]',
         'seeds = [b"launch-v7-policy", preparation.identity.as_ref()]')
@@ -231,12 +251,22 @@ def materialize() -> None:
     a = tests.index('#[test]\nfn identity_prevents_foreign_creator_and_changed_t0_squatting()')
     b = tests.index('#[test]', a + 8)
     tests = tests[:a] + IDENTITY_TEST + tests[b:]
+    tests = once(tests, '    f.config.recovery_keys.swap(0, 1);',
+        '    f.config.recovery_keys.swap(0, 1);\n    f.rebind(); // New immutable preparation; old actor order cannot consent to it.')
     extra = ROOT / 'tests/e11b_bootstrap_cases.rs'
-    if extra.exists():
-        tests += '\n' + extra.read_text()
+    if not extra.is_file() or not extra.stat().st_size:
+        raise ValueError('MISSING_BOOTSTRAP_TESTS')
+    tests += '\n' + extra.read_text()
     sources['tests/launch_litesvm.rs'] = tests
     sources['tests/support/e10.rs'] = sources['tests/support/e10.rs'].replace('[88; 32]', '[89; 32]')
-    # Original ABI/vector tests stay frozen in v6. V7 gets its own compiler ABI/vector work.
+
+    probe = sources['tests/submission_window.rs']
+    a = probe.index('        let opening = ix(')
+    b = probe.index('        let mut p = Self {', a)
+    probe = probe[:a] + PROBE_OPEN + probe[b:]
+    probe = once(probe, '        p.time(NOW);\n        let tx = p.sign(opening);',
+        '        p.time(NOW);\n        let tx = p.sign(preparing);\n        p.svm.send_transaction(tx).unwrap();\n        let tx = p.sign(opening);')
+    sources['tests/submission_window.rs'] = probe
     for path, text in sources.items():
         dst = NEW / path
         dst.parent.mkdir(parents=True, exist_ok=True)
