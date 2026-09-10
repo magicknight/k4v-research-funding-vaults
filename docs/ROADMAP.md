@@ -6,14 +6,26 @@ only a disclosed possible case study.
 
 ## Frontier state
 
-E-10 implements the [v6 bounded-submission candidate](E10_V6_BOUNDED_SUBMISSION.md)
-in a separate Cargo workspace, program identity and account namespace. Delayed
-signed proposals start full notice at actual admission; partial release,
-delayed recovery, further release and year-two accounting pass on new SBF.
-63 Rust / 47 Python / 4 JavaScript checks and 11 loopback HTTP checkpoints pass.
-E-11 is next: a client plus local-validator submission/confirmation and actual
-RPC observation, including expired-message handling. Human review and production
-authorities remain open. Founder-requested demand feedback is paused/unverified.
+[E-11A](E11_LOCAL_VALIDATOR_CLIENT.md) implements the local Agave client, exact
+signed submission/finality reconciliation and actual RPC account export on the
+frozen E-10 v6 SBF. Acceptance requires the E11 workflow and all required checks
+to pass for the exact commit. Its real-node bootstrap uses the explicitly
+single-operator four-signature fixture. Program code is preloaded, then a signed
+native-loader transaction revokes its temporary upgrade authority before policy
+creation. Clock advances naturally; successful 90/180-day recovery/withdrawal
+execution is outside this tranche.
+
+The independent six-signature v6 bootstrap exceeds the actual wire limit.
+[E-11B](E11B_BOOTSTRAP_DESIGN.md) specifies immutable preparation plus compact
+consent and provides offline signed-wire tests, including a distinct fee payer
+and compute-budget instruction. It does not implement a new SBF. Next: an
+isolated default-disabled candidate, adversarial preparation/consent tests and
+actual independent-role client/RPC integration with the financial kernel.
+
+[E-10](E10_V6_BOUNDED_SUBMISSION.md) remains the accepted controlled-runtime
+financial/recovery baseline: 63 Rust / 47 Python / 4 JavaScript checks and eleven
+raw checkpoints. Human review, production authorities and public deployment
+remain open. Founder-requested demand feedback is paused/unverified.
 
 E-07 now has an [isolated v5 withdrawal-recovery SBF candidate](LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md):
 58 scoped Rust checks, 15 new Python checks and 11 independently decoded signed

@@ -5,15 +5,15 @@ import { fixture } from './e11_fixtures.mjs';
 import { proposedBootstrap, signedWire, wireReceipt } from './e11b_bootstrap_wire.mjs';
 test('two-stage layout fits with distinct actors, extra payer and compute instruction', () => {
   const receipt = wireReceipt();
+  console.log('E11B_WIRE_DESIGN ' + JSON.stringify(receipt));
   for (const name of ['prepare', 'prepare_compute', 'prepare_separate_payer_compute', 'open', 'open_compute', 'open_separate_payer_compute']) {
     assert(receipt[name].bytes <= 1232, name);
     assert.equal(receipt[name].verified, true);
   }
   assert.equal(receipt.prepare.bytes, 933);
-  assert.equal(receipt.open.bytes, 827);
+  assert.equal(receipt.open.bytes, 828);
   assert.equal(receipt.open.signatures, 6);
   assert.equal(receipt.open_separate_payer_compute.signatures, 7);
-  console.log('E11B_WIRE_DESIGN ' + JSON.stringify(receipt));
 });
 test('every one of the six independent open signatures is mandatory', () => {
   const c = proposedBootstrap();

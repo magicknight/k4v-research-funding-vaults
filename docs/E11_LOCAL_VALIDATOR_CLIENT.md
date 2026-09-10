@@ -1,6 +1,7 @@
 # E-11A: bounded local client and actual Agave RPC
 
-Status: implementation under validation. This tranche connects the frozen E-10
+Scope: local-validator implementation; acceptance is bound to its exact passing
+CI run. This tranche connects the frozen E-10
 v6 SBF to Solana CLI / Agave 3.1.10. It does not change the accepted ABI or the
 frozen E-10 bytes. CI must pass before this engineering tranche is accepted.
 
