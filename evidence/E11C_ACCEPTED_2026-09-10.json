@@ -1,0 +1,59 @@
+{
+  "schema": "K4V-E11C-ARCHIVED-ACCEPTANCE-v1",
+  "status": "ACTUAL_LOCAL_VALIDATOR_CONTINUATION_PASS_BOUNDED",
+  "tested_commit": "da817b36212d233fb8b6816002f4017ddbe8f6a1",
+  "tested_tree": "150fa995e2acc83cfc71326d6d4fe8cdd9575477",
+  "workflow_run": 34459155355,
+  "artifact_id": 10145002199,
+  "artifact_zip_sha256": "8612b6d4d1bcb14233b22d9454d5d5d10ad1f03c347f4343e58bdb33c4152530",
+  "archive": {
+    "path": "evidence/E11C_ACCEPTED_2026-09-10.tar.gz",
+    "git_blob_sha": "8425fc1490770a345bcd6a6464a2f98330fefc34",
+    "sha256": "44785a4aa0797a28c99f29e6435e05790988a9407318d76e009308dcfad839a1",
+    "bytes": 7836972
+  },
+  "canonical_v7_program_sha256": "df1011597eeda9e2013d648d3f3be8e840a4bcab8a0e3143e2a9c161cd0f3b67",
+  "finalized_client_transactions": 11,
+  "raw_checkpoints": 8,
+  "scenarios": {
+    "recovery": {
+      "finalized_client_transactions": 6,
+      "raw_checkpoints": 4
+    },
+    "expiry": {
+      "finalized_client_transactions": 5,
+      "raw_checkpoints": 4,
+      "year_two_checked": true
+    }
+  },
+  "phase_receipts_sha256": {
+    "recovery": "606c428e500d6b108e3c9874d60c6d7280044a81f2f728c72ecaa2b40bdced67",
+    "expiry": "f57b6965148d9826916176c73a6b99e3b604220d510cabfe58d652c27916feac"
+  },
+  "scope": {
+    "application_state_preloaded": true,
+    "fixture_clock_controlled": true,
+    "actual_validator_clock_override": false,
+    "natural_90_180_day_soak": false,
+    "continuous_bootstrap_to_maturity_history": false,
+    "public_chain_transactions": 0,
+    "independent_human_review": false,
+    "production_ready": false
+  },
+  "accepted_runtime_sources_sha256": {
+    "tools/e11c_prepare_fixture.py": "932288e84b18a676157edf18dba2c3eaaed35586ce8f0f62ad1532dcdd204f44",
+    "tools/e11c_agave_continuation.mjs": "4af57370b2bd019210ceb4ff31078c54ae041b44844e6c19314738b6009a4ae8",
+    "tools/verify_e11c_continuation.py": "44df51bca3b9d303283b2498a868f3b8b2c9b040690d558b5f6db4410fd770e7"
+  },
+  "second_decoder_replay": {
+    "recovery": "PASS",
+    "expiry": "PASS",
+    "input": "downloaded push artifact"
+  },
+  "remaining": [
+    "natural long-duration continuous-history evidence",
+    "human-accountable security review",
+    "production annual inputs, rates, rights and actors",
+    "public deployment and funding gates"
+  ]
+}
