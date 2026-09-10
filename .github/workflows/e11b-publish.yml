@@ -1,0 +1,61 @@
+name: E11B publish accepted source once
+on:
+  push:
+    branches: [codex/e11b-compact-bootstrap]
+    paths:
+      - '.github/workflows/e11b-publish.yml'
+      - 'tools/e11b_publish_snapshot.py'
+permissions:
+  contents: read
+concurrency:
+  group: e11b-source-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'magicknight/k4v-research-funding-vaults' && github.ref == 'refs/heads/codex/e11b-compact-bootstrap'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Bind the exact successful acceptance run and immutable artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const {owner, repo} = context.repo;
+            const {data: run} = await github.rest.actions.getWorkflowRun({owner, repo, run_id: 34450900533});
+            if (run.status !== 'completed' || run.conclusion !== 'success' ||
+                run.head_sha !== 'bd7e34333ef422d73facdaf24f5363f63c575194' ||
+                run.path !== '.github/workflows/e11b-engineering.yml' ||
+                run.head_repository.full_name !== 'magicknight/k4v-research-funding-vaults') {
+              throw new Error('UNACCEPTED_SOURCE_RUN');
+            }
+            const {data: artifact} = await github.rest.actions.getArtifact({owner, repo, artifact_id: 10141922678});
+            if (artifact.expired || artifact.workflow_run.id !== run.id ||
+                artifact.name !== 'e11b-acceptance-6c251a3929e24abdae2d6df5322a3a7dddda40f3' ||
+                artifact.digest !== 'sha256:4c8fdbf7ef6e4c8c412cc67606665c58e7aab0e55f744239e862ed0818e6ee7c') {
+              throw new Error('ARTIFACT_BINDING');
+            }
+            fs.mkdirSync('/tmp/e11b-publication', {recursive: true});
+            fs.writeFileSync('/tmp/e11b-publication/verified-run.json', JSON.stringify({
+              run_id: run.id, head_sha: run.head_sha, conclusion: run.conclusion,
+              artifact_id: artifact.id, artifact_name: artifact.name, artifact_digest: artifact.digest,
+              url: run.html_url
+            }, null, 2));
+      - uses: actions/download-artifact@v5
+        with:
+          name: e11b-acceptance-6c251a3929e24abdae2d6df5322a3a7dddda40f3
+          run-id: 34450900533
+          github-token: ${{ github.token }}
+          path: /tmp/e11b-publication
+      - name: Import verified source and receipts into this branch without overwriting existing files
+        run: python3 tools/e11b_publish_snapshot.py /tmp/e11b-publication
