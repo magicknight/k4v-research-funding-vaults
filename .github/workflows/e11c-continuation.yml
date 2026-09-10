@@ -11,8 +11,6 @@ jobs:
   mature-state-continuation:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -36,6 +34,8 @@ jobs:
           node --check tools/e11c_agave_continuation.mjs
           sha256sum -c SHA256SUMS
           sha256sum -c E11B_SHA256SUMS
+          sha256sum -c E11C_SHA256SUMS
+          python3 tools/verify_e11c_archive.py
           python3 tools/e11c_prepare_fixture.py --extract-program
       - name: Mature dual-recovery actual-validator continuation
         run: |
@@ -75,27 +75,6 @@ jobs:
           git rev-parse HEAD^{tree} > target/e11c/checked-out-tree.txt
           git archive --format=tar.gz -o target/e11c/checked-out-source.tar.gz HEAD
           tar -czf target/e11c-evidence.tar.gz target/e11c
-      - name: Store evidence as an unreferenced Git blob for reviewed publication
-        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/codex/e11c-validator-continuation'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python3 - <<'PY'
-          import base64,hashlib,json,os,urllib.request
-          from pathlib import Path
-          repo=os.environ['GITHUB_REPOSITORY']
-          assert repo=='magicknight/k4v-research-funding-vaults'
-          path=Path('target/e11c-evidence.tar.gz');raw=path.read_bytes()
-          assert len(raw)<90_000_000
-          body=json.dumps({'content':base64.b64encode(raw).decode(),'encoding':'base64'}).encode()
-          request=urllib.request.Request('https://api.github.com/repos/'+repo+'/git/blobs',data=body,
-            headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},method='POST')
-          with urllib.request.urlopen(request,timeout=120) as response: result=json.load(response)
-          record={'git_blob_sha':result['sha'],'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),
-            'tested_commit':os.environ['GITHUB_SHA'],'branch_modified':False,'publication_status':'UNREFERENCED_BLOB_REQUIRES_REVIEWED_TREE_COMMIT'}
-          Path('target/e11c/evidence-blob.json').write_text(json.dumps(record,indent=2)+'\n')
-          print(json.dumps(record))
-          PY
       - uses: actions/upload-artifact@v6
         if: always()
         with:
