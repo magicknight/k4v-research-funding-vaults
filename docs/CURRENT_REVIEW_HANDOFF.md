@@ -2,6 +2,10 @@
 
 Status: material ready for review; **no named independent human review accepted**.
 
+Start with the [offline evidence walkthrough](EVIDENCE_DEMO.md) for a wallet-free,
+network-free introduction to the archived initialization and continuation results.
+It is a presentation of rechecked historical bytes, not a fresh execution or review.
+
 Review the exact commit supplied with the handoff and record its Git tree. The
 canonical TEST_ONLY v7 program remains 553,624 bytes with SHA-256
 `df1011597eeda9e2013d648d3f3be8e840a4bcab8a0e3143e2a9c161cd0f3b67`.
