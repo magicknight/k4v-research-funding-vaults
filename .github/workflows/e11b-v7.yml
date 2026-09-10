@@ -4,10 +4,17 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: e11b-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   v7-sbf-and-regressions:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      CARGO_TARGET_DIR: /tmp/k4v-e11b-native-target
+      K4V_E10_REHEARSAL_OUT: ${{ github.workspace }}/target/e11b/financial-raw.json
+      K4V_E10_PROBE_OUT_DIR: ${{ github.workspace }}/target/e11b/probes
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -16,11 +23,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '20'
+      - run: npm ci --ignore-scripts
       - name: Verify frozen sources and materialize new namespace
         run: |
           set -euo pipefail
           test -s tests/e11b_bootstrap_cases.rs
-          python3 -m py_compile tools/materialize_e11b_v7.py
+          python3 -m py_compile tools/materialize_e11b_v7.py tools/materialize_e11b_clients.py src/e11b_bootstrap_verifier.py
           python3 tools/verify_e10_artifacts.py --sources-only
           python3 tools/materialize_e11b_v7.py
       - name: Install pinned Solana toolchain
@@ -30,8 +38,8 @@ jobs:
       - name: Compile default-disabled and test-only v7
         run: |
           set -euo pipefail
-          NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path candidates/launch-vault-v7/Cargo.toml --sbf-out-dir target/v7-disabled -- --locked 2>&1 | tee target/e11b/build-disabled.log
-          NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path candidates/launch-vault-v7/Cargo.toml --sbf-out-dir target/v7-test -- --locked --features test-profile 2>&1 | tee target/e11b/build-test.log
+          CARGO_TARGET_DIR=/tmp/k4v-e11b-sbf-target NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path candidates/launch-vault-v7/Cargo.toml --sbf-out-dir target/v7-disabled -- --locked 2>&1 | tee target/e11b/build-disabled.log
+          CARGO_TARGET_DIR=/tmp/k4v-e11b-sbf-target NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path candidates/launch-vault-v7/Cargo.toml --sbf-out-dir target/v7-test -- --locked --features test-profile 2>&1 | tee target/e11b/build-test.log
           python3 - <<'PY'
           import hashlib,json
           from pathlib import Path
@@ -47,17 +55,29 @@ jobs:
           Path('target/e11b/builds.json').write_text(json.dumps(result,indent=2)+'\n')
           print('V7_BUILD_RESULT '+json.dumps(result))
           PY
+      - name: Compiler-generated ABI, all-instruction wire budgets and identity vector
+        run: |
+          set -euo pipefail
+          python3 tools/materialize_e11b_clients.py
+          node tools/e11b_runtime_checks.mjs
       - name: Signed SBF bootstrap and inherited financial/recovery tests
         run: |
           set -euo pipefail
           cargo test --manifest-path candidates/launch-vault-v7/Cargo.toml --locked --features test-profile -- --nocapture 2>&1 | tee target/e11b/rust-tests.log
           python3 tools/verify_e10_artifacts.py --sources-only
-          sha256sum -c SHA256SUMS
+      - name: Actual six-role local Agave bootstrap and raw-account verification
+        run: node tools/e11b_agave_rehearsal.mjs
+      - name: Preserve historical checksum bindings
+        run: sha256sum -c SHA256SUMS
       - name: Preserve materialized source for review
         if: always()
         run: |
           mkdir -p target/e11b
-          tar --exclude=target --exclude='*.so' --exclude='*-keypair.json' -czf target/e11b/generated-v7-source.tar.gz candidates/launch-vault-v7 || true
+          if test -d candidates/launch-vault-v7; then
+            tar --exclude=target --exclude='*.so' --exclude='*-keypair.json' -czf target/e11b/generated-v7-source.tar.gz candidates/launch-vault-v7
+          fi
+          if test -f idl/launch_vault_v7.json; then cp idl/launch_vault_v7.json target/e11b/; fi
+          if test -f spec/LAUNCH_V7_IDENTITY_VECTOR_v1.json; then cp spec/LAUNCH_V7_IDENTITY_VECTOR_v1.json target/e11b/; fi
       - uses: actions/upload-artifact@v6
         if: always()
         with:
