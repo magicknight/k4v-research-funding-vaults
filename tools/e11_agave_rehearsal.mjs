@@ -11,6 +11,8 @@ import { TOKEN_PROGRAM_ID, MINT_SIZE, ACCOUNT_SIZE, AuthorityType, createInitial
 import { LocalRpc, PROGRAM, SYSTEM, pda, integer, hash, sleep, readClock, readBoundPolicy,
   signInstructions, inspectEnvelope, submitSigned, prepareWithdrawal } from '../clients/launch_v6_local_client.mjs';
 import { fixture, instruction, openInstruction, wireSizes, UNIT, SUPPLY } from './e11_fixtures.mjs';
+import { trackLocalChild, stopLocalChild } from './e11_process.mjs';
+import { finished } from 'node:stream/promises';
 
 const out = resolve('target/e11');
 mkdirSync(out, { recursive: true });
@@ -20,16 +22,16 @@ const validator = spawn('solana-test-validator', ['--reset', '--quiet', '--ledge
   '--rpc-port', '19599', '--faucet-port', '19699', '--bind-address', '127.0.0.1',
   '--dynamic-port-range', '19700-19800', '--upgradeable-program', PROGRAM.toBase58(),
   resolve('target/v6-test/launch_vault_v6.so'), 'none'], { stdio: ['ignore', 'pipe', 'pipe'] });
-validator.stdout.pipe(log); validator.stderr.pipe(log);
-let spawnError;
-validator.on('error', e => { spawnError = e; });
+const trackedValidator = trackLocalChild(validator);
+validator.stdout.pipe(log, { end: false }); validator.stderr.pipe(log, { end: false });
 const rpc = new LocalRpc('http://127.0.0.1:19599');
 const receipts = [], observations = [], refusal = [];
 const save = (name, value) => writeFileSync(join(out, name + '.json'), JSON.stringify(value, (_, v) => typeof v === 'bigint' ? v.toString() : v, 2) + '\n');
 async function until(check, timeout, label) {
   const start = Date.now(); let last = 0;
   while (Date.now() - start < timeout) {
-    if (spawnError || validator.exitCode !== null) throw spawnError ?? new Error('VALIDATOR_EXITED');
+    if (trackedValidator.error || validator.exitCode !== null || validator.signalCode !== null)
+      throw trackedValidator.error ?? new Error('VALIDATOR_EXITED');
     if (await check()) return;
     if (Date.now() - last >= 10000) { console.log('WAIT ' + label); last = Date.now(); }
     await sleep(500);
@@ -217,12 +219,16 @@ try {
     long_duration_recovery_execution_verified: false, production_ready: false, independent_human_audit: false };
   save('signed-transactions', receipts); save('receipt', receipt);
   console.log('E11_RESULT ' + JSON.stringify(receipt));
+} catch (error) {
+  save('failure', { message: error.message, stack: error.stack, finalized_transactions: receipts.length });
+  save('signed-transactions', receipts);
+  console.error('E11_FAILURE', error.stack ?? error);
+  throw error;
 } finally {
-  if (validator.exitCode === null && !spawnError) {
-    validator.kill('SIGTERM');
-    await Promise.race([new Promise(resolve => validator.once('exit', resolve)), sleep(10000)]);
-    if (validator.exitCode === null) { validator.kill('SIGKILL'); await new Promise(resolve => validator.once('exit', resolve)); }
+  try { await stopLocalChild(validator, trackedValidator); }
+  finally {
+    log.end();
+    await finished(log);
+    rmSync(ledger, { recursive: true, force: true });
   }
-  log.end();
-  rmSync(ledger, { recursive: true, force: true });
 }

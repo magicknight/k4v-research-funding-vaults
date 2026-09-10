@@ -19,7 +19,7 @@ jobs:
           python-version: "3.12"
       - run: npm ci --ignore-scripts
       - name: Client safety and transaction wire budgets
-        run: node --test clients/launch_v6_local_client.test.mjs
+        run: node --test clients/launch_v6_local_client.test.mjs tools/e11_process.test.mjs
       - name: Preserve frozen E10 inputs
         run: python3 tools/verify_e10_artifacts.py --sources-only
       - name: Install Solana CLI 3.1.10
