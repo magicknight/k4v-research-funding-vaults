@@ -6,26 +6,32 @@ only a disclosed possible case study.
 
 ## Frontier state
 
-[E-11A](E11_LOCAL_VALIDATOR_CLIENT.md) implements the local Agave client, exact
-signed submission/finality reconciliation and actual RPC account export on the
-frozen E-10 v6 SBF. Acceptance requires the E11 workflow and all required checks
-to pass for the exact commit. Its real-node bootstrap uses the explicitly
-single-operator four-signature fixture. Program code is preloaded, then a signed
-native-loader transaction revokes its temporary upgrade authority before policy
-creation. Clock advances naturally; successful 90/180-day recovery/withdrawal
-execution is outside this tranche.
+[E-11B](E11B_ENGINEERING_ACCEPTANCE.md) now implements the two-step bootstrap in
+an isolated v7 namespace. Both default-disabled and TEST_ONLY SBFs compile;
+missing/substituted signatures, forged preparation, T0, replay and prefunding
+are exercised. Compiled wire layouts fit the packet limit. Actual loopback
+Agave uses six distinct role keys plus a separate fee payer, executes signed
+prepare/open/deposit/arm/activate, and independently decodes the resulting
+accounts. This is one operator's key separation, not independent people.
 
-The independent six-signature v6 bootstrap exceeds the actual wire limit.
-[E-11B](E11B_BOOTSTRAP_DESIGN.md) specifies immutable preparation plus compact
-consent and provides offline signed-wire tests, including a distinct fee payer
-and compute-budget instruction. It does not implement a new SBF. Next: an
-isolated default-disabled candidate, adversarial preparation/consent tests and
-actual independent-role client/RPC integration with the financial kernel.
+Initial full acceptance: 72 Rust / 21 JavaScript / 6 additional Python test
+methods; 142 timing probes; 669 native-loader financial transactions; 11 raw
+financial checkpoints and 55 loopback reads; 15 finalized actual-node client
+transactions and 4 raw policy checkpoints. Exact source/receipt identities and
+reproduction commands are in the linked acceptance and review-handoff files.
+Published-source CI must pass for the exact reviewed commit.
 
-[E-10](E10_V6_BOUNDED_SUBMISSION.md) remains the accepted controlled-runtime
-financial/recovery baseline: 63 Rust / 47 Python / 4 JavaScript checks and eleven
-raw checkpoints. Human review, production authorities and public deployment
-remain open. Founder-requested demand feedback is paused/unverified.
+[E-11A](E11_LOCAL_VALIDATOR_CLIENT.md) and the original
+[E-11B design](E11B_BOOTSTRAP_DESIGN.md) remain historical evidence. The old v6
+six-role initialization is still oversized; it was not silently patched or
+upgraded. E-10/v6 and all earlier frozen program/evidence bytes are preserved.
+
+Next engineering/runtime boundary: successful recovery/continued withdrawals
+on an actual validator after the full long notice/cliff, with the runtime and
+Clock assumptions explicitly stated. Controlled-Clock native-loader financial
+continuity already passes and is a different claim. Human review, final annual
+data/rights/actors and public deployment remain open. Feedback is still paused;
+there is no new demand evidence or official mint.
 
 E-07 now has an [isolated v5 withdrawal-recovery SBF candidate](LAUNCH_V5_WITHDRAWAL_RECOVERY_CANDIDATE.md):
 58 scoped Rust checks, 15 new Python checks and 11 independently decoded signed

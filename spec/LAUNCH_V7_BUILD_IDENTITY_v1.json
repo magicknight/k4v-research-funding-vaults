@@ -1,0 +1,17 @@
+{
+  "schema": "K4V-LAUNCH-V7-BUILD-v1",
+  "program": "CYFsfATtQB3Excjsm4Cuh8ZWnPE5j6XAU3GS3RKXmUcK",
+  "solana_cli": "3.1.10",
+  "platform_tools": "v1.52",
+  "production_ready": false,
+  "profiles": {
+    "disabled": {
+      "bytes": 539120,
+      "sha256": "2d1b6268b8305e57c2b4a9b830873ee5e7488091b7aabec9b7f9e94bc2618d9c"
+    },
+    "test": {
+      "bytes": 553624,
+      "sha256": "df1011597eeda9e2013d648d3f3be8e840a4bcab8a0e3143e2a9c161cd0f3b67"
+    }
+  }
+}

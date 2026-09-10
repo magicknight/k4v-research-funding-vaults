@@ -1,0 +1,61 @@
+name: E11B engineering
+on:
+  push:
+    branches: [main, codex/e11b-compact-bootstrap]
+  pull_request:
+    paths:
+      - 'candidates/launch-vault-v7/**'
+      - 'clients/launch_v7*'
+      - 'src/e11b*'
+      - 'src/launch_v7*'
+      - 'tools/*e11b*'
+      - 'docs/E11B*'
+      - 'evidence/e11b/**'
+      - 'E11B_SHA256SUMS'
+      - '.github/workflows/e11b-engineering.yml'
+permissions:
+  contents: read
+jobs:
+  candidate-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install locked JavaScript dependencies
+        run: npm ci --ignore-scripts
+      - name: Install pinned Solana CLI
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Reproduce the committed candidate, frozen bytes, financial regressions and actual six-role node
+        run: bash tools/run_e11b_acceptance.sh
+      - name: Bind exact checked-out tree and preserve available evidence
+        if: always()
+        run: |
+          mkdir -p target/e11b/export
+          git rev-parse HEAD > target/e11b/export/checked-out-commit.txt
+          git rev-parse HEAD^{tree} > target/e11b/export/checked-out-tree.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import tarfile, hashlib, json
+          with tarfile.open('target/e11b/export/evidence.tar.gz', 'w:gz') as archive:
+              for p in sorted(Path('target/e11b').rglob('*')):
+                  if p.is_file() and 'export' not in p.parts:
+                      archive.add(p, arcname=str(p))
+          files = ['spec/LAUNCH_V7_BUILD_IDENTITY_v1.json', 'E11B_SHA256SUMS', 'SHA256SUMS', 'tools/run_e11b_acceptance.sh']
+          Path('target/e11b/export/entrypoint-sha256.json').write_text(json.dumps({p: hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in files if Path(p).exists()}, indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: e11b-committed-source-${{ github.sha }}
+          path: target/e11b/export/
+          if-no-files-found: error
+          retention-days: 14
