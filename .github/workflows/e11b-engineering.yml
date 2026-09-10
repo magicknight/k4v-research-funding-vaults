@@ -10,20 +10,67 @@ on:
 permissions:
   contents: read
 jobs:
-  source-snapshot:
+  candidate-core:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
-      - name: Export tracked source at the exact revision
-        run: |
-          mkdir -p /tmp/e11b-source
-          git rev-parse HEAD > /tmp/e11b-source/commit.txt
-          git archive --format=tar HEAD | gzip -n > /tmp/e11b-source/source.tar.gz
-          cd /tmp/e11b-source && sha256sum source.tar.gz > SHA256SUMS
-      - uses: actions/upload-artifact@v6
+      - uses: actions/setup-node@v7
         with:
-          name: e11b-source-${{ github.sha }}
-          path: /tmp/e11b-source/
+          node-version: '20'
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Derive isolated candidate without changing frozen parents
+        run: |
+          python3 tools/materialize_e11b_candidate.py
+          sha256sum -c SHA256SUMS
+      - name: Install pinned Solana CLI
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Build disabled and TEST_ONLY SBF
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p target/e11b
+          cargo fmt --manifest-path candidates/launch-vault-v7/Cargo.toml
+          for profile in disabled test; do
+            features=()
+            if [[ "$profile" == test ]]; then features=(--features test-profile); fi
+            CARGO_TARGET_DIR=/tmp/k4v-e11b-sbf NO_DNA=1 cargo build-sbf --tools-version v1.52 --manifest-path candidates/launch-vault-v7/Cargo.toml --sbf-out-dir "target/v7-$profile" -- --locked "${features[@]}" 2>&1 | tee "target/e11b/build-$profile.log"
+            python3 - "target/e11b/build-$profile.log" <<'PY'
+          import sys
+          from pathlib import Path
+          text = Path(sys.argv[1]).read_text().lower()
+          assert not any(s in text for s in ('stack offset', 'overwrites values', 'error:')), 'SBF_DIAGNOSTICS'
+          PY
+          done
+          sha256sum target/v7-*/*.so | tee target/e11b/sbf-sha256.txt
+      - name: Compiler ABI, inherited signed financial and timing regression
+        shell: bash
+        env:
+          CARGO_TARGET_DIR: /tmp/k4v-e11b-native
+          K4V_E11B_REHEARSAL_OUT: ${{ github.workspace }}/target/e11b/raw-rehearsal.json
+          K4V_E11B_PROBE_OUT_DIR: ${{ github.workspace }}/target/e11b/probes
+        run: |
+          set -euo pipefail
+          python3 tools/build_launch_v7_idl.py
+          cargo clippy --manifest-path candidates/launch-vault-v7/Cargo.toml --all-targets --features test-profile --locked -- -D warnings
+          cargo test --manifest-path candidates/launch-vault-v7/Cargo.toml --features test-profile --locked 2>&1 | tee target/e11b/rust-tests.log
+          node --test probes/launch_v7_identity.test.mjs
+          sha256sum -c SHA256SUMS
+      - name: Package inspectable source and explicit partial evidence
+        if: always()
+        run: |
+          mkdir -p target/e11b/export
+          git rev-parse HEAD > target/e11b/export/base-commit.txt
+          tar -czf target/e11b/export/generated-source.tar.gz candidates/launch-vault-v7 idl/launch_vault_v7.json spec/LAUNCH_V7_IDENTITY_VECTOR_v1.json probes/launch_v7* tools/build_launch_v7_idl.py src/launch_v7* src/e11b_verifier.py tools/pack_e11b_rehearsal.py tools/e11b_recorded_rpc.py tools/verify_e11b_probes.py
+          cp -r target/e11b/*.log target/e11b/*.txt target/e11b/*.json target/e11b/export/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: e11b-core-${{ github.sha }}
+          path: target/e11b/export/
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
