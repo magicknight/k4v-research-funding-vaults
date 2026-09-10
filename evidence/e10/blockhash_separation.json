@@ -1,0 +1,38 @@
+{
+  "cases": [
+    {
+      "expired_hash_rejected": true,
+      "freshly_signed_valid_hash_accepted": true,
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "expired_hash_rejected": true,
+      "freshly_signed_valid_hash_accepted": true,
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "expired_hash_rejected": true,
+      "freshly_signed_valid_hash_accepted": true,
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "expired_hash_rejected": true,
+      "freshly_signed_valid_hash_accepted": true,
+      "recovery": true,
+      "role": 1
+    }
+  ],
+  "clock_controlled": true,
+  "fee_airdrops": true,
+  "financial_transfers_tested": false,
+  "private_keys_serialized": false,
+  "probe": "blockhash_separation",
+  "program_and_mint_injected": true,
+  "program_id": "FixSiDfTxvoy5Zgjp5KdFU8U23ChwCxPWY3WTkmMW2fU",
+  "public_chain_transactions": 0,
+  "schema": "K4V-E10-V6-SUBMISSION-PROBE-v1",
+  "scope": "SIGNED_LOCAL_LITESVM_ON_V6_TEST_SBF"
+}

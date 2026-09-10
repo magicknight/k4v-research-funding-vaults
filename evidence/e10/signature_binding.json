@@ -1,0 +1,410 @@
+{
+  "cases": [
+    {
+      "accepted": false,
+      "changed": "role",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "mode",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "nonce",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "epoch",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "valid_from",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "valid_until",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "predecessor",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "program",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "policy",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "successor",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "missing_signature": 0,
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "missing_signature": 1,
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "missing_signature": 2,
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "fee_payer_only_resigned",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "resigned_wrong_predecessor",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": true,
+      "changed": "all_signers_refreshed",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "role",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "mode",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "nonce",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "epoch",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "valid_from",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "valid_until",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "predecessor",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "program",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "policy",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "successor",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "missing_signature": 0,
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "missing_signature": 1,
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "missing_signature": 2,
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "missing_signature": 3,
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "fee_payer_only_resigned",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "resigned_wrong_predecessor",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": true,
+      "changed": "all_signers_refreshed",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "changed": "role",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "mode",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "nonce",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "epoch",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "valid_from",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "valid_until",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "predecessor",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "program",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "policy",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "successor",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "missing_signature": 0,
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "missing_signature": 1,
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "missing_signature": 2,
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "fee_payer_only_resigned",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "resigned_wrong_predecessor",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": true,
+      "changed": "all_signers_refreshed",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "role",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "mode",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "nonce",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "epoch",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "valid_from",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "valid_until",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "predecessor",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "program",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "policy",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "successor",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "missing_signature": 0,
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "missing_signature": 1,
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "missing_signature": 2,
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "missing_signature": 3,
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "fee_payer_only_resigned",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "changed": "resigned_wrong_predecessor",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": true,
+      "changed": "all_signers_refreshed",
+      "recovery": true,
+      "role": 1
+    }
+  ],
+  "clock_controlled": true,
+  "fee_airdrops": true,
+  "financial_transfers_tested": false,
+  "private_keys_serialized": false,
+  "probe": "signature_binding",
+  "program_and_mint_injected": true,
+  "program_id": "FixSiDfTxvoy5Zgjp5KdFU8U23ChwCxPWY3WTkmMW2fU",
+  "public_chain_transactions": 0,
+  "schema": "K4V-E10-V6-SUBMISSION-PROBE-v1",
+  "scope": "SIGNED_LOCAL_LITESVM_ON_V6_TEST_SBF"
+}

@@ -1,0 +1,238 @@
+{
+  "cases": [
+    {
+      "accepted": true,
+      "case": "zero_width",
+      "expected_error": "",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "negative_start",
+      "expected_error": "SubmissionWindow",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "reverse",
+      "expected_error": "SubmissionWindow",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "oversize",
+      "expected_error": "SubmissionWindow",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "early",
+      "expected_error": "SubmissionWindow",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": true,
+      "case": "future_scheduled",
+      "expected_error": "",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": true,
+      "case": "latest_safe",
+      "expected_error": "",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "latest_overflow",
+      "expected_error": "Overflow",
+      "recovery": false,
+      "role": 0
+    },
+    {
+      "accepted": true,
+      "case": "zero_width",
+      "expected_error": "",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "negative_start",
+      "expected_error": "SubmissionWindow",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "reverse",
+      "expected_error": "SubmissionWindow",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "oversize",
+      "expected_error": "SubmissionWindow",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "early",
+      "expected_error": "SubmissionWindow",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": true,
+      "case": "future_scheduled",
+      "expected_error": "",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": true,
+      "case": "latest_safe",
+      "expected_error": "",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": false,
+      "case": "latest_overflow",
+      "expected_error": "Overflow",
+      "recovery": true,
+      "role": 0
+    },
+    {
+      "accepted": true,
+      "case": "zero_width",
+      "expected_error": "",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "negative_start",
+      "expected_error": "SubmissionWindow",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "reverse",
+      "expected_error": "SubmissionWindow",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "oversize",
+      "expected_error": "SubmissionWindow",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "early",
+      "expected_error": "SubmissionWindow",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": true,
+      "case": "future_scheduled",
+      "expected_error": "",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": true,
+      "case": "latest_safe",
+      "expected_error": "",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "latest_overflow",
+      "expected_error": "Overflow",
+      "recovery": false,
+      "role": 1
+    },
+    {
+      "accepted": true,
+      "case": "zero_width",
+      "expected_error": "",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "negative_start",
+      "expected_error": "SubmissionWindow",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "reverse",
+      "expected_error": "SubmissionWindow",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "oversize",
+      "expected_error": "SubmissionWindow",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "early",
+      "expected_error": "SubmissionWindow",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": true,
+      "case": "future_scheduled",
+      "expected_error": "",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": true,
+      "case": "latest_safe",
+      "expected_error": "",
+      "recovery": true,
+      "role": 1
+    },
+    {
+      "accepted": false,
+      "case": "latest_overflow",
+      "expected_error": "Overflow",
+      "recovery": true,
+      "role": 1
+    }
+  ],
+  "clock_controlled": true,
+  "fee_airdrops": true,
+  "financial_transfers_tested": false,
+  "private_keys_serialized": false,
+  "probe": "interval_boundaries",
+  "program_and_mint_injected": true,
+  "program_id": "FixSiDfTxvoy5Zgjp5KdFU8U23ChwCxPWY3WTkmMW2fU",
+  "public_chain_transactions": 0,
+  "schema": "K4V-E10-V6-SUBMISSION-PROBE-v1",
+  "scope": "SIGNED_LOCAL_LITESVM_ON_V6_TEST_SBF"
+}
