@@ -1,4 +1,4 @@
-# Current v7 review scope: E11B, E11C and E-SOAK-01
+# Current v7 review scope: E11B, E11C and bounded E-SOAK recovery
 
 Status: material ready for review; **no named independent human review accepted**.
 
@@ -18,6 +18,7 @@ are selected by these tests. The default program still disables admission.
 | E11C archive | `sha256sum -c E11C_SHA256SUMS`; `python3 tools/verify_e11c_archive.py` | Offline replay of the fixed author-run mature-state evidence |
 | E11C fresh run | `.github/workflows/e11c-continuation.yml` | Actual Agave execution from two explicitly preloaded mature states |
 | E-SOAK-01 | `docs/E_SOAK_OBSERVATION.md`; journal tests; `tools/soak_agave_smoke.mjs` | Durable sampled observation records, offline revalidation, observer restart on a short-lived real node |
+| E-SOAK-02 | `docs/E_SOAK_PERSISTENT.md`; `tools/soak_persistent.mjs`; dedicated workflow | Finite signed bootstrap, same-ledger node restart, locked full-run backup/restore, retained test-key continuation; acceptance requires the exact run's receipt |
 
 An old R3/B2 or Squads-only screen is a different scope and cannot sign off the
 current v7 recovery/initialization/accounting code. An AI service may contribute
@@ -32,6 +33,13 @@ untrusted local RPC. Confirm that raw bytes are redecoded and that no uptime,
 natural-soak or scientific conclusion follows from a self-reported timestamp.
 Test loss/replacement of the host and backups separately before accepting a
 durable operational deployment.
+
+For the persistent driver, review retention settings, startup/history readiness,
+internal snapshot-link relocation, source/restore byte equality, backup-head
+pinning, live-copy refusal, key-file permissions, ambiguous signed attempts and
+the public-artifact allowlist. Full ledgers and test-key backups are private
+local runtime state, not CI uploads. Planned process restarts do not establish
+power-loss recovery, off-host durability or a natural maturity history.
 
 Use the existing E11B threat checklist for mint authority, preparation consent,
 substitution/replay, role recovery, accounting continuity and loader control.

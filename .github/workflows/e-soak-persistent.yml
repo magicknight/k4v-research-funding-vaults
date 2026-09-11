@@ -1,0 +1,62 @@
+name: E-SOAK persistent ledger recovery
+on:
+  push:
+    branches: [main, codex/d0099-persistent-soak]
+  pull_request:
+    paths:
+      - 'tools/soak_persistent.mjs'
+      - 'tools/soak_backup.py'
+      - 'tools/verify_soak_persistent*'
+      - 'tests/test_soak_backup.py'
+      - 'docs/E_SOAK_PERSISTENT.md'
+      - '.github/workflows/e-soak-persistent.yml'
+permissions:
+  contents: read
+concurrency:
+  group: persistent-soak-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  restart-backup-restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+      - run: npm ci --ignore-scripts
+      - run: python3 -B -m unittest discover -s tests -p test_soak_backup.py -v
+      - name: Install pinned validator
+        run: |
+          sh -c "$(curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v3.1.10/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Check frozen evidence and recover exact TEST_ONLY program
+        run: |
+          sha256sum -c SHA256SUMS
+          sha256sum -c E11B_SHA256SUMS
+          sha256sum -c E11C_SHA256SUMS
+          python3 -B tools/e11c_prepare_fixture.py --extract-program
+      - name: Signed bootstrap, same-ledger restart and stopped backup restore
+        run: node tools/soak_persistent.mjs acceptance --directory target/persistent-soak
+      - name: Independently recheck public bytes and signatures
+        run: |
+          python3 -B tools/verify_soak_persistent.py target/persistent-soak/public
+          node tools/verify_soak_persistent_signatures.mjs target/persistent-soak/public
+          git diff --exit-code
+      - name: Package only selected public evidence
+        run: |
+          git archive --format=tar.gz -o target/persistent-soak/public/source.tar.gz HEAD
+          tar -czf target/persistent-soak-public.tar.gz -C target/persistent-soak public
+      - uses: actions/upload-artifact@v6
+        with:
+          name: persistent-soak-${{ github.sha }}
+          path: target/persistent-soak-public.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+      # Never upload run/, restored/ or backup/: each contains local test keys,
+      # including Agave node and faucet key files inside the ledger itself.
